@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-
+import { motion } from 'framer-motion';
 function App() {
   return (
     <motion.div
@@ -8,11 +7,7 @@ function App() {
       exit={{ y: 100, opacity: 0 }}
       transition={{ duration: 1 }}
     >
-      <h1>🚧Site is under construction🚧</h1>
-      <h2>
-        You can check my <a href="https://github.com/PB-Cookie">github</a> on
-        the meanwhile
-      </h2>
+      <h1></h1>
     </motion.div>
   );
 }

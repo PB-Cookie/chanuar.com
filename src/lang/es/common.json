@@ -1,0 +1,21 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "Operación exitosa",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "confirm": "Confirmar",
+    "yes": "Sí",
+    "no": "No",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "back": "Atrás",
+    "send": "Enviar"
+  }
+}

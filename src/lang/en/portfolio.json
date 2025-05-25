@@ -2,5 +2,12 @@
   "experience": "experience",
   "studies": "studies",
   "technologies": "technologies",
-  "contact": "contact me!"
+  "contactForm": {
+    "title": "contact me!",
+    "msgSent": "Thanks for your message! I'll get back to you as soon as possible.",
+    "msgError": "There was an error sending your message. Please try again later.",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message"
+  }
 }

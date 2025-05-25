@@ -2,5 +2,12 @@
   "experience": "experiencia",
   "studies": "estudios",
   "technologies": "tecnologías",
-  "contact": "ponte en contacto conmigo"
+  "contactForm": {
+    "title": "¡contáctame!",
+    "msgSent": "¡Gracias por tu mensaje! Te responderé lo antes posible.",
+    "msgError": "Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo más tarde.",
+    "name": "Nombre",
+    "email": "Correo electrónico",
+    "message": "Mensaje"
+  }
 }

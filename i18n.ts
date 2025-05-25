@@ -3,6 +3,8 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import portfolioEs from './src/lang/es/portfolio.json';
 import portfolioEn from './src/lang/en/portfolio.json';
+import commonEs from './src/lang/es/common.json';
+import commonEn from './src/lang/en/common.json';
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -12,9 +14,11 @@ i18n
     resources: {
       es: {
         portfolio: portfolioEs,
+        common: commonEs,
       },
       en: {
         portfolio: portfolioEn,
+        common: commonEn,
       },
     },
     defaultNS: 'portfolio',

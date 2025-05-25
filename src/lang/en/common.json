@@ -1,0 +1,21 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Operation successful",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "search": "Search",
+    "next": "Next",
+    "previous": "Previous",
+    "back": "Back",
+    "send": "Send"
+  }
+}

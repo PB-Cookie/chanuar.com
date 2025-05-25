@@ -10,7 +10,7 @@ function App() {
       transition={{ duration: 1 }}
     >
       <LanguageSwitcher></LanguageSwitcher>
-      <h1>{t('contact')}</h1>
+      <h1>{t('portfolio:contactForm.title')}</h1>
 
       <Contact></Contact>
     </motion.div>
@@ -18,7 +18,6 @@ function App() {
 }
 export default App;
 
-// TODO:
 import i18n from 'i18next';
 import Contact from './components/contact';
 

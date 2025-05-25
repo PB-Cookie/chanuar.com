@@ -6,7 +6,9 @@ import {
   EMAILJS_SERVICE_ID,
   EMAILJS_TEMPLATE_ID,
 } from '../config/env';
+import { useTranslation } from 'react-i18next';
 const Contact = () => {
+  const { t } = useTranslation(['portfolio', 'common']);
   const [submitted, setSubmitted] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -21,7 +23,7 @@ const Contact = () => {
           publicKey: EMAILJS_PUBLIC_KEY,
         })
         .then(
-          (result) => {
+          () => {
             setSubmitted(true);
           },
           (error) => {
@@ -37,9 +39,8 @@ const Contact = () => {
       id='contact'
       style={{ padding: '2rem', maxWidth: 500, margin: '0 auto' }}
     >
-      <h2>Contáctame</h2>
       {submitted ? (
-        <p>¡Gracias por tu mensaje! Te responderé pronto.</p>
+        <p>{t('portfolio:contactForm.msgSent')}</p>
       ) : (
         <motion.form
           onSubmit={sendEmail}
@@ -49,15 +50,29 @@ const Contact = () => {
           ref={formRef}
         >
           <div style={{ marginBottom: '1rem' }}>
-            <input type='text' placeholder='name' name='name' required />
+            <input
+              type='text'
+              placeholder={t('portfolio:contactForm.name')}
+              name='name'
+              required
+            />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <input type='email' placeholder='email' name='email' required />
+            <input
+              type='email'
+              placeholder={t('portfolio:contactForm.email')}
+              name='email'
+              required
+            />
           </div>
           <div style={{ marginBottom: '1rem' }}>
-            <textarea rows={8} placeholder='Message' name='message' />
+            <textarea
+              rows={8}
+              placeholder={t('portfolio:contactForm.message')}
+              name='message'
+            />
           </div>
-          <button type='submit'>Enviar</button>
+          <button type='submit'>{t('common:common.send')}</button>
         </motion.form>
       )}
     </section>

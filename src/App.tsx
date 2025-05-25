@@ -11,6 +11,8 @@ function App() {
     >
       <LanguageSwitcher></LanguageSwitcher>
       <h1>{t('contact')}</h1>
+
+      <Contact></Contact>
     </motion.div>
   );
 }
@@ -18,6 +20,7 @@ export default App;
 
 // TODO:
 import i18n from 'i18next';
+import Contact from './components/contact';
 
 function LanguageSwitcher() {
   const changeLanguage = (lng: 'en' | 'es') => {

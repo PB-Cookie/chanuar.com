@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,7 +21,7 @@ export default function AdminManagement() {
     }, [role]);
 
     const fetchProfiles = async () => {
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('profiles')
             .select('*')
             .order('username');
@@ -87,8 +87,8 @@ export default function AdminManagement() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${profile.role === 'admin'
-                                                ? 'bg-purple-100 text-purple-800'
-                                                : 'bg-green-100 text-green-800'
+                                            ? 'bg-purple-100 text-purple-800'
+                                            : 'bg-green-100 text-green-800'
                                             }`}>
                                             {profile.role}
                                         </span>

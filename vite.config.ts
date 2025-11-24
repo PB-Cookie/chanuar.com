@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Chanuar Challenge',
-        short_name: 'Chanuar',
-        description: 'Monthly challenges and tracking',
+        name: 'Casa',
+        short_name: 'Casa',
+        description: 'Monthly payment tracking',
         theme_color: '#ffffff',
         icons: [
           {

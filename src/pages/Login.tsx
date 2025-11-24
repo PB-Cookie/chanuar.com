@@ -79,7 +79,7 @@ export default function Login() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="input-field w-full rounded-xl p-3"
-                            placeholder="your@email.com"
+                            placeholder="tu@email.com"
                             required
                         />
                     </div>

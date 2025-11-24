@@ -131,7 +131,7 @@ export default function UserDashboard() {
                 </div>
 
                 <div className="glass-panel p-8 rounded-2xl relative overflow-hidden">
-                    <h2 className="text-xl font-semibold mb-6 text-white">Your Submission</h2>
+                    <h2 className="text-xl font-semibold mb-6 text-white">Tu envío</h2>
 
                     {status && (
                         <div className={`p-4 rounded-xl text-center border mb-4 ${status === 'approved' ? 'bg-green-500/10 border-green-500/30 text-green-400' :

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -116,23 +115,28 @@ export default function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="p-6 max-w-6xl mx-auto"
         >
+
+            {/* 
+            
+            This is done through the database itself. 
+            
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
                 <Link
                     to="/admin/users"
                     className="bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors border border-slate-600"
                 >
-                    Manage Users
+                    Gestionar Usuarios
                 </Link>
-            </div>
+            </div> */}
 
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1">
                     <div className="glass-panel p-6 rounded-2xl sticky top-24">
-                        <h2 className="text-xl font-semibold mb-4 text-indigo-400">Set Monthly Target</h2>
+                        <h2 className="text-xl font-semibold mb-4 text-indigo-400">Poner ingreso mensual</h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm text-gray-400 mb-1">Target Value</label>
+                                <label className="block text-sm text-gray-400 mb-1">Valor objetivo</label>
                                 <input
                                     type="text"
                                     value={targetValue}
@@ -189,7 +193,7 @@ export default function AdminDashboard() {
                                                 className="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                                View Proof Image
+                                                Ver imagen
                                             </a>
                                         </div>
                                         <div className="flex gap-2 w-full sm:w-auto">
@@ -197,13 +201,13 @@ export default function AdminDashboard() {
                                                 onClick={() => handleReview(sub.id, 'approved')}
                                                 className="flex-1 sm:flex-none bg-green-500/10 text-green-400 border border-green-500/20 px-4 py-2 rounded-lg hover:bg-green-500/20 transition-colors"
                                             >
-                                                Approve
+                                                Aceptar
                                             </button>
                                             <button
                                                 onClick={() => handleReview(sub.id, 'rejected')}
                                                 className="flex-1 sm:flex-none bg-red-500/10 text-red-400 border border-red-500/20 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors"
                                             >
-                                                Reject
+                                                Rechazar
                                             </button>
                                         </div>
                                     </motion.div>

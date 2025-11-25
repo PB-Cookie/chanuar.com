@@ -1,7 +1,7 @@
 -- Create storage bucket if it doesn't exist
 insert into storage.buckets (id, name, public)
 values ('submissions', 'submissions', true)
-on conflict (id) do nothing;
+on conflict (id) do update set public = true;
 
 -- Ensure policies exist
 drop policy if exists "Submission images are publicly accessible." on storage.objects;

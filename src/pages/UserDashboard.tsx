@@ -8,6 +8,7 @@ export default function UserDashboard() {
     const [target, setTarget] = useState('');
     const [uploading, setUploading] = useState(false);
     const [status, setStatus] = useState<string | null>(null);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         fetchTarget();
@@ -41,12 +42,15 @@ export default function UserDashboard() {
         if (targetData) {
             const { data } = await supabase
                 .from('submissions')
-                .select('status')
+                .select('status, image_url')
                 .eq('user_id', user.id)
                 .eq('target_id', targetData.id)
                 .maybeSingle();
 
-            if (data) setStatus(data.status);
+            if (data) {
+                setStatus(data.status);
+                setImageUrl(data.image_url);
+            }
         }
     };
 
@@ -96,6 +100,7 @@ export default function UserDashboard() {
             if (dbError) throw dbError;
 
             setStatus('pending');
+            setImageUrl(publicUrl);
         } catch (error: any) {
             alert('Error uploading: ' + error.message);
         } finally {
@@ -130,7 +135,7 @@ export default function UserDashboard() {
                     </div>
                 </div>
 
-                <div className="glass-panel p-8 rounded-2xl relative overflow-hidden">
+                <div className="glass-panel p-8 rounded-2xl relative">
                     <h2 className="text-xl font-semibold mb-6 text-white">Tu envío</h2>
 
                     {status && (
@@ -143,8 +148,19 @@ export default function UserDashboard() {
                         </div>
                     )}
 
+                    {imageUrl && (
+                        <div className="mb-6">
+                            <p className="text-sm text-gray-400 mb-2">Tu comprobante:</p>
+                            <img
+                                src={imageUrl}
+                                alt="Tu envío"
+                                className="w-full rounded-xl border border-slate-700 max-h-64 object-cover"
+                            />
+                        </div>
+                    )}
+
                     {canUpload ? (
-                        <div className="h-full flex flex-col justify-center">
+                        <div className="mt-6 flex flex-col justify-center">
                             <div className="space-y-4">
                                 <label className="block w-full cursor-pointer group">
                                     <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center hover:border-indigo-500 hover:bg-indigo-500/5 transition-all">

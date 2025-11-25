@@ -186,15 +186,14 @@ export default function AdminDashboard() {
                                                 </div>
                                                 <p className="font-medium text-white">{sub.profiles?.username || 'Unknown User'}</p>
                                             </div>
-                                            <a
-                                                href={sub.image_url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                                Ver imagen
-                                            </a>
+                                            <div className="mt-2">
+                                                <img
+                                                    src={sub.image_url}
+                                                    alt="Submission proof"
+                                                    className="w-full max-w-xs rounded-lg border border-slate-700 hover:opacity-90 transition-opacity cursor-pointer"
+                                                    onClick={() => window.open(sub.image_url, '_blank')}
+                                                />
+                                            </div>
                                         </div>
                                         <div className="flex gap-2 w-full sm:w-auto">
                                             <button

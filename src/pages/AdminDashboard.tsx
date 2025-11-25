@@ -113,7 +113,7 @@ export default function AdminDashboard() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 max-w-6xl mx-auto"
+            className="p-4 md:p-6 max-w-6xl mx-auto"
         >
 
             {/* 
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
 
             <div className="grid lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1">
-                    <div className="glass-panel p-6 rounded-2xl sticky top-24">
+                    <div className="glass-panel p-4 md:p-6 rounded-2xl sticky top-24">
                         <h2 className="text-xl font-semibold mb-4 text-indigo-400">Poner ingreso mensual</h2>
                         <div className="space-y-4">
                             <div>
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="lg:col-span-2">
-                    <div className="glass-panel p-6 rounded-2xl">
+                    <div className="glass-panel p-4 md:p-6 rounded-2xl">
                         <h2 className="text-xl font-semibold mb-6 text-white flex items-center gap-2">
                             Pendientes
                             <span className="bg-indigo-500/20 text-indigo-300 text-xs px-2 py-1 rounded-full">

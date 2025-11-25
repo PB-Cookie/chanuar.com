@@ -114,17 +114,17 @@ export default function UserDashboard() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 max-w-4xl mx-auto"
+            className="p-4 md:p-6 max-w-4xl mx-auto"
         >
             <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 mb-4">
+                <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 mb-4">
                     Ingreso mensual
                 </h1>
                 {/* <p className="text-gray-400">Push your limits, track your progress.</p> */}
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-                <div className="glass-panel p-8 rounded-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
+                <div className="glass-panel p-6 md:p-8 rounded-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <h2 className="text-xl text-gray-400 mb-4 relative z-10">Ingreso mensual</h2>
                     <div className="text-5xl font-bold text-white mb-2 relative z-10">
@@ -135,7 +135,7 @@ export default function UserDashboard() {
                     </div>
                 </div>
 
-                <div className="glass-panel p-8 rounded-2xl relative">
+                <div className="glass-panel p-6 md:p-8 rounded-2xl relative">
                     <h2 className="text-xl font-semibold mb-6 text-white">Tu envío</h2>
 
                     {status && (

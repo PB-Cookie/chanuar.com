@@ -101,7 +101,16 @@ const AppContent = () => {
         </ProtectedRoute>
       } />
 
-      <Route path="/" element={<Navigate to={user ? (role === 'admin' ? '/admin' : '/dashboard') : '/login'} />} />
+      <Route path="/" element={
+        user ? (
+          <Navigate to={role === 'admin' ? '/admin' : '/dashboard'} replace />
+        ) : (
+          <Navigate to="/login" replace />
+        )
+      } />
+
+      {/* Catch all - redirect to root */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

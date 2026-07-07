@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { profileIconUrl, rarityInfo, RARITIES } from '../lib/cdragon.js';
+import {
+  profileIconUrl, championIconUrl, rarityInfo, RARITIES, fetchCosmeticsCatalog,
+} from '../lib/cdragon.js';
+
+// Búsqueda insensible a acentos/mayúsculas (mismo patrón que en App.jsx).
+const norm = (s) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// "PLATINUM" → "Platinum": los niveles de reto llegan en mayúsculas.
+const titleCase = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
 
 /* ------------------------------------------------------------------ */
 
-export function Header({ profile, source, lastSyncAt, onImport }) {
+export function Header({ profile, source, lastSyncAt, flair, onImport }) {
   return (
     <header className="header">
       {profile?.profile_icon_id != null && (
@@ -15,11 +23,20 @@ export function Header({ profile, source, lastSyncAt, onImport }) {
           {profile?.tag_line && <span className="header__tag"> #{profile.tag_line}</span>}
         </h1>
         <div className="header__meta">
-          {profile ? `Nivel ${profile.level}` : 'Cámara de skins'}
+          {profile ? `Nivel ${profile.level}` : 'Colección de skins'}
           {lastSyncAt && (
             <>
               <span className="dot" aria-hidden="true">◆</span>
               Sincronizado {relativeTime(lastSyncAt)}
+            </>
+          )}
+          {flair && (
+            <>
+              <span className="dot" aria-hidden="true">◆</span>
+              Honor {flair.honorLevel}
+              {flair.challengeLevel && (
+                <span className="header__flair-muted"> · Retos {titleCase(flair.challengeLevel)}</span>
+              )}
             </>
           )}
         </div>
@@ -44,7 +61,10 @@ export function relativeTime(iso) {
 
 /* ------------------------------------------------------------------ */
 
-export function StatsVault({ ownedCount, totalCount, chromasOwned, chromasTotal, byRarity, loot }) {
+export function StatsVault({
+  ownedCount, totalCount, chromasOwned, chromasTotal, byRarity, loot,
+  collectionValueRp = 0, pricedOwnedCount = 0, wallet = null,
+}) {
   const pct = totalCount ? Math.round((ownedCount / totalCount) * 1000) / 10 : 0;
   const chests = loot?.chests?.reduce((n, c) => n + c.count, 0) ?? null;
   const permanents = loot?.skinPermanents?.length ?? 0;
@@ -52,19 +72,30 @@ export function StatsVault({ ownedCount, totalCount, chromasOwned, chromasTotal,
     <section className="vault" aria-label="Resumen de la colección">
       <div className="vault__row">
         <div>
-          <div className="vault__label">Skins en la cámara</div>
+          <div className="vault__label">Skins en la colección</div>
           <div className="vault__count">
             {ownedCount}
             <small> / {totalCount} · {pct}%</small>
           </div>
         </div>
         <div className="vault__extra">
+          {collectionValueRp > 0 && (
+            <div className="vault__value">
+              <div className="vault__value-rp">≈ {collectionValueRp.toLocaleString('es')} RP</div>
+              <div className="vault__value-sub">valor de tienda de {pricedOwnedCount} skins</div>
+            </div>
+          )}
           <div><strong>{chromasOwned}</strong>{chromasTotal ? ` / ${chromasTotal}` : ''} chromas</div>
           {loot && (
             <div>
               <strong>{loot.skinShards?.length ?? 0}</strong> fragmentos
               {permanents > 0 && <> · <strong>{permanents}</strong> skins por activar</>}
               {chests != null && chests > 0 && <> · <strong>{chests}</strong> cofres</>}
+            </div>
+          )}
+          {wallet && (
+            <div className="vault__wallet">
+              {wallet.RP} RP · {wallet.lol_blue_essence.toLocaleString('es')} EA
             </div>
           )}
         </div>
@@ -105,10 +136,25 @@ const VIEWS = [
   ['missing', 'Me falta'],
 ];
 
+const TABS = [
+  ['skins', 'Skins'],
+  ['chromas', 'Chromas'],
+  ['ofertas', 'Ofertas'],
+  ['otros', 'Otros'],
+  ['actividad', 'Actividad'],
+];
+
 export function Controls({
   mode, onMode, query, onQuery, view, onView, sort, onSort,
-  rarities, onToggleRarity, flags, onToggleFlag,
+  rarities, onToggleRarity, flags, onToggleFlag, offersCount = 0,
 }) {
+  const showFilters = mode === 'skins' || mode === 'chromas';
+  const showSearch = showFilters || mode === 'otros';
+  const searchLabel = mode === 'otros'
+    ? 'Buscar ward, emote o icono'
+    : mode === 'chromas'
+      ? 'Buscar chroma, skin o campeón'
+      : 'Buscar skin o campeón';
   return (
     <>
       {/* Solo esta fila es sticky: en móvil los chips ocupan 3-4 filas y
@@ -116,37 +162,41 @@ export function Controls({
       <div className="controls">
         <div className="controls__row">
           <div className="tabs" role="group" aria-label="Tipo de colección">
-            <button
-              className={`tab ${mode === 'skins' ? 'tab--active' : ''}`}
-              aria-pressed={mode === 'skins'}
-              onClick={() => onMode('skins')}
-            >
-              Skins
-            </button>
-            <button
-              className={`tab ${mode === 'chromas' ? 'tab--active' : ''}`}
-              aria-pressed={mode === 'chromas'}
-              onClick={() => onMode('chromas')}
-            >
-              Chromas
-            </button>
+            {TABS.map(([value, label]) => (
+              <button
+                key={value}
+                className={`tab ${mode === value ? 'tab--active' : ''}`}
+                aria-pressed={mode === value}
+                onClick={() => onMode(value)}
+              >
+                {label}
+                {value === 'ofertas' && offersCount > 0 && (
+                  <span className="tab__badge" aria-hidden="true">{offersCount}</span>
+                )}
+              </button>
+            ))}
           </div>
-          <input
-            className="controls__search"
-            type="search"
-            placeholder={mode === 'chromas' ? 'Buscar chroma, skin o campeón' : 'Buscar skin o campeón'}
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            aria-label={mode === 'chromas' ? 'Buscar chroma, skin o campeón' : 'Buscar skin o campeón'}
-          />
-          <select className="controls__sort" value={sort} onChange={(e) => onSort(e.target.value)} aria-label="Ordenar campeones">
-            <option value="mastery">Por maestría</option>
-            <option value="completion">Más completos</option>
-            <option value="alpha">Alfabético</option>
-          </select>
+          {showSearch && (
+            <input
+              className="controls__search"
+              type="search"
+              placeholder={searchLabel}
+              value={query}
+              onChange={(e) => onQuery(e.target.value)}
+              aria-label={searchLabel}
+            />
+          )}
+          {showFilters && (
+            <select className="controls__sort" value={sort} onChange={(e) => onSort(e.target.value)} aria-label="Ordenar campeones">
+              <option value="mastery">Por maestría</option>
+              <option value="completion">Más completos</option>
+              <option value="alpha">Alfabético</option>
+            </select>
+          )}
         </div>
       </div>
 
+      {showFilters && (
       <div className="controls__row controls__row--filters">
         {VIEWS.map(([value, label]) => (
           <button
@@ -196,6 +246,7 @@ export function Controls({
           </button>
         )}
       </div>
+      )}
     </>
   );
 }
@@ -211,12 +262,13 @@ function LockIcon() {
   );
 }
 
-export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen }) {
+export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen, offer = null }) {
   const rarity = rarityInfo(skin.rarity);
   // El estado (poseída, rareza, chromas) solo se ve por color/candado: hay que
   // decirlo también en el nombre accesible para lectores de pantalla.
   const label = `${skin.name}, ${rarity.label}${skin.isLegacy ? ', Legacy' : ''}, ` +
-    `${owned ? 'en tu cámara' : 'no poseída'}` +
+    `${owned ? 'en tu colección' : 'no poseída'}` +
+    (offer ? `, en oferta a ${offer.saleRp} RP, antes ${offer.rp} RP, ${offer.discount}% de descuento` : '') +
     (skin.chromaTotal > 0 ? `, ${chromasOwned} de ${skin.chromaTotal} chromas` : '');
   return (
     <article
@@ -233,6 +285,13 @@ export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen }) {
       {!owned && <LockIcon />}
       {skin.chromaTotal > 0 && (
         <span className="skin__chromas">◈ {chromasOwned}/{skin.chromaTotal}</span>
+      )}
+      {offer && (
+        <div className="skin__price">
+          <span className="skin__price-sale">{offer.saleRp} RP</span>
+          <span className="skin__price-was">{offer.rp} RP</span>
+          <span className="skin__price-tag">-{offer.discount}%</span>
+        </div>
       )}
       <div className="skin__name">
         <span className="skin__gem" style={{ '--stone': rarity.color }} aria-hidden="true" />
@@ -431,7 +490,7 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
               {chroma && <span className="modal__chroma-name"> · {chroma.name}</span>}
             </h3>
             <span className={`pill ${selectedOwned ? 'pill--owned' : 'pill--locked'}`}>
-              {selectedOwned ? 'En tu cámara' : chroma ? 'No poseído' : 'No poseída'}
+              {selectedOwned ? 'En tu colección' : chroma ? 'No poseído' : 'No poseída'}
             </span>
           </div>
 
@@ -473,5 +532,222 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
         </div>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Ofertas: rejilla de skins en promoción, reutiliza SkinCard          */
+
+export function OffersSection({ offers, catalog, ownedSkinIds, chromasBySkin, assetUrl, onOpen }) {
+  if (!offers || offers.length === 0) {
+    return (
+      <div className="empty">
+        No hay datos de ofertas todavía. Sincroniza con el collector v0.3 para traer los precios de la tienda.
+      </div>
+    );
+  }
+  // Las ofertas llegan preordenadas (no poseídas primero, luego mayor descuento).
+  const resolved = offers
+    .map((offer) => ({ offer, skin: catalog.skinById.get(offer.skinId) }))
+    .filter((x) => x.skin);
+  const maxEnds = offers.reduce((max, o) => {
+    const t = o.saleEndsAt ? new Date(o.saleEndsAt).getTime() : 0;
+    return t > max ? t : max;
+  }, 0);
+  return (
+    <section className="offers">
+      <div className="section-head">
+        <h2 className="section-head__title">Ofertas de la tienda</h2>
+        {maxEnds > 0 && (
+          <span className="section-head__sub">terminan {new Date(maxEnds).toLocaleDateString('es')}</span>
+        )}
+      </div>
+      <div className="grid">
+        {resolved.map(({ offer, skin }) => (
+          <SkinCard
+            key={offer.skinId}
+            skin={skin}
+            owned={ownedSkinIds.has(skin.id)}
+            chromasOwned={chromasBySkin.get(skin.id) ?? 0}
+            assetUrl={assetUrl}
+            onOpen={onOpen}
+            offer={offer}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Otros: cosméticos poseídos (wards, emotes, iconos), carga diferida  */
+
+const COSMETIC_GROUPS = [
+  ['wards', 'Wards'],
+  ['emotes', 'Emotes'],
+  ['icons', 'Iconos'],
+];
+
+export function CosmeticsSection({ cosmetics, query, assetUrl }) {
+  const [catalog, setCatalog] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchCosmeticsCatalog()
+      .then((c) => { if (alive) setCatalog(c); })
+      .catch((e) => { if (alive) setError(e.message); });
+    return () => { alive = false; };
+  }, []);
+
+  if (error) {
+    return <div className="notice"><strong>No se pudo abrir el arsenal:</strong> {error}.</div>;
+  }
+  if (!catalog) return <div className="loading">Abriendo el arsenal…</div>;
+
+  const q = norm((query ?? '').trim());
+  return (
+    <section className="cosmetics">
+      {COSMETIC_GROUPS.map(([type, label]) => {
+        const map = catalog[type];
+        const ownedIds = cosmetics[type] ?? new Set();
+        const items = [...ownedIds]
+          .map((id) => map.get(id))
+          .filter((it) => it && (!q || norm(it.name).includes(q)));
+        return (
+          <div className="cos-group" key={type}>
+            <div className="section-head">
+              <h2 className="section-head__title">{label}</h2>
+              <span className="section-head__sub">{ownedIds.size} / {map.size}</span>
+            </div>
+            {items.length > 0 ? (
+              <div className="cos-grid">
+                {items.map((it) => (
+                  <figure className="cos-tile" key={it.id}>
+                    <img className="cos-tile__img" src={assetUrl(it.image)} alt="" loading="lazy" />
+                    <figcaption className="cos-tile__name" title={it.name}>{it.name}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            ) : (
+              <div className="cos-empty">Nada que mostrar en esta categoría.</div>
+            )}
+          </div>
+        );
+      })}
+      <p className="cos-foot">Se muestran solo los que posees.</p>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Actividad: evolución + adquisiciones + últimas partidas             */
+
+const QUEUES = {
+  420: 'Solo/Dúo', 440: 'Flex', 450: 'ARAM', 400: 'Normal', 430: 'Normal',
+  490: 'Partida rápida', 700: 'Clash', 900: 'URF', 1700: 'Arena', 1900: 'URF',
+};
+
+function Sparkline({ points, current }) {
+  const values = points.map((p) => p.skinsOwned);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const W = 100, H = 48, pad = 4;
+  const coords = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * W;
+    const y = pad + (1 - (v - min) / range) * (H - pad * 2);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  }).join(' ');
+  return (
+    <div className="spark">
+      <svg className="spark__svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+        <polyline
+          points={coords}
+          fill="none"
+          stroke="var(--gold)"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+      <span className="spark__now">{current}</span>
+    </div>
+  );
+}
+
+function eventName(ev, catalog) {
+  switch (ev.itemType) {
+    case 'skin': return catalog.skinById.get(ev.itemId)?.name ?? 'Skin nueva';
+    case 'champion': return catalog.championById.get(ev.itemId)?.name ?? 'Campeón nuevo';
+    case 'chroma': {
+      const c = catalog.chromaById.get(ev.itemId);
+      return c ? `${c.skin.name} · chroma ${c.chroma.name}` : 'Chroma nuevo';
+    }
+    case 'ward': return 'Nuevo ward';
+    case 'emote': return 'Nuevo emote';
+    case 'icon': return 'Nuevo icono';
+    default: return 'Novedad';
+  }
+}
+
+export function ActivitySection({ syncHistory = [], events = [], matches = [], ownedCount = 0, catalog }) {
+  return (
+    <section className="activity">
+      <div className="act-block">
+        <h2 className="section-head__title">Evolución</h2>
+        {syncHistory.length >= 2 ? (
+          <Sparkline points={syncHistory} current={ownedCount} />
+        ) : (
+          <p className="act-muted">La gráfica crecerá con cada sincronización.</p>
+        )}
+      </div>
+
+      <div className="act-block">
+        <h2 className="section-head__title">Adquisiciones recientes</h2>
+        {events.length > 0 ? (
+          <ul className="acq-list">
+            {events.map((ev, i) => (
+              <li className="acq" key={`${ev.itemType}-${ev.itemId}-${i}`}>
+                <span className="acq__bullet" aria-hidden="true">◆</span>
+                <span className="acq__name">{eventName(ev, catalog)}</span>
+                <span className="acq__time">{relativeTime(ev.acquiredAt)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="act-muted">Aquí aparecerá cada skin nueva que consigas a partir de ahora.</p>
+        )}
+      </div>
+
+      <div className="act-block">
+        <h2 className="section-head__title">Últimas partidas</h2>
+        {matches.length > 0 ? (
+          <ul className="match-list">
+            {matches.map((m) => {
+              const champ = catalog.championById.get(m.championId);
+              const queue = QUEUES[m.queueId] ?? `Cola ${m.queueId}`;
+              return (
+                <li className={`match ${m.win ? 'match--win' : 'match--loss'}`} key={m.gameId}>
+                  <img className="match__icon" src={championIconUrl(m.championId)} alt="" loading="lazy" />
+                  <div className="match__body">
+                    <div className="match__line">
+                      <span className="match__champ">{champ?.name ?? `Campeón ${m.championId}`}</span>
+                      <span className="match__result">{m.win ? 'Victoria' : 'Derrota'}</span>
+                    </div>
+                    <div className="match__meta">
+                      {queue} · {m.kills}/{m.deaths}/{m.assists} · {Math.round(m.durationS / 60)} min · {relativeTime(m.playedAt)}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="act-muted">Sin partidas registradas todavía.</p>
+        )}
+      </div>
+    </section>
   );
 }

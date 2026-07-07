@@ -59,6 +59,7 @@
   --parchment: #f0e6d2;   /* texto principal */
   --muted: #a09b8c;       /* texto secundario */
   --arcane: #0ac8b9;      /* acento arcano: señales "vivas" */
+  --defeat: #e05c5c;      /* rojo apagado: derrota en el historial de partidas */
 
   /* Gemas de rareza (estándar va un paso más claro que --muted
      para que "rareza estándar" no se lea igual que "texto secundario") */
@@ -741,4 +742,198 @@ a { color: var(--arcane); }
   .modal__img-wrap { height: 38vh; }
   .stone { width: 54px; }
   .stone__label { max-width: 54px; }
+}
+
+/* --------------------------------------------------------------------------
+   Distinción de honor/retos en la cabecera
+   ------------------------------------------------------------------------ */
+.header__flair-muted { color: var(--muted); }
+
+/* --------------------------------------------------------------------------
+   Extras de la Cámara: valor de tienda y cartera
+   ------------------------------------------------------------------------ */
+.vault__value { margin-bottom: 6px; }
+.vault__value-rp {
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+.vault__value-sub { color: var(--muted); font-size: 0.75rem; }
+.vault__wallet { color: var(--muted); }
+
+/* --------------------------------------------------------------------------
+   Insignia de recuento en la pestaña Ofertas
+   ------------------------------------------------------------------------ */
+.tab__badge {
+  display: inline-block;
+  margin-left: 6px;
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e6cf9a, var(--gold));
+  color: #0a1428;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-align: center;
+  vertical-align: middle;
+  box-shadow: 0 0 8px rgba(200, 170, 110, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   Cabecera de sección reutilizable (Ofertas, Otros)
+   ------------------------------------------------------------------------ */
+.section-head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px; margin: 26px 0 14px;
+}
+.section-head__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.section-head__sub { color: var(--muted); font-size: 0.82rem; }
+
+/* --------------------------------------------------------------------------
+   Ofertas: etiqueta de precio superpuesta sobre la carta de skin
+   ------------------------------------------------------------------------ */
+.skin__price {
+  position: absolute;
+  right: 7px; bottom: 40px;
+  z-index: 2;
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 1px;
+  padding: 4px 7px;
+  background: rgba(1, 10, 19, 0.85);
+  border: 1px solid var(--gold-deep);
+  border-radius: var(--radius);
+  line-height: 1.15;
+  text-align: right;
+}
+.skin__price-sale { color: var(--gold); font-weight: 700; font-size: 0.82rem; }
+.skin__price-was { color: var(--muted); font-size: 0.68rem; text-decoration: line-through; }
+.skin__price-tag {
+  color: var(--arcane);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+   Otros: rejilla de cosméticos poseídos (wards, emotes, iconos)
+   ------------------------------------------------------------------------ */
+.cos-group { margin-bottom: 10px; }
+.cos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.cos-tile { margin: 0; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.cos-tile__img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #060d18;
+}
+.cos-tile__name {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cos-empty { color: var(--muted); font-size: 0.85rem; padding: 2px 0 8px; }
+.cos-foot { color: var(--muted); font-size: 0.8rem; font-style: italic; margin: 10px 0 0; }
+
+/* --------------------------------------------------------------------------
+   Actividad: bloques en panel (borde frío, sin esquinas forjadas)
+   ------------------------------------------------------------------------ */
+.act-block {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin: 16px 0;
+}
+.act-block .section-head__title {
+  display: block;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.act-muted { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+/* Evolución: minigráfica de líneas */
+.spark { position: relative; width: 100%; padding-right: 44px; }
+.spark__svg { display: block; width: 100%; height: 48px; overflow: visible; }
+.spark__now {
+  position: absolute; right: 0; top: 50%;
+  transform: translateY(-50%);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+/* Adquisiciones recientes */
+.acq-list { list-style: none; margin: 0; padding: 0; }
+.acq {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.acq:last-child { border-bottom: none; }
+.acq__bullet { color: var(--gold); font-size: 0.7rem; flex-shrink: 0; }
+.acq__name {
+  color: var(--parchment); font-size: 0.9rem;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.acq__time { margin-left: auto; color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
+
+/* Últimas partidas */
+.match-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.match {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+}
+.match--win { border-left-color: var(--arcane); }
+.match--loss { border-left-color: var(--defeat); }
+.match__icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-deep);
+  object-fit: cover;
+  background: #060d18;
+  flex-shrink: 0;
+}
+.match__body { min-width: 0; flex: 1; }
+.match__line { display: flex; align-items: baseline; gap: 8px; }
+.match__champ {
+  font-weight: 700; font-size: 0.9rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.match__result {
+  margin-left: auto;
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.match--win .match__result { color: var(--arcane); }
+.match--loss .match__result { color: var(--defeat); }
+.match__meta { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+
+@media (max-width: 560px) {
+  .cos-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
 }

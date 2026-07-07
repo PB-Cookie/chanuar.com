@@ -1,7 +1,10 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchCatalog, assetUrl } from './lib/cdragon.js';
 import { fetchOwnership, ownershipFromExport, dbConfigured } from './lib/db.js';
-import { Header, StatsVault, Controls, ChampionSection, ChromaSection, SkinModal } from './components/parts.jsx';
+import {
+  Header, StatsVault, Controls, ChampionSection, ChromaSection, SkinModal,
+  OffersSection, CosmeticsSection, ActivitySection,
+} from './components/parts.jsx';
 
 const EMPTY_OWNERSHIP = {
   source: 'ninguna',
@@ -13,6 +16,17 @@ const EMPTY_OWNERSHIP = {
   masteryByChampion: new Map(),
   lastSyncAt: null,
   loot: null,
+  // Contrato v0.3: cartera, distinciones, valor de tienda, ofertas, partidas,
+  // cosméticos, actividad e histórico de sincronizaciones.
+  wallet: null,
+  flair: null,
+  collectionValueRp: 0,
+  pricedOwnedCount: 0,
+  offers: [],
+  matches: [],
+  cosmetics: { wards: new Set(), emotes: new Set(), icons: new Set() },
+  events: [],
+  syncHistory: [],
 };
 
 const norm = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -23,7 +37,7 @@ export default function App() {
   const [error, setError] = useState(null); // fatal: sin catálogo no hay nada que pintar
   const [warn, setWarn] = useState(null);   // no fatal: la colección falló pero la web sigue
 
-  const [mode, setMode] = useState('skins');       // 'skins' | 'chromas'
+  const [mode, setMode] = useState('skins');       // 'skins' | 'chromas' | 'ofertas' | 'otros' | 'actividad'
   const [query, setQuery] = useState('');
   // Filtrar ~1900 cartas en cada pulsación bloquea el tecleo: el input usa
   // `query` (respuesta inmediata) y las vistas usan la versión diferida.
@@ -156,8 +170,9 @@ export default function App() {
       </div>
     );
   }
-  if (!catalog) return <div className="app"><div className="loading">Abriendo la cámara…</div></div>;
+  if (!catalog) return <div className="app"><div className="loading">Abriendo la colección…</div></div>;
 
+  const isCollection = mode === 'skins' || mode === 'chromas';
   const sections = mode === 'skins' ? skinSections : chromaSections;
 
   return (
@@ -167,6 +182,7 @@ export default function App() {
         profile={ownership.profile}
         source={ownership.source}
         lastSyncAt={ownership.lastSyncAt}
+        flair={ownership.flair}
         onImport={() => fileInput.current?.click()}
       />
 
@@ -192,6 +208,9 @@ export default function App() {
         chromasTotal={chromasTotal}
         byRarity={byRarity}
         loot={ownership.loot}
+        collectionValueRp={ownership.collectionValueRp}
+        pricedOwnedCount={ownership.pricedOwnedCount}
+        wallet={ownership.wallet}
       />
 
       <Controls
@@ -201,9 +220,10 @@ export default function App() {
         sort={sort} onSort={setSort}
         rarities={rarities} onToggleRarity={toggleRarity}
         flags={flags} onToggleFlag={toggleFlag}
+        offersCount={ownership.offers.length}
       />
 
-      {sections.length === 0 && (
+      {isCollection && sections.length === 0 && (
         <div className="empty">
           {ownership.source === 'ninguna' && view !== 'all'
             ? 'Aún no hay colección cargada: importa el JSON del collector para ver lo que tienes.'
@@ -211,35 +231,67 @@ export default function App() {
         </div>
       )}
 
-      {mode === 'skins'
-        ? skinSections.map(({ champ, skins, ownedCount, total }) => (
-            <ChampionSection
-              key={champ.id}
-              champion={champ}
-              skins={skins}
-              ownedCount={ownedCount}
-              total={total}
-              ownedSkinIds={ownership.ownedSkinIds}
-              chromasBySkin={ownership.chromasBySkin}
-              mastery={ownership.masteryByChampion.get(champ.id)}
-              assetUrl={assetUrl}
-              onOpen={openSkin}
-            />
-          ))
-        : chromaSections.map(({ champ, entries, ownedCount, total }) => (
-            <ChromaSection
-              key={champ.id}
-              champion={champ}
-              entries={entries}
-              ownedCount={ownedCount}
-              total={total}
-              ownedChromaIds={ownership.ownedChromaIds}
-              ownedSkinIds={ownership.ownedSkinIds}
-              mastery={ownership.masteryByChampion.get(champ.id)}
-              assetUrl={assetUrl}
-              onOpen={openSkin}
-            />
-          ))}
+      {mode === 'skins' &&
+        skinSections.map(({ champ, skins, ownedCount, total }) => (
+          <ChampionSection
+            key={champ.id}
+            champion={champ}
+            skins={skins}
+            ownedCount={ownedCount}
+            total={total}
+            ownedSkinIds={ownership.ownedSkinIds}
+            chromasBySkin={ownership.chromasBySkin}
+            mastery={ownership.masteryByChampion.get(champ.id)}
+            assetUrl={assetUrl}
+            onOpen={openSkin}
+          />
+        ))}
+
+      {mode === 'chromas' &&
+        chromaSections.map(({ champ, entries, ownedCount, total }) => (
+          <ChromaSection
+            key={champ.id}
+            champion={champ}
+            entries={entries}
+            ownedCount={ownedCount}
+            total={total}
+            ownedChromaIds={ownership.ownedChromaIds}
+            ownedSkinIds={ownership.ownedSkinIds}
+            mastery={ownership.masteryByChampion.get(champ.id)}
+            assetUrl={assetUrl}
+            onOpen={openSkin}
+          />
+        ))}
+
+      {mode === 'ofertas' && (
+        <OffersSection
+          offers={ownership.offers}
+          catalog={catalog}
+          ownedSkinIds={ownership.ownedSkinIds}
+          chromasBySkin={ownership.chromasBySkin}
+          assetUrl={assetUrl}
+          onOpen={openSkin}
+        />
+      )}
+
+      {mode === 'otros' && (
+        <CosmeticsSection
+          cosmetics={ownership.cosmetics}
+          query={deferredQuery}
+          assetUrl={assetUrl}
+        />
+      )}
+
+      {mode === 'actividad' && (
+        <ActivitySection
+          syncHistory={ownership.syncHistory}
+          events={ownership.events}
+          matches={ownership.matches}
+          ownedCount={ownership.ownedSkinIds.size}
+          catalog={catalog}
+          assetUrl={assetUrl}
+        />
+      )}
 
       {modal && (
         <SkinModal

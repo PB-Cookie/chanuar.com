@@ -14,6 +14,10 @@ export function profileIconUrl(id) {
   return id == null ? '' : `${BASE}/v1/profile-icons/${id}.jpg`;
 }
 
+export function championIconUrl(id) {
+  return id == null ? '' : `${BASE}/v1/champion-icons/${id}.png`;
+}
+
 export const RARITIES = {
   kNoRarity:     { label: 'Estándar',      color: 'var(--r-standard)' },
   kEpic:         { label: 'Épica',         color: 'var(--r-epic)' },
@@ -49,6 +53,8 @@ export async function fetchCatalog() {
 
   const skinsByChampion = new Map(champions.map((c) => [c.id, []]));
   const skinById = new Map();
+  const chromaById = new Map();      // chromaId → { skin, chroma } (línea temporal, modal)
+  const championById = new Map(champions.map((c) => [c.id, c]));
 
   for (const raw of Object.values(skinsRaw)) {
     if (raw.isBase) continue; // la skin base no cuenta para la colección
@@ -73,8 +79,32 @@ export async function fetchCatalog() {
     };
     skinsByChampion.get(championId).push(skin);
     skinById.set(skin.id, skin);
+    for (const c of skin.chromas) chromaById.set(c.id, { skin, chroma: c });
   }
   for (const list of skinsByChampion.values()) list.sort((a, b) => a.id - b.id);
 
-  return { champions, skinsByChampion, skinById, totals: { skins: skinById.size } };
+  return { champions, championById, skinsByChampion, skinById, chromaById, totals: { skins: skinById.size } };
+}
+
+/**
+ * Catálogo de cosméticos (wards, emotes, iconos). Se carga bajo demanda
+ * — solo cuando se abre la pestaña Otros — y se cachea la promesa.
+ */
+let cosmeticsCatalogPromise = null;
+export function fetchCosmeticsCatalog() {
+  cosmeticsCatalogPromise ??= (async () => {
+    const get = (f) => fetch(`${BASE}/v1/${f}.json`).then((r) => {
+      if (!r.ok) throw new Error(`No se pudo descargar ${f}`);
+      return r.json();
+    });
+    const [wards, emotes, icons] = await Promise.all([
+      get('ward-skins'), get('summoner-emotes'), get('summoner-icons'),
+    ]);
+    return {
+      wards: new Map(wards.map((w) => [w.id, { id: w.id, name: w.name, image: w.wardImagePath }])),
+      emotes: new Map(emotes.map((e) => [e.id, { id: e.id, name: e.name || `Emote ${e.id}`, image: e.inventoryIcon }])),
+      icons: new Map(icons.map((i) => [i.id, { id: i.id, name: i.title || `Icono ${i.id}`, image: i.imagePath }])),
+    };
+  })();
+  return cosmeticsCatalogPromise;
 }

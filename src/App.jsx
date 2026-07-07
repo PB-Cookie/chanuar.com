@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchCatalog, assetUrl } from './lib/cdragon.js';
 import { fetchOwnership, ownershipFromExport, dbConfigured } from './lib/db.js';
 import { Header, StatsVault, Controls, ChampionSection, ChromaSection, SkinModal } from './components/parts.jsx';
@@ -25,6 +25,9 @@ export default function App() {
 
   const [mode, setMode] = useState('skins');       // 'skins' | 'chromas'
   const [query, setQuery] = useState('');
+  // Filtrar ~1900 cartas en cada pulsación bloquea el tecleo: el input usa
+  // `query` (respuesta inmediata) y las vistas usan la versión diferida.
+  const deferredQuery = useDeferredValue(query);
   const [view, setView] = useState('all');         // 'all' | 'owned' | 'missing'
   const [sort, setSort] = useState('mastery');     // 'mastery' | 'completion' | 'alpha'
   const [rarities, setRarities] = useState(new Set());
@@ -105,7 +108,7 @@ export default function App() {
   // Vista SKINS: secciones por campeón con cartas de skin
   const skinSections = useMemo(() => {
     if (!catalog || mode !== 'skins') return [];
-    const q = norm(query.trim());
+    const q = norm(deferredQuery.trim());
     const list = catalog.champions.map((champ) => {
       const all = catalog.skinsByChampion.get(champ.id) ?? [];
       const champMatches = q && norm(champ.name).includes(q);
@@ -117,12 +120,12 @@ export default function App() {
       return { champ, skins, ownedCount, total: all.length };
     }).filter((x) => x.skins.length > 0);
     return sortSections(list);
-  }, [catalog, ownership, mode, query, view, sort, rarities, flags]);
+  }, [catalog, ownership, mode, deferredQuery, view, sort, rarities, flags]);
 
   // Vista CHROMAS: secciones por campeón; cada entrada = skin + sus chromas visibles
   const chromaSections = useMemo(() => {
     if (!catalog || mode !== 'chromas') return [];
-    const q = norm(query.trim());
+    const q = norm(deferredQuery.trim());
     const list = catalog.champions.map((champ) => {
       const champMatches = q && norm(champ.name).includes(q);
       const all = (catalog.skinsByChampion.get(champ.id) ?? []).filter((s) => s.chromaTotal > 0);
@@ -144,7 +147,7 @@ export default function App() {
       return { champ, entries, ownedCount, total };
     }).filter((x) => x.entries.length > 0);
     return sortSections(list);
-  }, [catalog, ownership, mode, query, view, sort, rarities, flags]);
+  }, [catalog, ownership, mode, deferredQuery, view, sort, rarities, flags]);
 
   if (error) {
     return (
@@ -201,7 +204,11 @@ export default function App() {
       />
 
       {sections.length === 0 && (
-        <div className="empty">Nada coincide con esos filtros. Prueba con otro nombre o quita alguno.</div>
+        <div className="empty">
+          {ownership.source === 'ninguna' && view !== 'all'
+            ? 'Aún no hay colección cargada: importa el JSON del collector para ver lo que tienes.'
+            : 'Nada coincide con esos filtros. Prueba con otro nombre o quita alguno.'}
+        </div>
       )}
 
       {mode === 'skins'

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { profileIconUrl, rarityInfo, RARITIES } from '../lib/cdragon.js';
 
 /* ------------------------------------------------------------------ */
@@ -18,7 +18,7 @@ export function Header({ profile, source, lastSyncAt, onImport }) {
           {profile ? `Nivel ${profile.level}` : 'Cámara de skins'}
           {lastSyncAt && (
             <>
-              <span className="dot">◆</span>
+              <span className="dot" aria-hidden="true">◆</span>
               Sincronizado {relativeTime(lastSyncAt)}
             </>
           )}
@@ -69,7 +69,15 @@ export function StatsVault({ ownedCount, totalCount, chromasOwned, chromasTotal,
           )}
         </div>
       </div>
-      <div className="vault__bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+      <div
+        className="vault__bar"
+        role="progressbar"
+        aria-label="Progreso de la colección de skins"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={`${ownedCount} de ${totalCount} skins (${pct}%)`}
+      >
         <div className="vault__bar-fill" style={{ width: `${pct}%` }} />
       </div>
       <div className="gems">
@@ -102,29 +110,41 @@ export function Controls({
   rarities, onToggleRarity, flags, onToggleFlag,
 }) {
   return (
-    <div className="controls">
-      <div className="controls__row">
-        <nav className="tabs" aria-label="Tipo de colección">
-          <button className={`tab ${mode === 'skins' ? 'tab--active' : ''}`} onClick={() => onMode('skins')}>
-            Skins
-          </button>
-          <button className={`tab ${mode === 'chromas' ? 'tab--active' : ''}`} onClick={() => onMode('chromas')}>
-            Chromas
-          </button>
-        </nav>
-        <input
-          className="controls__search"
-          type="search"
-          placeholder={mode === 'chromas' ? 'Buscar chroma, skin o campeón' : 'Buscar skin o campeón'}
-          value={query}
-          onChange={(e) => onQuery(e.target.value)}
-          aria-label="Buscar"
-        />
-        <select className="controls__sort" value={sort} onChange={(e) => onSort(e.target.value)} aria-label="Ordenar campeones">
-          <option value="mastery">Por maestría</option>
-          <option value="completion">Más completos</option>
-          <option value="alpha">Alfabético</option>
-        </select>
+    <>
+      {/* Solo esta fila es sticky: en móvil los chips ocupan 3-4 filas y
+          fijarlos también se comía media pantalla al hacer scroll. */}
+      <div className="controls">
+        <div className="controls__row">
+          <div className="tabs" role="group" aria-label="Tipo de colección">
+            <button
+              className={`tab ${mode === 'skins' ? 'tab--active' : ''}`}
+              aria-pressed={mode === 'skins'}
+              onClick={() => onMode('skins')}
+            >
+              Skins
+            </button>
+            <button
+              className={`tab ${mode === 'chromas' ? 'tab--active' : ''}`}
+              aria-pressed={mode === 'chromas'}
+              onClick={() => onMode('chromas')}
+            >
+              Chromas
+            </button>
+          </div>
+          <input
+            className="controls__search"
+            type="search"
+            placeholder={mode === 'chromas' ? 'Buscar chroma, skin o campeón' : 'Buscar skin o campeón'}
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            aria-label={mode === 'chromas' ? 'Buscar chroma, skin o campeón' : 'Buscar skin o campeón'}
+          />
+          <select className="controls__sort" value={sort} onChange={(e) => onSort(e.target.value)} aria-label="Ordenar campeones">
+            <option value="mastery">Por maestría</option>
+            <option value="completion">Más completos</option>
+            <option value="alpha">Alfabético</option>
+          </select>
+        </div>
       </div>
 
       <div className="controls__row controls__row--filters">
@@ -132,6 +152,7 @@ export function Controls({
           <button
             key={value}
             className={`chip ${view === value ? 'chip--active' : ''}`}
+            aria-pressed={view === value}
             onClick={() => onView(value)}
           >
             {label}
@@ -145,6 +166,7 @@ export function Controls({
             key={key}
             className={`chip chip--gem ${rarities.has(key) ? 'chip--active' : ''}`}
             style={{ '--stone': r.color }}
+            aria-pressed={rarities.has(key)}
             onClick={() => onToggleRarity(key)}
             title={`Rareza: ${r.label}`}
           >
@@ -157,22 +179,24 @@ export function Controls({
 
         <button
           className={`chip ${flags.legacy ? 'chip--active' : ''}`}
+          aria-pressed={flags.legacy}
           onClick={() => onToggleFlag('legacy')}
           title="Solo skins Legacy / de legado"
         >
-          ⌛ Legacy
+          <span aria-hidden="true">⌛</span> Legacy
         </button>
         {mode === 'skins' && (
           <button
             className={`chip ${flags.withChromas ? 'chip--active' : ''}`}
+            aria-pressed={flags.withChromas}
             onClick={() => onToggleFlag('withChromas')}
             title="Solo skins que tienen chromas"
           >
-            ◈ Con chromas
+            <span aria-hidden="true">◈</span> Con chromas
           </button>
         )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -189,16 +213,22 @@ function LockIcon() {
 
 export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen }) {
   const rarity = rarityInfo(skin.rarity);
+  // El estado (poseída, rareza, chromas) solo se ve por color/candado: hay que
+  // decirlo también en el nombre accesible para lectores de pantalla.
+  const label = `${skin.name}, ${rarity.label}${skin.isLegacy ? ', Legacy' : ''}, ` +
+    `${owned ? 'en tu cámara' : 'no poseída'}` +
+    (skin.chromaTotal > 0 ? `, ${chromasOwned} de ${skin.chromaTotal} chromas` : '');
   return (
     <article
       className={`skin ${owned ? 'skin--owned' : 'skin--locked'}`}
       title={`${skin.name} · ${rarity.label}${skin.isLegacy ? ' · Legacy' : ''}${owned ? '' : ' · no poseída'}`}
       role="button"
       tabIndex={0}
+      aria-label={label}
       onClick={() => onOpen(skin)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(skin); } }}
     >
-      {skin.image && <img className="skin__img" src={assetUrl(skin.image)} alt={skin.name} loading="lazy" />}
+      {skin.image && <img className="skin__img" src={assetUrl(skin.image)} alt="" loading="lazy" />}
       <div className="skin__veil" />
       {!owned && <LockIcon />}
       {skin.chromaTotal > 0 && (
@@ -253,6 +283,7 @@ function ChromaStone({ chroma, owned, onOpen }) {
       className={`chroma ${owned ? 'chroma--owned' : 'chroma--locked'}`}
       style={{ '--c0': c0, '--c1': c1 }}
       title={`${chroma.name}${owned ? '' : ' · no poseído'} — ver en grande`}
+      aria-label={`${chroma.name}, ${owned ? 'poseído' : 'no poseído'}`}
       onClick={onOpen}
     >
       <span className="chroma__stone" aria-hidden="true" />
@@ -326,15 +357,37 @@ export function ChromaSection({ champion, entries, ownedCount, total, ownedChrom
 export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, assetUrl, onClose }) {
   const [selectedId, setSelectedId] = useState(initialChromaId ?? null);
   const [imgFailed, setImgFailed] = useState(false);
+  const dialogRef = useRef(null);
+  const closeRef = useRef(null);
 
+  // Gestión de foco del diálogo: entrar al abrir y devolverlo a la carta
+  // que lo abrió al cerrar. Solo al montar/desmontar (deps vacías): si
+  // dependiera de props recreadas por render, robaría el foco a mitad de uso.
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
+    const opener = document.activeElement;
+    closeRef.current?.focus();
     document.body.style.overflow = 'hidden';
     return () => {
-      window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      opener?.focus?.();
     };
+  }, []);
+
+  // Escape cierra; Tab queda atrapado dentro del diálogo (aria-modal es solo
+  // una promesa para lectores de pantalla, no restringe el foco real).
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') return onClose();
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusables = dialogRef.current.querySelectorAll('button');
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
   useEffect(() => setImgFailed(false), [selectedId]);
@@ -351,13 +404,14 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
+        ref={dialogRef}
         className="modal"
         role="dialog"
         aria-modal="true"
         aria-label={skin.name}
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="modal__close" onClick={onClose} aria-label="Cerrar">✕</button>
+        <button ref={closeRef} className="modal__close" onClick={onClose} aria-label="Cerrar">✕</button>
 
         <div className={`modal__img-wrap ${showChromaRender ? 'modal__img-wrap--render' : ''}`}>
           <img
@@ -377,7 +431,7 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
               {chroma && <span className="modal__chroma-name"> · {chroma.name}</span>}
             </h3>
             <span className={`pill ${selectedOwned ? 'pill--owned' : 'pill--locked'}`}>
-              {selectedOwned ? 'En tu cámara' : 'No poseído'}
+              {selectedOwned ? 'En tu cámara' : chroma ? 'No poseído' : 'No poseída'}
             </span>
           </div>
 
@@ -391,6 +445,7 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
                   className={`stone stone--original ${selectedId === null ? 'stone--selected' : ''}`}
                   onClick={() => setSelectedId(null)}
                   title="Skin original"
+                  aria-pressed={selectedId === null}
                 >
                   <span className="stone__shape" />
                   <span className="stone__label">Original</span>
@@ -404,6 +459,8 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
                       style={{ '--c0': c.colors[0], '--c1': c.colors[1] ?? c.colors[0] }}
                       onClick={() => setSelectedId(c.id)}
                       title={`${c.name}${owned ? '' : ' · no poseído'}`}
+                      aria-label={`${c.name}, ${owned ? 'poseído' : 'no poseído'}`}
+                      aria-pressed={selectedId === c.id}
                     >
                       <span className="stone__shape" />
                       <span className="stone__label">{c.name}</span>

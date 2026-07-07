@@ -1,0 +1,663 @@
+/* =============================================================================
+   Skinfolio — tema "cámara hextech"
+   Paleta y tipografía tomadas del mundo visual del propio juego:
+   azul abismo, paneles de forja, oro hextech y acento arcano.
+   ========================================================================== */
+
+:root {
+  --void: #010a13;        /* fondo profundo del cliente */
+  --panel: #0a1428;       /* panel elevado */
+  --panel-2: #0e1d33;     /* panel secundario / hover */
+  --line: #1e2d45;        /* bordes fríos */
+  --gold: #c8aa6e;        /* oro hextech */
+  --gold-deep: #785a28;   /* oro forjado oscuro */
+  --parchment: #f0e6d2;   /* texto principal */
+  --muted: #a09b8c;       /* texto secundario */
+  --arcane: #0ac8b9;      /* acento arcano: señales "vivas" */
+
+  /* Gemas de rareza */
+  --r-standard: #a09b8c;
+  --r-epic: #3f9bd8;
+  --r-legendary: #e0703b;
+  --r-mythic: #b95cd8;
+  --r-ultimate: #e8b54a;
+  --r-exalted: #59e0c8;
+  --r-transcendent: #e85ca8;
+
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Alegreya Sans', system-ui, sans-serif;
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, #0e2338 0%, transparent 60%),
+    var(--void);
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.app { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px; }
+
+a { color: var(--arcane); }
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Cabecera: identidad del invocador
+   ------------------------------------------------------------------------ */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+.header__icon {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-deep);
+  object-fit: cover;
+  background: var(--panel);
+}
+.header__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+.header__tag { color: var(--muted); font-family: var(--font-body); font-size: 0.95rem; font-weight: 400; }
+.header__meta { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+.header__meta .dot { color: var(--gold-deep); margin: 0 6px; }
+.header__spacer { flex: 1; }
+.header__source {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; color: var(--muted);
+  border: 1px solid var(--line);
+  padding: 4px 10px; border-radius: 999px;
+  white-space: nowrap;
+}
+.header__source--live::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--arcane); box-shadow: 0 0 6px var(--arcane);
+}
+
+/* --------------------------------------------------------------------------
+   La Cámara: indicador principal de la colección (elemento firma)
+   Un medidor forjado en oro + estantería de gemas por rareza.
+   ------------------------------------------------------------------------ */
+.vault {
+  margin: 26px 0 8px;
+  padding: 22px 24px 20px;
+  background: linear-gradient(180deg, var(--panel) 0%, #08101f 100%);
+  border: 1px solid var(--gold-deep);
+  border-radius: var(--radius);
+  position: relative;
+}
+.vault::before, .vault::after {
+  content: '';
+  position: absolute; top: -1px; width: 34px; height: 34px;
+  border: 2px solid var(--gold);
+  pointer-events: none;
+}
+.vault::before { left: -1px; border-right: none; border-bottom: none; }
+.vault::after  { right: -1px; border-left: none; border-bottom: none; }
+
+.vault__row { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.vault__count {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  line-height: 1;
+  color: var(--gold);
+}
+.vault__count small { font-size: 0.45em; color: var(--muted); font-weight: 500; }
+.vault__label {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.vault__extra { margin-left: auto; text-align: right; color: var(--muted); font-size: 0.85rem; }
+.vault__extra strong { color: var(--parchment); font-weight: 700; }
+
+.vault__bar {
+  margin-top: 14px;
+  height: 8px;
+  background: #060d18;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.vault__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold));
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.45);
+  transition: width 600ms ease;
+}
+
+/* Estantería de gemas por rareza */
+.gems {
+  display: flex; flex-wrap: wrap; gap: 10px 22px;
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.gem { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+.gem__stone {
+  width: 11px; height: 11px;
+  transform: rotate(45deg);
+  background: var(--stone, var(--r-standard));
+  box-shadow: 0 0 7px var(--stone, transparent);
+  border-radius: 2px;
+}
+.gem__count { color: var(--parchment); font-weight: 700; }
+.gem__label { color: var(--muted); }
+
+/* --------------------------------------------------------------------------
+   Controles: buscar, filtrar, ordenar
+   ------------------------------------------------------------------------ */
+.controls {
+  margin: 22px 0 10px;
+  position: sticky; top: 0; z-index: 5;
+  padding: 12px 0 10px;
+  background: linear-gradient(180deg, var(--void) 88%, transparent);
+}
+.controls__row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.controls__row--filters { margin-top: 10px; gap: 8px; }
+.controls__divider {
+  width: 1px; height: 20px;
+  background: linear-gradient(180deg, transparent, var(--gold-deep), transparent);
+  margin: 0 4px;
+}
+
+/* Pestañas Skins / Chromas */
+.tabs { display: flex; gap: 4px; }
+.tab {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 16px 10px;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+.tab:hover { color: var(--parchment); }
+.tab--active { color: var(--gold); }
+.tab--active::after {
+  content: '';
+  position: absolute; left: 12px; right: 12px; bottom: 2px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  box-shadow: 0 0 8px rgba(200, 170, 110, 0.6);
+}
+
+.controls__search {
+  flex: 1 1 220px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  padding: 9px 12px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.controls__search::placeholder { color: var(--muted); }
+.controls__search:focus {
+  border-color: var(--gold-deep);
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 12px rgba(200, 170, 110, 0.12);
+  outline: none;
+}
+
+/* Botones hextech: borde de gradiente forjado + relleno dorado al activarse */
+.chip {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, var(--panel), #081020) padding-box,
+    linear-gradient(180deg, var(--line), #16233a) border-box;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.83rem;
+  letter-spacing: 0.03em;
+  padding: 7px 13px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: color 150ms ease, box-shadow 150ms ease, background 150ms ease, transform 100ms ease;
+}
+.chip:hover {
+  color: var(--parchment);
+  background:
+    linear-gradient(180deg, var(--panel-2), #0a1425) padding-box,
+    linear-gradient(180deg, var(--gold), var(--gold-deep)) border-box;
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.15);
+}
+.chip:active { transform: translateY(1px); }
+.chip--active {
+  color: #0a1428;
+  font-weight: 700;
+  background:
+    linear-gradient(180deg, #e6cf9a, var(--gold) 55%, #a8894f) padding-box,
+    linear-gradient(180deg, #f4e4bc, var(--gold-deep)) border-box;
+  box-shadow: 0 0 14px rgba(200, 170, 110, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Chips de rareza: gema propia; activo = brillo de su color, no oro */
+.chip__stone {
+  width: 9px; height: 9px;
+  transform: rotate(45deg);
+  border-radius: 1.5px;
+  background: var(--stone, var(--r-standard));
+  box-shadow: 0 0 5px var(--stone, transparent);
+  flex-shrink: 0;
+}
+.chip--gem.chip--active {
+  color: var(--parchment);
+  font-weight: 700;
+  background:
+    linear-gradient(180deg, var(--panel-2), #0a1425) padding-box,
+    linear-gradient(180deg, var(--stone), var(--gold-deep)) border-box;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--stone) 45%, transparent);
+  text-shadow: none;
+}
+
+.controls__sort {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, var(--panel), #081020) padding-box,
+    linear-gradient(180deg, var(--line), #16233a) border-box;
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease;
+}
+.controls__sort:hover {
+  color: var(--parchment);
+  background:
+    linear-gradient(180deg, var(--panel-2), #0a1425) padding-box,
+    linear-gradient(180deg, var(--gold), var(--gold-deep)) border-box;
+}
+.controls__sort option { background: var(--panel); color: var(--parchment); }
+
+/* --------------------------------------------------------------------------
+   Secciones por campeón y rejilla de skins
+   ------------------------------------------------------------------------ */
+.champ { margin: 26px 0 6px; }
+.champ__head {
+  display: flex; align-items: baseline; gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px; margin-bottom: 12px;
+}
+.champ__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.champ__name--complete { color: var(--gold); text-shadow: 0 0 12px rgba(200, 170, 110, 0.35); }
+.champ__progress { color: var(--muted); font-size: 0.82rem; }
+.champ__mastery { margin-left: auto; color: var(--muted); font-size: 0.78rem; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 12px;
+}
+
+/* Carta de skin: proporción de pantalla de carga (308×560) */
+.skin {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 308 / 490;
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+.skin:hover { transform: translateY(-3px); }
+
+.skin__img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top center;
+}
+.skin__veil {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(1, 10, 19, 0.92) 88%);
+}
+.skin__name {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 8px 9px 9px;
+  font-size: 0.8rem; font-weight: 500;
+  line-height: 1.25;
+}
+.skin__gem {
+  display: inline-block;
+  width: 8px; height: 8px;
+  transform: rotate(45deg);
+  border-radius: 1.5px;
+  margin-right: 6px;
+  background: var(--stone, var(--r-standard));
+  box-shadow: 0 0 5px var(--stone, transparent);
+}
+.skin__chromas {
+  position: absolute; top: 7px; right: 7px;
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--parchment);
+  background: rgba(1, 10, 19, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* Poseída: marco interior dorado */
+.skin--owned { border-color: var(--gold-deep); }
+.skin--owned::after {
+  content: '';
+  position: absolute; inset: 3px;
+  border: 1px solid rgba(200, 170, 110, 0.55);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* No poseída: apagada, con candado */
+.skin--locked .skin__img { filter: grayscale(0.9) brightness(0.5); }
+.skin--locked:hover .skin__img { filter: grayscale(0.5) brightness(0.75); }
+.skin__lock {
+  position: absolute; top: 8px; left: 8px;
+  width: 16px; height: 16px;
+  color: var(--muted);
+  opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   Estados: carga, aviso de fuente de datos, vacío
+   ------------------------------------------------------------------------ */
+.notice {
+  margin: 20px 0;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+.notice strong { color: var(--parchment); }
+.notice button, .btn {
+  margin-left: 10px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, var(--panel), #081020) padding-box,
+    linear-gradient(180deg, var(--gold), var(--gold-deep)) border-box;
+  color: var(--gold);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, color 150ms ease, transform 100ms ease;
+}
+.notice button:hover, .btn:hover {
+  color: #f4e4bc;
+  box-shadow: 0 0 14px rgba(200, 170, 110, 0.3);
+}
+.notice button:active, .btn:active { transform: translateY(1px); }
+
+.loading {
+  text-align: center;
+  color: var(--muted);
+  padding: 90px 0;
+  font-family: var(--font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+.empty { text-align: center; color: var(--muted); padding: 60px 0; }
+
+@media (max-width: 560px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+  .vault__extra { margin-left: 0; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* --------------------------------------------------------------------------
+   Vista de chromas: cartas por skin con gemas de color reales
+   ------------------------------------------------------------------------ */
+.chromagrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.chromacard {
+  display: flex; gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.chromacard:hover { transform: translateY(-2px); border-color: var(--gold-deep); }
+.chromacard--lit { border-color: var(--gold-deep); }
+
+.chromacard__thumb {
+  width: 64px; height: 96px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #060d18;
+}
+.chromacard__thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+.chromacard__body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.chromacard__title { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.chromacard__name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chromacard__count { margin-left: auto; color: var(--muted); font-size: 0.8rem; flex-shrink: 0; }
+.chromacard__note { color: var(--muted); font-size: 0.75rem; font-style: italic; margin-top: auto; }
+
+.chromacard__stones { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+
+.chroma { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; }
+.chroma__stone {
+  width: 14px; height: 14px;
+  transform: rotate(45deg);
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--c0) 0%, var(--c0) 50%, var(--c1) 50%, var(--c1) 100%);
+  border: 1px solid rgba(240, 230, 210, 0.25);
+  flex-shrink: 0;
+}
+.chroma__name { color: var(--muted); }
+
+.chroma--owned .chroma__stone {
+  border-color: var(--gold);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--c0) 60%, var(--gold));
+}
+.chroma--owned .chroma__name { color: var(--parchment); font-weight: 500; }
+
+.chroma--locked .chroma__stone { filter: saturate(0.25) brightness(0.55); border-style: dashed; }
+
+@media (max-width: 560px) {
+  .chromagrid { grid-template-columns: 1fr; }
+  .tab { padding: 8px 10px 10px; font-size: 0.85rem; }
+}
+
+/* --------------------------------------------------------------------------
+   Modal: splash / render de chroma en grande + selector de gemas
+   ------------------------------------------------------------------------ */
+.skin { cursor: pointer; }
+.chromacard__thumb { padding: 0; border: 1px solid var(--line); cursor: pointer; }
+.chroma { background: none; border: none; padding: 0; font: inherit; cursor: pointer; }
+.chroma:hover .chroma__name { color: var(--parchment); }
+
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(1, 10, 19, 0.86);
+  backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: modal-fade 180ms ease;
+}
+@keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  position: relative;
+  width: min(880px, 100%);
+  max-height: 92vh;
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, var(--panel) 0%, #08101f 100%);
+  border: 1px solid var(--gold-deep);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: modal-rise 200ms ease;
+}
+@keyframes modal-rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal::before, .modal::after {
+  content: '';
+  position: absolute; top: -1px; width: 34px; height: 34px;
+  border: 2px solid var(--gold);
+  pointer-events: none;
+  z-index: 2;
+}
+.modal::before { left: -1px; border-right: none; border-bottom: none; }
+.modal::after  { right: -1px; border-left: none; border-bottom: none; }
+
+.modal__close {
+  position: absolute; top: 10px; right: 10px; z-index: 3;
+  width: 34px; height: 34px;
+  border: 1px solid var(--gold-deep);
+  border-radius: 50%;
+  background: rgba(1, 10, 19, 0.75);
+  color: var(--gold);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: box-shadow 150ms ease, color 150ms ease;
+}
+.modal__close:hover { color: #f4e4bc; box-shadow: 0 0 12px rgba(200, 170, 110, 0.4); }
+
+.modal__img-wrap {
+  height: min(48vh, 460px);
+  background:
+    radial-gradient(600px 300px at 50% 65%, rgba(10, 200, 185, 0.06), transparent 70%),
+    #060d18;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.modal__img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+/* Render de chroma: PNG del modelo → contain, centrado */
+.modal__img-wrap--render .modal__img { object-fit: contain; object-position: center; padding: 10px 0; }
+
+.modal__info { padding: 16px 20px 20px; overflow-y: auto; }
+.modal__title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.modal__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+.modal__chroma-name { color: var(--muted); font-size: 0.95rem; }
+
+.pill {
+  margin-left: auto;
+  font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.pill--owned {
+  color: #0a1428;
+  background: linear-gradient(180deg, #e6cf9a, var(--gold));
+  border-color: #f4e4bc;
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.35);
+}
+.pill--locked { color: var(--muted); border-color: var(--line); }
+
+.modal__sub {
+  margin: 14px 0 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.modal__stones { display: flex; flex-wrap: wrap; gap: 10px 14px; }
+.stone {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  background: none; border: none; padding: 4px; font: inherit;
+  cursor: pointer;
+  width: 64px;
+}
+.stone__shape {
+  width: 26px; height: 26px;
+  transform: rotate(45deg);
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--c0) 0%, var(--c0) 50%, var(--c1) 50%, var(--c1) 100%);
+  border: 1px solid rgba(240, 230, 210, 0.3);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.stone:hover .stone__shape { transform: rotate(45deg) scale(1.12); }
+.stone__label {
+  font-size: 0.68rem; color: var(--muted);
+  max-width: 64px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.stone--original .stone__shape {
+  background: linear-gradient(135deg, #e6cf9a, var(--gold-deep));
+  border-color: var(--gold);
+}
+.stone--owned .stone__shape {
+  border-color: var(--gold);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c0) 60%, var(--gold));
+}
+.stone--owned .stone__label { color: var(--parchment); }
+.stone--locked .stone__shape { filter: saturate(0.25) brightness(0.5); border-style: dashed; }
+
+.stone--selected .stone__shape {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  box-shadow: 0 0 14px rgba(200, 170, 110, 0.5);
+}
+.stone--selected .stone__label { color: var(--gold); font-weight: 700; }
+
+@media (max-width: 560px) {
+  .modal-backdrop { padding: 10px; }
+  .modal__img-wrap { height: 38vh; }
+  .stone { width: 54px; }
+  .stone__label { max-width: 54px; }
+}

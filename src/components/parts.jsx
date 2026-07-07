@@ -190,9 +190,9 @@ export function Controls({
             className={`chip ${flags.withChromas ? 'chip--active' : ''}`}
             aria-pressed={flags.withChromas}
             onClick={() => onToggleFlag('withChromas')}
-            title="Solo skins que tienen chromas"
+            title="Solo skins que existen con chromas en el catálogo (los tengas o no)"
           >
-            <span aria-hidden="true">◈</span> Con chromas
+            <span aria-hidden="true">◈</span> Tiene chromas
           </button>
         )}
       </div>

@@ -4,6 +4,51 @@
    azul abismo, paneles de forja, oro hextech y acento arcano.
    ========================================================================== */
 
+/* Tipografías reales del cliente de LoL (autoalojadas en /public/fonts):
+   Beaufort for LOL para display y Spiegel para cuerpo. */
+@font-face {
+  font-family: 'Beaufort for LOL';
+  src: url('/fonts/beaufort-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Beaufort for LOL';
+  src: url('/fonts/beaufort-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Spiegel';
+  src: url('/fonts/spiegel-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Spiegel';
+  src: url('/fonts/spiegel-regular-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Spiegel';
+  src: url('/fonts/spiegel-semibold.woff2') format('woff2');
+  font-weight: 500 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Spiegel';
+  src: url('/fonts/spiegel-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --void: #010a13;        /* fondo profundo del cliente */
   --panel: #0a1428;       /* panel elevado */
@@ -25,8 +70,8 @@
   --r-exalted: #59e0c8;
   --r-transcendent: #e85ca8;
 
-  --font-display: 'Cinzel', serif;
-  --font-body: 'Alegreya Sans', system-ui, sans-serif;
+  --font-display: 'Beaufort for LOL', 'Cinzel', serif;
+  --font-body: 'Spiegel', 'Alegreya Sans', system-ui, sans-serif;
   --radius: 4px;
 }
 

@@ -64,17 +64,31 @@ function ErrorState({ message, onRetry }) {
   );
 }
 
+function MenuItemImage({ item }) {
+  const [failed, setFailed] = useState(false);
+  if (!item.imageUrl || failed) {
+    return (
+      <div className="food-menu-card__image food-menu-card__image--placeholder" aria-hidden="true">
+        <span>{item.category.slice(0, 1)}</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      className="food-menu-card__image"
+      src={item.imageUrl}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 function MenuItemCard({ item, entry, onQuantity, onNote }) {
   const quantity = entry?.quantity ?? 0;
   return (
     <article className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`}>
-      {item.imageUrl ? (
-        <img className="food-menu-card__image" src={item.imageUrl} alt="" loading="lazy" />
-      ) : (
-        <div className="food-menu-card__image food-menu-card__image--placeholder" aria-hidden="true">
-          <span>{item.category.slice(0, 1)}</span>
-        </div>
-      )}
+      <MenuItemImage item={item} />
       <div className="food-menu-card__body">
         <p className="food-menu-card__category">{item.category}</p>
         <div className="food-menu-card__heading">

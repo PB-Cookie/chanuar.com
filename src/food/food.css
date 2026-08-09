@@ -80,7 +80,7 @@ body.not-found-page :focus-visible { outline: 3px solid var(--food-sun); outline
 .food-menu-card__heading { display: flex; gap: 10px; justify-content: space-between; align-items: start; }
 .food-menu-card h3 { margin: 0; font-size: 1rem; line-height: 1.25; }
 .food-menu-card__heading > strong { color: var(--food-tomato); font-size: .88rem; white-space: nowrap; }
-.food-menu-card__description { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin: 8px 0 14px; color: var(--food-muted); font-size: .78rem; }
+.food-menu-card__description { margin: 8px 0 14px; color: var(--food-muted); font-size: .78rem; line-height: 1.5; }
 .food-quantity { display: inline-grid; grid-template-columns: 32px 36px 32px; align-items: center; align-self: start; margin-top: auto; overflow: hidden; border: 1px solid var(--food-line); border-radius: 999px; background: white; }
 .food-quantity button { width: 32px; height: 32px; border: 0; background: transparent; color: var(--food-herb); cursor: pointer; font-size: 1.1rem; }
 .food-quantity button:hover:not(:disabled) { background: var(--food-herb-soft); }

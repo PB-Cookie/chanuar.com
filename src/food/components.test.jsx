@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MenuItemCard } from './FoodApp.jsx';
@@ -15,6 +15,20 @@ describe('employee menu controls', () => {
     await user.click(screen.getByRole('button', { name: /Añadir una unidad/ }));
     expect(onQuantity).toHaveBeenCalledWith('dish-1', 2);
     expect(screen.getByPlaceholderText(/Sin cebolla/)).toHaveAttribute('maxlength', '240');
+  });
+
+  it('falls back to the category placeholder when an image cannot load', () => {
+    const { container } = render(
+      <MenuItemCard
+        item={{ ...item, imageUrl: 'https://example.invalid/missing.jpg' }}
+        entry={{ quantity: 0, note: '' }}
+        onQuantity={() => {}}
+        onNote={() => {}}
+      />,
+    );
+    fireEvent.error(container.querySelector('img'));
+    expect(container.querySelector('img')).not.toBeInTheDocument();
+    expect(container.querySelector('.food-menu-card__image--placeholder')).toHaveTextContent('E');
   });
 });
 

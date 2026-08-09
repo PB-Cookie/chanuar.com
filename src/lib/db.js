@@ -16,7 +16,8 @@
 // lecturas fallan de forma segura (null/[]) sin romper el ownership base.
 
 const URL = import.meta.env.VITE_SUPABASE_URL;
-const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const dbConfigured = Boolean(URL && KEY);
 

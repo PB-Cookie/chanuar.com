@@ -49,7 +49,7 @@
   font-display: swap;
 }
 
-:root {
+body.skinfolio-page {
   --void: #010a13;        /* fondo profundo del cliente */
   --panel: #0a1428;       /* panel elevado */
   --panel-2: #0e1d33;     /* panel secundario / hover */
@@ -78,8 +78,9 @@
 
 * { box-sizing: border-box; }
 
-html, body {
+body.skinfolio-page {
   margin: 0;
+  min-height: 100vh;
   background:
     radial-gradient(1200px 500px at 50% -10%, #0e2338 0%, transparent 60%),
     var(--void);
@@ -91,9 +92,9 @@ html, body {
 
 .app { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px; }
 
-a { color: var(--arcane); }
+body.skinfolio-page a { color: var(--arcane); }
 
-:focus-visible {
+body.skinfolio-page :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }

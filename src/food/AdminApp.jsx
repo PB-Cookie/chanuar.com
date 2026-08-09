@@ -3,6 +3,13 @@ import { foodAdminApi, foodAuth, foodConfigured } from './api.js';
 import { formatEuros, formatSpanishDate } from './utils.js';
 import FoodHeader from './FoodHeader.jsx';
 
+function parseServiceFee(value) {
+  const normalized = String(value ?? '').trim().replace(/\s/g, '').replace(',', '.');
+  if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) return null;
+  const cents = Math.round(Number(normalized) * 100);
+  return Number.isSafeInteger(cents) && cents >= 0 && cents <= 1_000_000 ? cents : null;
+}
+
 function AdminSignIn({ onSubmit, pending, error }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,11 +61,26 @@ function aggregateItems(orders) {
   return [...items.values()].sort((a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name, 'es'));
 }
 
-function OrderGroups({ cycle }) {
+function CycleTotals({ cycle, serviceFeeCents }) {
+  const orders = cycle?.orders ?? [];
+  const calculatedSubtotal = orders.reduce((sum, order) => sum + (order.total_cents ?? order.totalCents ?? 0), 0);
+  const subtotal = cycle?.subtotal_cents ?? cycle?.subtotalCents ?? calculatedSubtotal;
+  const fee = serviceFeeCents ?? cycle?.service_fee_cents ?? cycle?.serviceFeeCents ?? 0;
+  const total = subtotal + fee;
+
+  return (
+    <div className="food-cycle-totals" aria-label="Totales del pedido">
+      <div><span>Subtotal de pedidos</span><strong>{formatEuros(subtotal)}</strong></div>
+      <div><span>Gastos de servicio</span><strong>{formatEuros(fee)}</strong></div>
+      <div className="food-cycle-totals__final"><span>Total</span><strong>{formatEuros(total)}</strong></div>
+    </div>
+  );
+}
+
+function OrderGroups({ cycle, serviceFeeCents }) {
   const [mode, setMode] = useState('people');
   const orders = cycle?.orders ?? [];
   const aggregated = useMemo(() => aggregateItems(orders), [orders]);
-  const total = orders.reduce((sum, order) => sum + (order.total_cents ?? order.totalCents ?? 0), 0);
   return (
     <section className="food-admin-orders">
       <div className="food-admin-orders__heading">
@@ -85,7 +107,7 @@ function OrderGroups({ cycle }) {
           {aggregated.map((item) => <article key={item.name}><span className="food-admin-item-list__quantity">{item.quantity}</span><div><h3>{item.name}</h3>{item.notes.map((note) => <small key={note}>{note}</small>)}</div><strong>{formatEuros(item.totalCents)}</strong></article>)}
         </div>
       )}
-      <div className="food-admin-grand-total"><span>Total del pedido</span><strong>{formatEuros(total)}</strong></div>
+      <CycleTotals cycle={cycle} serviceFeeCents={serviceFeeCents} />
     </section>
   );
 }
@@ -115,6 +137,7 @@ function History({ cycles }) {
           <summary><span><strong>{cycle.restaurant?.name ?? cycle.restaurant_name}</strong><small>{formatSpanishDate(cycle.closed_at ?? cycle.closedAt)}</small></span><span>{cycle.orders?.length ?? 0} pedidos · {formatEuros(cycle.total_cents ?? cycle.totalCents ?? 0)}</span></summary>
           <div className="food-history-cycle__body">
             {(cycle.orders ?? []).map((order) => <div className="food-history-order" key={order.id}><div><strong>{order.display_name ?? order.displayName}</strong><span>{(order.items ?? []).map((item) => `${item.quantity} × ${item.item_name ?? item.name}`).join(' · ')}</span></div><strong>{formatEuros(order.total_cents ?? order.totalCents)}</strong></div>)}
+            <CycleTotals cycle={cycle} />
           </div>
         </details>
       ))}
@@ -131,6 +154,8 @@ export default function AdminApp() {
   const [tab, setTab] = useState('current');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+  const [serviceFee, setServiceFee] = useState('0,00');
+  const [serviceFeeError, setServiceFeeError] = useState('');
 
   async function loadDashboard() {
     setError('');
@@ -180,10 +205,17 @@ export default function AdminApp() {
     finally { setPending(false); }
   }
 
-  async function closeCycle() {
-    if (!window.confirm('Al cerrar el pedido nadie podrá enviarlo ni editarlo. ¿Quieres continuar?')) return;
+  async function closeCycle(event) {
+    event.preventDefault();
+    const serviceFeeCents = parseServiceFee(serviceFee);
+    if (serviceFeeCents === null) {
+      setServiceFeeError('Introduce un importe válido con un máximo de dos decimales.');
+      return;
+    }
+    if (!window.confirm(`Al cerrar el pedido nadie podrá enviarlo ni editarlo. Gastos de servicio: ${formatEuros(serviceFeeCents)}. ¿Quieres continuar?`)) return;
     setPending(true); setError('');
-    try { await foodAdminApi.closeCycle(current.cycle.id); await loadDashboard(); setTab('history'); }
+    setServiceFeeError('');
+    try { await foodAdminApi.closeCycle(current.cycle.id, serviceFeeCents); await loadDashboard(); setServiceFee('0,00'); setTab('history'); }
     catch (closeError) { setError(closeError.message); }
     finally { setPending(false); }
   }
@@ -209,9 +241,16 @@ export default function AdminApp() {
           <>
             <section className="food-admin-current">
               <div><p className="food-kicker">Pedido abierto</p><h2>{current.restaurant.name}</h2><p>Desde {formatSpanishDate(current.cycle.opened_at ?? current.cycle.openedAt)}</p></div>
-              <button className="food-button food-button--danger" type="button" onClick={closeCycle} disabled={pending}>{pending ? 'Cerrando…' : 'Cerrar pedido'}</button>
+              <form className="food-admin-current__close" onSubmit={closeCycle}>
+                <label>
+                  <span>Gastos de servicio</span>
+                  <span className="food-admin-money-input"><span aria-hidden="true">€</span><input inputMode="decimal" value={serviceFee} onChange={(event) => { setServiceFee(event.target.value); setServiceFeeError(''); }} aria-invalid={Boolean(serviceFeeError)} aria-describedby={serviceFeeError ? 'service-fee-error' : undefined} /></span>
+                </label>
+                <button className="food-button food-button--danger" type="submit" disabled={pending}>{pending ? 'Cerrando…' : 'Cerrar pedido'}</button>
+                {serviceFeeError && <small id="service-fee-error" role="alert">{serviceFeeError}</small>}
+              </form>
             </section>
-            <OrderGroups cycle={current} />
+            <OrderGroups cycle={current} serviceFeeCents={parseServiceFee(serviceFee) ?? 0} />
           </>
         ) : <OpenCycleCard catalog={catalog} onOpen={openCycle} pending={pending} />}
       </main>
@@ -219,4 +258,4 @@ export default function AdminApp() {
   );
 }
 
-export { aggregateItems, AdminSignIn, History, OrderGroups };
+export { aggregateItems, AdminSignIn, CycleTotals, History, OrderGroups, parseServiceFee };

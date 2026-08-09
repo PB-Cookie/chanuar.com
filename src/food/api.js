@@ -180,7 +180,10 @@ export const foodAdminApi = {
   current: () => rpc('food_admin_current'),
   history: () => rpc('food_admin_history'),
   openCycle: (restaurantId) => rpc('food_admin_open_cycle', { p_restaurant_id: restaurantId }),
-  closeCycle: (cycleId) => rpc('food_admin_close_cycle', { p_cycle_id: cycleId }),
+  closeCycle: (cycleId, serviceFeeCents) => rpc('food_admin_close_cycle', {
+    p_cycle_id: cycleId,
+    p_service_fee_cents: serviceFeeCents,
+  }),
 };
 
 export { normalizeOrder, asFoodError };

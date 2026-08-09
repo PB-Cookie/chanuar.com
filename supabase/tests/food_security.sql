@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(24);
+select extensions.plan(26);
 
 select extensions.has_table('food', 'food_admins', 'food.food_admins exists');
 select extensions.has_table('food', 'restaurants', 'food.restaurants exists');
@@ -32,6 +32,14 @@ select extensions.function_privs_are(
 select extensions.function_privs_are(
   'authenticated', 'public', 'food_admin_current', array[]::text[], array['EXECUTE'],
   'authenticated role can call the function, which applies the allowlist internally'
+);
+select extensions.function_privs_are(
+  'anon', 'public', 'food_admin_close_cycle', array['uuid', 'integer'], array[]::text[],
+  'anon cannot close cycles or set service fees'
+);
+select extensions.function_privs_are(
+  'authenticated', 'public', 'food_admin_close_cycle', array['uuid', 'integer'], array['EXECUTE'],
+  'authenticated role can call cycle closure, which applies the allowlist internally'
 );
 select extensions.function_privs_are(
   'anon', 'public', 'food_scraper_sync_catalog', array['jsonb', 'jsonb', 'boolean', 'boolean'], array[]::text[],

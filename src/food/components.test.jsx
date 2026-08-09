@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ItemDetailModal, MenuItemCard } from './FoodApp.jsx';
-import { aggregateItems } from './AdminApp.jsx';
+import { aggregateItems, CycleTotals, parseServiceFee } from './AdminApp.jsx';
 
 const item = { id: 'dish-1', category: 'Entrantes', name: 'Croquetas', description: 'Cremosas', priceCents: 850, currency: 'EUR' };
 
@@ -80,5 +80,30 @@ describe('administrator item grouping', () => {
       { display_name: 'Luis', items: [{ menu_item_id: 'a', item_name: 'Croquetas', quantity: 1, unit_price_cents: 400 }] },
     ]);
     expect(result).toEqual([{ name: 'Croquetas', quantity: 3, totalCents: 1200, notes: ['Ana: Sin salsa'] }]);
+  });
+
+  it('parses service fees as integer cents and rejects malformed amounts', () => {
+    expect(parseServiceFee('2,50')).toBe(250);
+    expect(parseServiceFee('12.9')).toBe(1290);
+    expect(parseServiceFee('1,234')).toBeNull();
+    expect(parseServiceFee('-1')).toBeNull();
+  });
+
+  it('shows the service fee beside the subtotal without changing order totals', () => {
+    const { container } = render(
+      <CycleTotals
+        cycle={{
+          subtotal_cents: 1200,
+          service_fee_cents: 250,
+          total_cents: 1450,
+          orders: [{ id: 'order-1', total_cents: 1200 }],
+        }}
+      />,
+    );
+    expect(container).toHaveTextContent('Subtotal de pedidos');
+    expect(container).toHaveTextContent(/12,00/);
+    expect(container).toHaveTextContent('Gastos de servicio');
+    expect(container).toHaveTextContent(/2,50/);
+    expect(container).toHaveTextContent(/14,50/);
   });
 });

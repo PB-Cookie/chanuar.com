@@ -217,6 +217,13 @@ body.not-found-page :focus-visible { outline: 3px solid var(--food-sun); outline
 .food-admin-current > div > p:last-child { color: rgba(255,255,255,.7); }
 .food-admin-current .food-button--danger { border-color: #f4a794; color: white; }
 .food-admin-current .food-button--danger:hover { background: var(--food-tomato); border-color: var(--food-tomato); }
+.food-admin-current__close { display: grid; grid-template-columns: 150px auto; align-items: end; gap: 10px; }
+.food-admin-current__close label { display: grid; gap: 6px; color: rgba(255,255,255,.78); font-size: .7rem; font-weight: 750; }
+.food-admin-current__close > small { grid-column: 1 / -1; max-width: 320px; color: #ffd4c9; font-size: .68rem; }
+.food-admin-money-input { display: grid; grid-template-columns: auto 1fr; align-items: center; min-height: 44px; overflow: hidden; border: 1px solid rgba(255,255,255,.38); border-radius: 12px; background: rgba(255,255,255,.1); }
+.food-admin-money-input > span { padding-left: 12px; color: rgba(255,255,255,.68); font-weight: 800; }
+.food-admin-money-input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: white; padding: 10px 12px 10px 7px; font-weight: 800; }
+.food-admin-money-input:focus-within { border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
 .food-admin-orders { margin-top: 38px; }
 .food-admin-orders__heading { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 22px; }
 .food-admin-toggle { display: flex; gap: 5px; padding: 4px; border-radius: 999px; background: #ebe2d6; }
@@ -240,8 +247,11 @@ body.not-found-page :focus-visible { outline: 3px solid var(--food-sun); outline
 .food-admin-item-list__quantity { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: var(--food-herb); color: white; font-weight: 800; }
 .food-admin-item-list h3 { margin: 0; font-size: .92rem; }
 .food-admin-item-list small { display: block; color: var(--food-muted); font-style: italic; }
-.food-admin-grand-total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; padding: 22px 4px 0; border-top: 1px solid var(--food-line); font-weight: 700; }
-.food-admin-grand-total strong { color: var(--food-tomato); font-family: Georgia, serif; font-size: 2rem; }
+.food-cycle-totals { display: grid; gap: 8px; margin-top: 18px; padding: 20px 4px 0; border-top: 1px solid var(--food-line); }
+.food-cycle-totals > div { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; color: var(--food-muted); font-size: .8rem; }
+.food-cycle-totals > div strong { color: var(--food-ink); }
+.food-cycle-totals .food-cycle-totals__final { margin-top: 4px; color: var(--food-ink); font-size: 1rem; font-weight: 800; }
+.food-cycle-totals__final strong { color: var(--food-tomato) !important; font-family: Georgia, serif; font-size: 2rem; }
 .food-admin-history .food-section-heading { margin-top: 34px; }
 .food-history-cycle { margin-bottom: 10px; overflow: hidden; border: 1px solid var(--food-line); border-radius: 16px; background: var(--food-paper); }
 .food-history-cycle summary { display: flex; justify-content: space-between; gap: 25px; align-items: center; cursor: pointer; padding: 19px 22px; }
@@ -273,6 +283,7 @@ body.not-found-page :focus-visible { outline: 3px solid var(--food-sun); outline
   .food-cart { position: static; margin-top: 28px; }
   .food-admin-open-card, .food-admin-current { align-items: stretch; flex-direction: column; gap: 22px; }
   .food-admin-open-card form { min-width: 0; width: 100%; }
+  .food-admin-current__close { align-self: start; }
   .food-options__intro { margin-top: 54px; }
   .food-options-grid { grid-template-columns: 1fr; }
   .food-option-card { display: grid; grid-template-columns: minmax(220px, .85fr) minmax(0, 1.15fr); }
@@ -308,6 +319,8 @@ body.not-found-page :focus-visible { outline: 3px solid var(--food-sun); outline
   .food-admin-auth { margin: 34px auto; padding: 24px; }
   .food-admin { margin-top: 32px; }
   .food-admin__header { align-items: start; flex-direction: column; }
+  .food-admin-current__close { width: 100%; grid-template-columns: 1fr; }
+  .food-admin-current__close .food-button { width: 100%; }
   .food-admin-tabs { overflow-x: auto; }
   .food-admin-orders__heading { align-items: start; flex-direction: column; }
   .food-admin-order__person { grid-template-columns: 40px 1fr; }

@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(20);
+select extensions.plan(23);
 
 select extensions.has_table('food', 'food_admins', 'food.food_admins exists');
 select extensions.has_table('food', 'restaurants', 'food.restaurants exists');
@@ -28,6 +28,18 @@ select extensions.function_privs_are(
 select extensions.function_privs_are(
   'authenticated', 'public', 'food_admin_current', array[]::text[], array['EXECUTE'],
   'authenticated role can call the function, which applies the allowlist internally'
+);
+select extensions.function_privs_are(
+  'anon', 'public', 'food_scraper_sync_catalog', array['jsonb', 'jsonb', 'boolean', 'boolean'], array[]::text[],
+  'anon cannot publish scraper catalogs'
+);
+select extensions.function_privs_are(
+  'authenticated', 'public', 'food_scraper_sync_catalog', array['jsonb', 'jsonb', 'boolean', 'boolean'], array[]::text[],
+  'ordinary authenticated users cannot publish scraper catalogs'
+);
+select extensions.function_privs_are(
+  'service_role', 'public', 'food_scraper_sync_catalog', array['jsonb', 'jsonb', 'boolean', 'boolean'], array['EXECUTE'],
+  'only the service role can publish scraper catalogs'
 );
 
 insert into auth.users (

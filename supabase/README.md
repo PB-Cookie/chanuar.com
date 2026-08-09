@@ -4,6 +4,10 @@ Apply the migrations in `supabase/migrations` with the Supabase CLI or the SQL e
 
 The scraper must use the Supabase service role to upsert `restaurants` and `menu_items`. It should use the stable `scraper_key` fields and update `is_available`, `scraped_at`, images, source URLs, and source metadata on every import. Prices are integer euro cents.
 
+Catalog imports call `public.food_scraper_sync_catalog` with the service-role key.
+The function validates and publishes the entire restaurant snapshot in one
+transaction; the publishable frontend key cannot execute it.
+
 ## First administrator
 
 1. Create the administrator in Supabase Authentication (email/password).

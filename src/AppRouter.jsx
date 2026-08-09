@@ -3,6 +3,7 @@ import App from './App.jsx';
 
 const FoodApp = lazy(() => import('./food/FoodApp.jsx'));
 const AdminApp = lazy(() => import('./food/AdminApp.jsx'));
+const OptionsApp = lazy(() => import('./food/OptionsApp.jsx'));
 
 const META = {
   skinfolio: {
@@ -28,6 +29,16 @@ const META = {
   admin: {
     title: 'Administración — Mesa abierta',
     description: 'Administración segura del pedido semanal del equipo.',
+    theme: '#f7f1e7',
+    siteName: 'Mesa abierta',
+    image: '/food-og.png',
+    imageWidth: '1536',
+    imageHeight: '1024',
+    icon: '/food-og.png',
+  },
+  options: {
+    title: 'Restaurantes — Mesa abierta',
+    description: 'Consulta los restaurantes disponibles, descubre su propuesta y abre su carta en Uber Eats.',
     theme: '#f7f1e7',
     siteName: 'Mesa abierta',
     image: '/food-og.png',
@@ -110,6 +121,7 @@ export default function AppRouter() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
   if (path === '/') return <RoutedPage page="skinfolio"><App /></RoutedPage>;
   if (path === '/food') return <RoutedPage page="food"><Suspense fallback={<RouteLoading />}><FoodApp /></Suspense></RoutedPage>;
+  if (path === '/food/options') return <RoutedPage page="options"><Suspense fallback={<RouteLoading />}><OptionsApp /></Suspense></RoutedPage>;
   if (path === '/food/admin') return <RoutedPage page="admin"><Suspense fallback={<RouteLoading />}><AdminApp /></Suspense></RoutedPage>;
   return <NotFound />;
 }

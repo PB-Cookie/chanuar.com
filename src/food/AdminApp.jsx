@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { foodAdminApi, foodAuth, foodConfigured } from './api.js';
 import { formatEuros, formatSpanishDate } from './utils.js';
-import { FoodHeader } from './FoodApp.jsx';
+import FoodHeader from './FoodHeader.jsx';
 
 function AdminSignIn({ onSubmit, pending, error }) {
   const [email, setEmail] = useState('');

@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(23);
+select extensions.plan(24);
 
 select extensions.has_table('food', 'food_admins', 'food.food_admins exists');
 select extensions.has_table('food', 'restaurants', 'food.restaurants exists');
@@ -20,6 +20,10 @@ select extensions.table_privs_are('authenticated', 'food', 'order_cycles', array
 select extensions.function_privs_are(
   'anon', 'public', 'food_active_menu', array[]::text[], array['EXECUTE'],
   'anon can only use the public active-menu function'
+);
+select extensions.function_privs_are(
+  'anon', 'public', 'food_restaurant_options', array[]::text[], array['EXECUTE'],
+  'anon can use the presentation-only restaurant directory function'
 );
 select extensions.function_privs_are(
   'anon', 'public', 'food_admin_current', array[]::text[], array[]::text[],

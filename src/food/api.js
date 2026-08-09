@@ -112,6 +112,19 @@ export async function getActiveMenu() {
   };
 }
 
+export async function getRestaurantOptions() {
+  if (!foodConfigured) return [];
+  const data = await rpc('food_restaurant_options');
+  return (data ?? []).map((restaurant) => ({
+    id: restaurant.id,
+    name: restaurant.name,
+    description: restaurant.description ?? '',
+    imageUrl: restaurant.image_url ?? restaurant.imageUrl ?? null,
+    sourceUrl: restaurant.source_url ?? restaurant.sourceUrl,
+    availableItems: restaurant.available_items ?? restaurant.availableItems ?? 0,
+  }));
+}
+
 export async function submitOrder({ cycleId, displayName, note, items }) {
   const data = await rpc('food_submit_order', {
     p_cycle_id: cycleId,

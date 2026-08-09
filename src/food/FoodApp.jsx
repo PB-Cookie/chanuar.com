@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FoodApiError, foodConfigured, getActiveMenu, getOrder, submitOrder, updateOrder } from './api.js';
+import FoodHeader from './FoodHeader.jsx';
 import { forgetCredential, readLastCredential, saveCredential } from './storage.js';
 import {
   MAX_QUANTITY,
@@ -13,18 +14,6 @@ import {
   unavailableOrderItems,
   validateOrder,
 } from './utils.js';
-
-function FoodHeader({ compact = false }) {
-  return (
-    <header className={`food-header${compact ? ' food-header--compact' : ''}`}>
-      <a className="food-brand" href="/food" aria-label="Mesa abierta, inicio">
-        <span className="food-brand__mark" aria-hidden="true">M</span>
-        <span><strong>Mesa abierta</strong><small>El pedido de la semana</small></span>
-      </a>
-      <a className="food-header__admin" href="/food/admin">Administración</a>
-    </header>
-  );
-}
 
 function LoadingState() {
   return (
@@ -471,6 +460,11 @@ export default function FoodApp() {
             <h1>{active.restaurant.name}</h1>
             {active.restaurant.description && <p>{active.restaurant.description}</p>}
             <span>Abierto desde {formatSpanishDate(active.cycle.openedAt)}</span>
+            {active.restaurant.sourceUrl && (
+              <a className="food-hero__source" href={active.restaurant.sourceUrl} target="_blank" rel="noreferrer">
+                Ver en Uber Eats <span aria-hidden="true">↗</span>
+              </a>
+            )}
           </div>
         </section>
 
@@ -565,4 +559,4 @@ export default function FoodApp() {
   );
 }
 
-export { FoodHeader, ItemDetailModal, MenuItemCard, OrderConfirmation };
+export { ItemDetailModal, MenuItemCard, OrderConfirmation };

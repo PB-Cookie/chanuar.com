@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         main: resolve(process.cwd(), 'index.html'),
         food: resolve(process.cwd(), 'food/index.html'),
+        foodOptions: resolve(process.cwd(), 'food/options/index.html'),
         foodAdmin: resolve(process.cwd(), 'food/admin/index.html'),
       },
     },

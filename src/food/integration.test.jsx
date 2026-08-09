@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./api.js', async (importOriginal) => {
@@ -8,6 +8,16 @@ vi.mock('./api.js', async (importOriginal) => {
     ...actual,
     foodConfigured: false,
     getActiveMenu: vi.fn().mockResolvedValue(null),
+    getRestaurantOptions: vi.fn().mockResolvedValue([
+      {
+        id: 'restaurant-1',
+        name: 'PSM Burger',
+        description: 'Hamburguesas artesanas en Telde.',
+        imageUrl: 'https://example.com/psm.jpg',
+        sourceUrl: 'https://www.ubereats.com/es/store/psm-burger-telde/example',
+        availableItems: 45,
+      },
+    ]),
     foodAuth: {
       session: vi.fn().mockResolvedValue(null),
       onChange: vi.fn(() => () => {}),
@@ -18,6 +28,7 @@ vi.mock('./api.js', async (importOriginal) => {
 });
 import FoodApp from './FoodApp.jsx';
 import AdminApp from './AdminApp.jsx';
+import OptionsApp from './OptionsApp.jsx';
 import { usePageEnvironment } from '../AppRouter.jsx';
 
 function PageEnvironmentHarness({ page }) {
@@ -27,6 +38,7 @@ function PageEnvironmentHarness({ page }) {
 
 describe('food route integration without configured Supabase', () => {
   afterEach(() => {
+    cleanup();
     document.head.querySelectorAll('link[data-skinfolio-font]').forEach((node) => node.remove());
     localStorage.clear();
   });
@@ -42,6 +54,17 @@ describe('food route integration without configured Supabase', () => {
     expect(await screen.findByRole('heading', { name: 'Administración' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Entrar' })).toBeDisabled();
     expect(screen.queryByText(/editar restaurante/i)).not.toBeInTheDocument();
+  });
+
+  it('lists imported restaurants with descriptions and Uber Eats links', async () => {
+    render(<OptionsApp />);
+    expect(await screen.findByRole('heading', { name: 'PSM Burger' })).toBeVisible();
+    expect(screen.getByText('Hamburguesas artesanas en Telde.')).toBeVisible();
+    expect(screen.getByText('45 platos disponibles')).toBeVisible();
+    expect(screen.getByRole('link', { name: /Ver en Uber Eats/ })).toHaveAttribute(
+      'href',
+      'https://www.ubereats.com/es/store/psm-burger-telde/example',
+    );
   });
 
   it('applies food metadata and never preloads League fonts on food pages', async () => {

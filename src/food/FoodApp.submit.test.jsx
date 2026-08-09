@@ -21,7 +21,13 @@ import { saveCredential } from './storage.js';
 
 const menu = {
   cycle: { id: 'cycle-1', status: 'open', openedAt: '2026-08-09T12:00:00Z' },
-  restaurant: { id: 'restaurant-1', name: 'La Cocina', description: '', imageUrl: null },
+  restaurant: {
+    id: 'restaurant-1',
+    name: 'La Cocina',
+    description: '',
+    imageUrl: null,
+    sourceUrl: 'https://www.ubereats.com/es/store/la-cocina/example',
+  },
   menuItems: [{
     id: 'dish-1', restaurantId: 'restaurant-1', category: 'Platos', name: 'Tortilla',
     description: '', priceCents: 700, currency: 'EUR', imageUrl: null, available: true,
@@ -52,6 +58,11 @@ describe('successful order recovery', () => {
     render(<FoodApp />);
 
     await screen.findByRole('heading', { name: 'La Cocina' });
+    expect(screen.getByRole('link', { name: /Ver en Uber Eats/ })).toHaveAttribute(
+      'href',
+      menu.restaurant.sourceUrl,
+    );
+    expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute('href', '/food/options');
     await user.click(screen.getByRole('button', { name: /Añadir una unidad de Tortilla/ }));
     await user.type(screen.getByPlaceholderText(/Cómo te reconocerá/), 'Ana');
     await user.click(screen.getByRole('button', { name: 'Enviar pedido' }));

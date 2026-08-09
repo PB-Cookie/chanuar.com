@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FoodApiError, foodConfigured, getActiveMenu, getOrder, submitOrder, updateOrder } from './api.js';
 import { forgetCredential, readLastCredential, saveCredential } from './storage.js';
 import {
@@ -64,18 +64,18 @@ function ErrorState({ message, onRetry }) {
   );
 }
 
-function MenuItemImage({ item }) {
+function MenuItemImage({ item, className }) {
   const [failed, setFailed] = useState(false);
   if (!item.imageUrl || failed) {
     return (
-      <div className="food-menu-card__image food-menu-card__image--placeholder" aria-hidden="true">
-        <span>{item.category.slice(0, 1)}</span>
+      <div className={`${className} food-item-image--placeholder`} aria-hidden="true">
+        <span>{item.category?.slice(0, 1) || item.name.slice(0, 1)}</span>
       </div>
     );
   }
   return (
     <img
-      className="food-menu-card__image"
+      className={className}
       src={item.imageUrl}
       alt=""
       loading="lazy"
@@ -84,11 +84,18 @@ function MenuItemImage({ item }) {
   );
 }
 
-function MenuItemCard({ item, entry, onQuantity, onNote }) {
+function MenuItemCard({ item, entry, onQuantity, onNote, onOpen = () => {} }) {
   const quantity = entry?.quantity ?? 0;
   return (
     <article className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`}>
-      <MenuItemImage item={item} />
+      <button
+        className="food-menu-card__image-button"
+        type="button"
+        onClick={(event) => onOpen(item, event)}
+        aria-label={`Ampliar imagen de ${item.name}`}
+      >
+        <MenuItemImage item={item} className="food-menu-card__image" />
+      </button>
       <div className="food-menu-card__body">
         <p className="food-menu-card__category">{item.category}</p>
         <div className="food-menu-card__heading">
@@ -96,6 +103,9 @@ function MenuItemCard({ item, entry, onQuantity, onNote }) {
           <strong>{formatEuros(item.priceCents, item.currency)}</strong>
         </div>
         {item.description && <p className="food-menu-card__description">{item.description}</p>}
+        <button className="food-menu-card__details" type="button" onClick={(event) => onOpen(item, event)}>
+          Ver detalles
+        </button>
         <div className="food-quantity" aria-label={`Cantidad de ${item.name}`}>
           <button type="button" onClick={() => onQuantity(item.id, quantity - 1)} disabled={!quantity} aria-label={`Quitar una unidad de ${item.name}`}>−</button>
           <output aria-live="polite">{quantity}</output>
@@ -114,6 +124,89 @@ function MenuItemCard({ item, entry, onQuantity, onNote }) {
         )}
       </div>
     </article>
+  );
+}
+
+function ItemDetailModal({ item, entry, onQuantity, onClose }) {
+  const closeButtonRef = useRef(null);
+  const panelRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const quantity = entry?.quantity ?? 0;
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusable = [...panelRef.current.querySelectorAll('button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return (
+    <div className="food-item-modal" onMouseDown={onClose}>
+      <section
+        ref={panelRef}
+        className="food-item-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`food-item-title-${item.id}`}
+        aria-describedby={`food-item-description-${item.id}`}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          ref={closeButtonRef}
+          className="food-item-modal__close"
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar detalles"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+        <div className="food-item-modal__media">
+          <MenuItemImage item={item} className="food-item-modal__image" />
+        </div>
+        <div className="food-item-modal__content">
+          <p className="food-menu-card__category">{item.category}</p>
+          <h2 id={`food-item-title-${item.id}`}>{item.name}</h2>
+          <strong className="food-item-modal__price">{formatEuros(item.priceCents, item.currency)}</strong>
+          <p id={`food-item-description-${item.id}`} className="food-item-modal__description">
+            {item.description || 'Este plato no tiene descripción disponible.'}
+          </p>
+          <div className="food-item-modal__actions">
+            <span>{quantity ? `${quantity} en tu pedido` : 'Añádelo a tu pedido'}</span>
+            <div className="food-quantity" aria-label={`Cantidad de ${item.name}`}>
+              <button type="button" onClick={() => onQuantity(item.id, quantity - 1)} disabled={!quantity} aria-label={`Quitar una unidad de ${item.name}`}>−</button>
+              <output aria-live="polite">{quantity}</output>
+              <button type="button" onClick={() => onQuantity(item.id, quantity + 1)} disabled={quantity >= MAX_QUANTITY} aria-label={`Añadir una unidad de ${item.name}`}>+</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -167,6 +260,18 @@ export default function FoodApp() {
   const [message, setMessage] = useState('');
   const [unavailableItems, setUnavailableItems] = useState([]);
   const [deviceWarning, setDeviceWarning] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const detailOpenerRef = useRef(null);
+
+  function openItemDetails(item, event) {
+    detailOpenerRef.current = event.currentTarget;
+    setSelectedItem(item);
+  }
+
+  function closeItemDetails() {
+    setSelectedItem(null);
+    window.requestAnimationFrame(() => detailOpenerRef.current?.focus());
+  }
 
   async function load() {
     setPhase('loading');
@@ -401,7 +506,14 @@ export default function FoodApp() {
               {visibleItems.length ? (
                 <div className="food-menu-grid">
                   {visibleItems.map((item) => (
-                    <MenuItemCard key={item.id} item={item} entry={cart[item.id]} onQuantity={setQuantity} onNote={setItemNote} />
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      entry={cart[item.id]}
+                      onQuantity={setQuantity}
+                      onNote={setItemNote}
+                      onOpen={openItemDetails}
+                    />
                   ))}
                 </div>
               ) : (
@@ -441,8 +553,16 @@ export default function FoodApp() {
           </div>
         )}
       </main>
+      {selectedItem && (
+        <ItemDetailModal
+          item={selectedItem}
+          entry={cart[selectedItem.id]}
+          onQuantity={setQuantity}
+          onClose={closeItemDetails}
+        />
+      )}
     </div>
   );
 }
 
-export { FoodHeader, MenuItemCard, OrderConfirmation };
+export { FoodHeader, ItemDetailModal, MenuItemCard, OrderConfirmation };

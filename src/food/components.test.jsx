@@ -1,11 +1,13 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import { MenuItemCard } from './FoodApp.jsx';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ItemDetailModal, MenuItemCard } from './FoodApp.jsx';
 import { aggregateItems } from './AdminApp.jsx';
 
 const item = { id: 'dish-1', category: 'Entrantes', name: 'Croquetas', description: 'Cremosas', priceCents: 850, currency: 'EUR' };
+
+afterEach(cleanup);
 
 describe('employee menu controls', () => {
   it('supports accessible quantity changes and item notes', async () => {
@@ -28,7 +30,46 @@ describe('employee menu controls', () => {
     );
     fireEvent.error(container.querySelector('img'));
     expect(container.querySelector('img')).not.toBeInTheDocument();
-    expect(container.querySelector('.food-menu-card__image--placeholder')).toHaveTextContent('E');
+    expect(container.querySelector('.food-item-image--placeholder')).toHaveTextContent('E');
+  });
+
+  it('opens item details from the card', async () => {
+    const user = userEvent.setup();
+    const onOpen = vi.fn();
+    render(
+      <MenuItemCard
+        item={item}
+        entry={{ quantity: 0, note: '' }}
+        onQuantity={() => {}}
+        onNote={() => {}}
+        onOpen={onOpen}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Ver detalles' }));
+    expect(onOpen).toHaveBeenCalledWith(item, expect.any(Object));
+  });
+
+  it('shows the full description in an accessible modal and closes with Escape', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    const detailedItem = {
+      ...item,
+      description: 'Una descripción completa que puede ocupar varias líneas sin quedar cortada a mitad.',
+      imageUrl: 'https://example.com/croquetas.jpg',
+    };
+    render(
+      <ItemDetailModal
+        item={detailedItem}
+        entry={{ quantity: 1, note: '' }}
+        onQuantity={() => {}}
+        onClose={onClose}
+      />,
+    );
+
+    expect(screen.getByRole('dialog', { name: 'Croquetas' })).toHaveTextContent(detailedItem.description);
+    expect(screen.getByRole('button', { name: 'Cerrar detalles' })).toHaveFocus();
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
 

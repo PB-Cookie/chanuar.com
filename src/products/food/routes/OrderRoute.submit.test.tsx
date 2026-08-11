@@ -1,7 +1,8 @@
 import React from 'react';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 
 const apiMocks = vi.hoisted(() => ({
   getActiveMenu: vi.fn(),
@@ -16,7 +17,7 @@ vi.mock('../api/foodApi', async (importOriginal) => ({
   ...apiMocks,
 }));
 
-import FoodApp, { loader } from './OrderRoute';
+import { Component, loader } from './OrderRoute';
 import { FoodApiError } from '../api/foodApi';
 import { saveCredential } from '../model/storage';
 
@@ -31,7 +32,7 @@ const menu = {
   },
   menuItems: [{
     id: 'dish-1', restaurantId: 'restaurant-1', category: 'Platos', name: 'Tortilla',
-    description: '', priceCents: 700, currency: 'EUR', imageUrl: null, available: true,
+    description: 'Una tortilla recién hecha con papas del país.', priceCents: 700, currency: 'EUR', imageUrl: 'https://example.invalid/tortilla.jpg', available: true,
   }],
 };
 
@@ -40,6 +41,11 @@ const confirmedOrder = {
   createdAt: '2026-08-09T12:00:00Z', updatedAt: '2026-08-09T12:01:00Z', totalCents: 700,
   items: [{ id: 'line-1', menuItemId: 'dish-1', name: 'Tortilla', unitPriceCents: 700, quantity: 1, note: '', lineTotalCents: 700 }],
 };
+
+function renderOrder() {
+  const router = createMemoryRouter([{ path: '/food', Component, loader }], { initialEntries: ['/food'] });
+  render(<RouterProvider router={router} />);
+}
 
 describe('successful order recovery', () => {
   afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -56,7 +62,7 @@ describe('successful order recovery', () => {
   it('updates the committed order instead of creating a duplicate when confirmation fails', async () => {
     const user = userEvent.setup();
     apiMocks.getOrder.mockRejectedValueOnce(new Error('confirmation unavailable'));
-    render(<FoodApp />);
+    renderOrder();
 
     await screen.findByRole('heading', { name: 'La Cocina' });
     expect(screen.getByRole('link', { name: /Ver en Uber Eats/ })).toHaveAttribute(
@@ -64,7 +70,16 @@ describe('successful order recovery', () => {
       menu.restaurant.sourceUrl,
     );
     expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute('href', '/food/options');
+    fireEvent.error(document.querySelector('.food-menu-card__image')!);
+    expect(document.querySelector('.food-item-image--placeholder')).toHaveTextContent('P');
+    const details = screen.getByRole('button', { name: 'Ver detalles' });
+    await user.click(details);
+    expect(screen.getByRole('dialog', { name: 'Tortilla' })).toHaveTextContent('Una tortilla recién hecha');
+    expect(screen.getByRole('button', { name: 'Cerrar detalles' })).toHaveFocus();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Añadir una unidad de Tortilla/ }));
+    expect(screen.getByPlaceholderText(/Sin cebolla/)).toHaveAttribute('maxlength', '240');
     await user.type(screen.getByPlaceholderText(/Cómo te reconocerá/), 'Ana');
     await user.click(screen.getByRole('button', { name: 'Enviar pedido' }));
 
@@ -89,7 +104,7 @@ describe('successful order recovery', () => {
         { id: 'line-2', menuItemId: 'dish-gone', name: 'Croquetas', unitPriceCents: 400, quantity: 2, note: '', lineTotalCents: 800 },
       ],
     });
-    render(<FoodApp />);
+    renderOrder();
 
     await screen.findByRole('heading', { name: 'Todo listo, Ana' });
     await user.click(screen.getByRole('button', { name: 'Editar pedido' }));
@@ -106,7 +121,7 @@ describe('successful order recovery', () => {
     const user = userEvent.setup();
     apiMocks.getOrder.mockResolvedValue(confirmedOrder);
     const storageFailure = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
-    render(<FoodApp />);
+    renderOrder();
     await screen.findByRole('heading', { name: 'La Cocina' });
     await user.click(screen.getByRole('button', { name: /Añadir una unidad de Tortilla/ }));
     await user.type(screen.getByPlaceholderText(/Cómo te reconocerá/), 'Ana');

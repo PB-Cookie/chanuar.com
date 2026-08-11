@@ -8,17 +8,17 @@ const order = { id: 'order-1', cycleId: 'cycle-1', cycleStatus: 'open', displayN
 
 describe('food order workflow reducer', () => {
   it('loads an open menu as a new editable order', () => {
-    expect(initialOrderWorkflow({ menu, credential: null, order: null })).toMatchObject({ phase: 'ready', editing: true, savedOrder: null });
+    expect(initialOrderWorkflow({ menu, credential: null, order: null })).toMatchObject({ editing: true, savedOrder: null });
   });
 
   it('resumes a saved order without editing it', () => {
-    expect(initialOrderWorkflow({ menu, credential, order })).toMatchObject({ phase: 'ready', editing: false, credential, savedOrder: order });
+    expect(initialOrderWorkflow({ menu, credential, order })).toMatchObject({ editing: false, credential, savedOrder: order });
   });
 
   it('enters edit mode only for a resumable active order', () => {
     const state = initialOrderWorkflow({ menu, credential, order });
     expect(orderWorkflowReducer(state, { type: 'edit' }).editing).toBe(true);
-    expect(orderWorkflowReducer(initialOrderWorkflow(null), { type: 'edit' }).editing).toBe(false);
+    expect(orderWorkflowReducer(initialOrderWorkflow({ menu: null, credential: null, order: null }), { type: 'edit' }).editing).toBe(false);
   });
 
   it('records credentials before confirmation is available', () => {
@@ -37,10 +37,10 @@ describe('food order workflow reducer', () => {
   });
 
   it('falls back to the empty week when a closed order cannot be recovered', () => {
-    expect(orderWorkflowReducer(initialOrderWorkflow({ menu, credential, order }), { type: 'closed', order: null })).toMatchObject({ phase: 'empty', credential: null });
+    expect(orderWorkflowReducer(initialOrderWorkflow({ menu, credential, order }), { type: 'closed', order: null })).toMatchObject({ active: null, credential: null });
   });
 
   it('forgets local access while keeping the active menu editable', () => {
-    expect(orderWorkflowReducer(initialOrderWorkflow({ menu, credential, order }), { type: 'forget' })).toMatchObject({ phase: 'ready', credential: null, savedOrder: null, editing: true });
+    expect(orderWorkflowReducer(initialOrderWorkflow({ menu, credential, order }), { type: 'forget' })).toMatchObject({ credential: null, savedOrder: null, editing: true });
   });
 });

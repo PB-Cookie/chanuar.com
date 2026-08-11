@@ -59,6 +59,38 @@ export type CartEntry = { quantity: number; note: string };
 export type Cart = Record<string, CartEntry>;
 export type OrderItemPayload = { menu_item_id: string; quantity: number; note: string | null };
 
+export type AdminOrderItem = {
+  id: string;
+  menuItemId: string;
+  name: string;
+  unitPriceCents: number;
+  currency: string;
+  quantity: number;
+  note: string;
+};
+
+export type AdminOrder = {
+  id: string;
+  displayName: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+  totalCents: number;
+  items: AdminOrderItem[];
+};
+
+export type AdminCycle = {
+  id: string;
+  status: string;
+  openedAt: string;
+  closedAt: string | null;
+  restaurant: Restaurant;
+  subtotalCents: number;
+  serviceFeeCents: number;
+  totalCents: number;
+  orders: AdminOrder[];
+};
+
 export type OrderRouteData = {
   menu: ActiveMenu | null;
   credential: Credential | null;
@@ -69,6 +101,6 @@ export type AdminRouteData = {
   session: Session | null;
   authorized: boolean | undefined;
   catalog: Restaurant[];
-  current: unknown;
-  history: unknown[];
+  current: AdminCycle | null;
+  history: AdminCycle[];
 };

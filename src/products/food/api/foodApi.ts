@@ -1,9 +1,9 @@
 import { createClient, type Session } from '@supabase/supabase-js';
 import { supabaseEnvironment } from '../../../shared/config/supabase';
-import type { ActiveMenu, FoodOrder, OpeningDay, OrderItemPayload, Restaurant } from '../model/types';
+import type { ActiveMenu, AdminCycle, FoodOrder, OpeningDay, OrderItemPayload, Restaurant } from '../model/types';
 
 export const foodConfigured = supabaseEnvironment.configured;
-export const foodClient = foodConfigured
+const foodClient = foodConfigured
   ? createClient(supabaseEnvironment.url, supabaseEnvironment.publishableKey, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     })
@@ -34,7 +34,7 @@ function errorCode(error: unknown) {
   return Object.keys(ERROR_MESSAGES).find((code) => text.includes(code)) ?? 'FOOD_UNKNOWN';
 }
 
-export function asFoodError(error: unknown) {
+function asFoodError(error: unknown) {
   if (error instanceof FoodApiError) return error;
   const code = errorCode(error);
   return new FoodApiError(code, ERROR_MESSAGES[code] ?? 'No hemos podido conectar con el servicio de pedidos. Inténtalo de nuevo.', error);
@@ -55,7 +55,7 @@ function normalizeItem(item: Raw) {
   };
 }
 
-export function normalizeRestaurant(restaurant: Raw | null): Restaurant | null {
+function normalizeRestaurant(restaurant: Raw | null): Restaurant | null {
   if (!restaurant) return null;
   return {
     id: String(restaurant.id), name: String(restaurant.name), description: restaurant.description ?? '',
@@ -65,7 +65,7 @@ export function normalizeRestaurant(restaurant: Raw | null): Restaurant | null {
   };
 }
 
-export function normalizeOrder(order: Raw | null): FoodOrder | null {
+function normalizeOrder(order: Raw | null): FoodOrder | null {
   if (!order) return null;
   return {
     id: String(order.id), cycleId: String(order.cycle_id ?? order.cycleId), cycleStatus: String(order.cycle_status ?? order.cycleStatus),
@@ -78,6 +78,12 @@ export function normalizeOrder(order: Raw | null): FoodOrder | null {
       lineTotalCents: Number(item.line_total_cents ?? item.lineTotalCents),
     })),
   };
+}
+
+function requireOrder(order: Raw | null): FoodOrder {
+  const normalized = normalizeOrder(order);
+  if (!normalized) throw new FoodApiError('FOOD_ORDER_NOT_FOUND', ERROR_MESSAGES.FOOD_ORDER_NOT_FOUND!);
+  return normalized;
 }
 
 export async function getActiveMenu(): Promise<ActiveMenu | null> {
@@ -100,11 +106,47 @@ export async function submitOrder(input: { cycleId: string; displayName: string;
 }
 
 export async function getOrder(orderId: string, token: string) {
-  return normalizeOrder(await rpc<Raw | null>('food_get_order', { p_order_id: orderId, p_token: token }));
+  return requireOrder(await rpc<Raw | null>('food_get_order', { p_order_id: orderId, p_token: token }));
 }
 
 export async function updateOrder(input: { orderId: string; token: string; displayName: string; note: string; items: OrderItemPayload[] }) {
-  return normalizeOrder(await rpc<Raw | null>('food_update_order', { p_order_id: input.orderId, p_token: input.token, p_display_name: input.displayName, p_note: input.note || null, p_items: input.items }));
+  return requireOrder(await rpc<Raw | null>('food_update_order', { p_order_id: input.orderId, p_token: input.token, p_display_name: input.displayName, p_note: input.note || null, p_items: input.items }));
+}
+
+function normalizeAdminCycle(cycle: Raw | null): AdminCycle | null {
+  if (!cycle) return null;
+  const restaurant = normalizeRestaurant(cycle.restaurant);
+  if (!restaurant) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'El ciclo no contiene un restaurante válido.');
+  const orders = (cycle.orders ?? []).map((order: Raw) => ({
+    id: String(order.id),
+    displayName: String(order.display_name ?? ''),
+    note: order.note ?? '',
+    createdAt: order.created_at ?? '',
+    updatedAt: order.updated_at ?? '',
+    totalCents: Number(order.total_cents ?? 0),
+    items: (order.items ?? []).map((item: Raw) => ({
+      id: String(item.id),
+      menuItemId: String(item.menu_item_id),
+      name: String(item.item_name),
+      unitPriceCents: Number(item.unit_price_cents),
+      currency: item.currency ?? 'EUR',
+      quantity: Number(item.quantity),
+      note: item.note ?? '',
+    })),
+  }));
+  const subtotalCents = Number(cycle.subtotal_cents ?? orders.reduce((total: number, order: { totalCents: number }) => total + order.totalCents, 0));
+  const serviceFeeCents = Number(cycle.service_fee_cents ?? cycle.cycle?.service_fee_cents ?? 0);
+  return {
+    id: String(cycle.id ?? cycle.cycle?.id),
+    status: String(cycle.status ?? cycle.cycle?.status),
+    openedAt: cycle.opened_at ?? cycle.cycle?.opened_at ?? '',
+    closedAt: cycle.closed_at ?? cycle.cycle?.closed_at ?? null,
+    restaurant,
+    subtotalCents,
+    serviceFeeCents,
+    totalCents: Number(cycle.total_cents ?? subtotalCents + serviceFeeCents),
+    orders,
+  };
 }
 
 export const foodAuth = {
@@ -135,11 +177,13 @@ export const foodAuth = {
 export const foodAdminApi = {
   access: () => rpc<boolean>('food_admin_access'),
   catalog: () => getRestaurantOptionsFromAdmin(),
-  current: () => rpc<any>('food_admin_current'),
-  history: () => rpc<any[]>('food_admin_history'),
+  current: async () => normalizeAdminCycle(await rpc<Raw | null>('food_admin_current')),
+  history: async () => (await rpc<Raw[]>('food_admin_history') ?? []).map(normalizeAdminCycle).filter((cycle): cycle is AdminCycle => cycle !== null),
   openCycle: (restaurantId: string) => rpc('food_admin_open_cycle', { p_restaurant_id: restaurantId }),
   async updateRestaurantHours(restaurantId: string, openingHours: OpeningDay[]) {
-    return normalizeRestaurant(await rpc<Raw>('food_admin_update_restaurant_hours', { p_restaurant_id: restaurantId, p_opening_hours: openingHours }));
+    const restaurant = normalizeRestaurant(await rpc<Raw>('food_admin_update_restaurant_hours', { p_restaurant_id: restaurantId, p_opening_hours: openingHours }));
+    if (!restaurant) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'El restaurante actualizado no es válido.');
+    return restaurant;
   },
   closeCycle: (cycleId: string, serviceFeeCents: number) => rpc('food_admin_close_cycle', { p_cycle_id: cycleId, p_service_fee_cents: serviceFeeCents }),
 };

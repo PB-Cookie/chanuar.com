@@ -1,5 +1,5 @@
-// @ts-nocheck -- existing presentation markup; reducer, loader, and API boundaries remain enforced.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useReducer, useRef, useState } from 'react';
+import type { FormEvent, MouseEvent } from 'react';
 import { useLoaderData } from 'react-router';
 import { FoodApiError, foodConfigured, getActiveMenu, getOrder, submitOrder, updateOrder } from '../api/foodApi';
 import FoodHeader from '../components/FoodHeader';
@@ -17,8 +17,8 @@ import {
   unavailableOrderItems,
   validateOrder,
 } from '../model/order';
-import type { OrderRouteData } from '../model/types';
-import { useOrderWorkflow } from './useOrderWorkflow';
+import { initialOrderWorkflow, orderWorkflowReducer } from '../model/orderState';
+import type { Cart, CartEntry, Credential, FoodOrder, MenuItem, OrderRouteData, Restaurant } from '../model/types';
 
 export async function loader(): Promise<OrderRouteData> {
   const menu = await getActiveMenu();
@@ -35,21 +35,7 @@ export async function loader(): Promise<OrderRouteData> {
   }
 }
 
-function LoadingState() {
-  return (
-    <main id="main-content" className="food-state" tabIndex={-1} aria-busy="true" aria-label="Cargando el pedido semanal">
-      <div className="food-skeleton food-skeleton--title" />
-      <div className="food-skeleton food-skeleton--hero" />
-      <div className="food-skeleton-grid">
-        <div className="food-skeleton food-skeleton--card" />
-        <div className="food-skeleton food-skeleton--card" />
-        <div className="food-skeleton food-skeleton--card" />
-      </div>
-    </main>
-  );
-}
-
-function EmptyWeek({ configured = true }) {
+function EmptyWeek({ configured = true }: { configured?: boolean }) {
   return (
     <main id="main-content" className="food-state food-state--centered" tabIndex={-1}>
       <div className="food-state__symbol" aria-hidden="true">☼</div>
@@ -62,18 +48,7 @@ function EmptyWeek({ configured = true }) {
   );
 }
 
-function ErrorState({ message, onRetry }) {
-  return (
-    <main id="main-content" className="food-state food-state--centered" tabIndex={-1} role="alert">
-      <div className="food-state__symbol food-state__symbol--error" aria-hidden="true">!</div>
-      <h1>No hemos podido abrir el menú</h1>
-      <p>{message}</p>
-      <button className="food-button" type="button" onClick={onRetry}>Volver a intentar</button>
-    </main>
-  );
-}
-
-function MenuItemImage({ item, className }) {
+function MenuItemImage({ item, className }: { item: MenuItem; className: string }) {
   const [failed, setFailed] = useState(false);
   if (!item.imageUrl || failed) {
     return (
@@ -93,7 +68,13 @@ function MenuItemImage({ item, className }) {
   );
 }
 
-function MenuItemCard({ item, entry, onQuantity, onNote, onOpen = () => {} }) {
+function MenuItemCard({ item, entry, onQuantity, onNote, onOpen }: {
+  item: MenuItem;
+  entry?: CartEntry;
+  onQuantity: (itemId: string, quantity: number) => void;
+  onNote: (itemId: string, note: string) => void;
+  onOpen: (item: MenuItem, event?: MouseEvent<HTMLElement>) => void;
+}) {
   const quantity = entry?.quantity ?? 0;
   return (
     <article className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`} aria-labelledby={`food-menu-item-${item.id}`}>
@@ -121,9 +102,9 @@ function MenuItemCard({ item, entry, onQuantity, onNote, onOpen = () => {} }) {
         </div>
         {quantity > 0 && (
           <label className="food-field food-field--item-note">
-            <span>Nota para este plato <small>{entry.note.length}/240</small></span>
+            <span>Nota para este plato <small>{entry?.note.length ?? 0}/240</small></span>
             <input
-              value={entry.note}
+              value={entry?.note ?? ''}
               maxLength={240}
               onChange={(event) => onNote(item.id, event.target.value)}
               placeholder="Sin cebolla, salsa aparte…"
@@ -135,35 +116,39 @@ function MenuItemCard({ item, entry, onQuantity, onNote, onOpen = () => {} }) {
   );
 }
 
-function ItemDetailModal({ item, entry, onQuantity, onClose }) {
-  const closeButtonRef = useRef(null);
-  const panelRef = useRef(null);
-  const onCloseRef = useRef(onClose);
+function ItemDetailModal({ item, entry, onQuantity, onClose }: {
+  item: MenuItem;
+  entry?: CartEntry;
+  onQuantity: (itemId: string, quantity: number) => void;
+  onClose: () => void;
+}) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const close = useEffectEvent(onClose);
   const quantity = entry?.quantity ?? 0;
-  onCloseRef.current = onClose;
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
 
-    function handleKeyDown(event) {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === 'Escape') {
-        onCloseRef.current();
+        close();
         return;
       }
       if (event.key !== 'Tab') return;
 
-      const focusable = [...panelRef.current.querySelectorAll('button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')];
+      const focusable = [...(panelRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])') ?? [])];
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
-        last.focus();
+        last!.focus();
       } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault();
-        first.focus();
+        first!.focus();
       }
     }
 
@@ -218,7 +203,14 @@ function ItemDetailModal({ item, entry, onQuantity, onClose }) {
   );
 }
 
-function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warning = '' }) {
+function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warning = '' }: {
+  order: FoodOrder;
+  restaurant: Restaurant | null;
+  editable: boolean;
+  onEdit: () => void;
+  onForget: () => void;
+  warning?: string;
+}) {
   return (
     <main id="main-content" className="food-confirmation" tabIndex={-1}>
       <div className="food-confirmation__status" aria-hidden="true">✓</div>
@@ -253,26 +245,26 @@ function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warn
   );
 }
 
-export default function FoodApp({ initialData = null } = {}) {
-  const [workflow, dispatch] = useOrderWorkflow(initialData);
-  const { phase, active, savedOrder, credential, editing } = workflow;
-  const [displayName, setDisplayName] = useState(initialData?.order?.displayName ?? '');
-  const [orderNote, setOrderNote] = useState(initialData?.order?.note ?? '');
-  const [cart, setCart] = useState(() => orderToCart(initialData?.order ?? null, initialData?.menu?.menuItems ?? null));
+function FoodApp({ initialData }: { initialData: OrderRouteData }) {
+  const [workflow, dispatch] = useReducer(orderWorkflowReducer, initialData, initialOrderWorkflow);
+  const { active, savedOrder, credential, editing } = workflow;
+  const [displayName, setDisplayName] = useState(initialData.order?.displayName ?? '');
+  const [orderNote, setOrderNote] = useState(initialData.order?.note ?? '');
+  const [cart, setCart] = useState<Cart>(() => orderToCart(initialData.order, initialData.menu?.menuItems ?? null));
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState('');
-  const [unavailableItems, setUnavailableItems] = useState(() => initialData?.order && initialData.menu ? unavailableOrderItems(initialData.order, initialData.menu.menuItems) : []);
+  const [unavailableItems, setUnavailableItems] = useState(() => initialData.order && initialData.menu ? unavailableOrderItems(initialData.order, initialData.menu.menuItems) : []);
   const [deviceWarning, setDeviceWarning] = useState('');
-  const [selectedItem, setSelectedItem] = useState(null);
-  const detailOpenerRef = useRef(null);
-  const formErrorRef = useRef(null);
-  const displayNameRef = useRef(null);
-  const orderNoteRef = useRef(null);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const detailOpenerRef = useRef<HTMLElement | null>(null);
+  const formErrorRef = useRef<HTMLDivElement>(null);
+  const displayNameRef = useRef<HTMLInputElement>(null);
+  const orderNoteRef = useRef<HTMLTextAreaElement>(null);
   const [invalidField, setInvalidField] = useState('');
 
-  function openItemDetails(item, event) {
+  function openItemDetails(item: MenuItem, event?: MouseEvent<HTMLElement>) {
     detailOpenerRef.current = event?.currentTarget ?? null;
     setSelectedItem(item);
   }
@@ -281,45 +273,6 @@ export default function FoodApp({ initialData = null } = {}) {
     setSelectedItem(null);
     window.requestAnimationFrame(() => detailOpenerRef.current?.focus());
   }
-
-  async function load() {
-    dispatch({ type: 'loading' });
-    setMessage('');
-    setDeviceWarning('');
-    try {
-      const menu = await getActiveMenu();
-      const localCredential = readLastCredential();
-      const shouldResume = localCredential && (!menu || localCredential.cycleId === menu.cycle.id);
-      if (shouldResume) {
-        try {
-          const order = await getOrder(localCredential.orderId, localCredential.token);
-          setDisplayName(order.displayName);
-          setOrderNote(order.note);
-          const canEditCurrentCycle = menu?.cycle.id === order.cycleId && order.cycleStatus === 'open';
-          const removedItems = canEditCurrentCycle
-            ? unavailableOrderItems(order, menu.menuItems)
-            : [];
-          setUnavailableItems(removedItems);
-          setCart(orderToCart(order, canEditCurrentCycle ? menu.menuItems : null));
-          dispatch({ type: 'loaded', data: { menu, credential: localCredential, order } });
-          return;
-        } catch (error) {
-          if (error.code === 'FOOD_ORDER_NOT_FOUND') forgetCredential(localCredential);
-          else throw error;
-        }
-      }
-      setUnavailableItems([]);
-      setCart({});
-      dispatch({ type: 'loaded', data: { menu, credential: null, order: null } });
-    } catch (error) {
-      setMessage(error.message);
-      dispatch({ type: 'failed' });
-    }
-  }
-
-  // Direct renders retain the legacy fetch path; routed renders receive loader data.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { if (!initialData) load(); }, [initialData]);
 
   const categories = useMemo(() => {
     const values = new Set((active?.menuItems ?? []).map((item) => item.category));
@@ -334,7 +287,7 @@ export default function FoodApp({ initialData = null } = {}) {
     );
   }, [active, category, query]);
 
-  function setQuantity(itemId, nextQuantity) {
+  function setQuantity(itemId: string, nextQuantity: number) {
     setCart((current) => {
       const next = { ...current };
       if (nextQuantity <= 0) delete next[itemId];
@@ -343,11 +296,11 @@ export default function FoodApp({ initialData = null } = {}) {
     });
   }
 
-  function setItemNote(itemId, note) {
-    setCart((current) => ({ ...current, [itemId]: { ...current[itemId], note } }));
+  function setItemNote(itemId: string, note: string) {
+    setCart((current) => ({ ...current, [itemId]: { quantity: current[itemId]?.quantity ?? 1, note } }));
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending || !active) return;
     const validationMessage = validateOrder({ displayName, orderNote, cart });
@@ -369,8 +322,8 @@ export default function FoodApp({ initialData = null } = {}) {
     setInvalidField('');
     try {
       const items = cartToPayload(cart);
-      let nextCredential = credential;
-      let order;
+      let nextCredential: Credential | null = credential;
+      let order: FoodOrder;
       if (credential) {
         order = await updateOrder({
           orderId: credential.orderId,
@@ -410,11 +363,12 @@ export default function FoodApp({ initialData = null } = {}) {
           return;
         }
       }
+      if (!nextCredential) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'No hemos podido recuperar el acceso al pedido.');
       dispatch({ type: 'saved', credential: nextCredential, order });
       setUnavailableItems([]);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error instanceof Error ? error.message : 'No hemos podido guardar el pedido.');
       if (error instanceof FoodApiError && error.code === 'FOOD_CYCLE_CLOSED' && credential) {
         try {
           const order = await getOrder(credential.orderId, credential.token);
@@ -439,9 +393,7 @@ export default function FoodApp({ initialData = null } = {}) {
     dispatch({ type: 'forget' });
   }
 
-  if (phase === 'loading') return <div className="food-shell"><FoodHeader /><LoadingState /></div>;
-  if (phase === 'error') return <div className="food-shell"><FoodHeader /><ErrorState message={message} onRetry={load} /></div>;
-  if (phase === 'empty') return <div className="food-shell"><FoodHeader /><EmptyWeek configured={foodConfigured} /></div>;
+  if (!active) return <div className="food-shell"><FoodHeader /><EmptyWeek configured={foodConfigured} /></div>;
   if (savedOrder && !editing) {
     return (
       <div className="food-shell">
@@ -579,8 +531,6 @@ export default function FoodApp({ initialData = null } = {}) {
     </div>
   );
 }
-
-export { ItemDetailModal, MenuItemCard, OrderConfirmation };
 
 export function Component() {
   return <FoodApp initialData={useLoaderData() as OrderRouteData} />;

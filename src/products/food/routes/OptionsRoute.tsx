@@ -1,5 +1,4 @@
-// @ts-nocheck -- existing presentation markup; typed loader/API boundaries remain enforced.
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLoaderData } from 'react-router';
 import { foodConfigured, getRestaurantOptions } from '../api/foodApi';
 import FoodHeader from '../components/FoodHeader';
@@ -8,7 +7,7 @@ import type { Restaurant } from '../model/types';
 
 export const loader = () => getRestaurantOptions();
 
-function RestaurantImage({ restaurant }) {
+function RestaurantImage({ restaurant }: { restaurant: Restaurant }) {
   const [failed, setFailed] = useState(false);
 
   if (!restaurant.imageUrl || failed) {
@@ -30,34 +29,8 @@ function RestaurantImage({ restaurant }) {
   );
 }
 
-function OptionsLoading() {
-  return (
-    <div className="food-options-grid" aria-busy="true" aria-label="Cargando restaurantes">
-      <p className="sr-only" role="status">Cargando restaurantes…</p>
-      {[0, 1, 2, 3, 4, 5].map((item) => <div className="food-skeleton food-options-skeleton" key={item} />)}
-    </div>
-  );
-}
-
-export default function OptionsApp({ initialRestaurants = null }: { initialRestaurants?: Restaurant[] | null } = {}) {
-  const [phase, setPhase] = useState(initialRestaurants ? 'ready' : 'loading');
-  const [restaurants, setRestaurants] = useState(initialRestaurants ?? []);
-  const [message, setMessage] = useState('');
-
-  async function load() {
-    setPhase('loading');
-    setMessage('');
-    try {
-      const options = await getRestaurantOptions();
-      setRestaurants(options);
-      setPhase('ready');
-    } catch (error) {
-      setMessage(error.message);
-      setPhase('error');
-    }
-  }
-
-  useEffect(() => { if (!initialRestaurants) load(); }, [initialRestaurants]);
+export function Component() {
+  const restaurants = useLoaderData() as Restaurant[];
 
   return (
     <div className="food-shell">
@@ -69,15 +42,7 @@ export default function OptionsApp({ initialRestaurants = null }: { initialResta
           <p>Explora los restaurantes que ya forman parte de Mesa abierta y consulta su carta original en Uber Eats.</p>
         </header>
 
-        {phase === 'loading' && <OptionsLoading />}
-        {phase === 'error' && (
-          <section className="food-state food-state--inline" role="alert">
-            <h2>No hemos podido cargar los restaurantes</h2>
-            <p>{message}</p>
-            <button className="food-button" type="button" onClick={load}>Volver a intentar</button>
-          </section>
-        )}
-        {phase === 'ready' && restaurants.length === 0 && (
+        {restaurants.length === 0 && (
           <section className="food-state food-state--inline">
             <h2>Todavía no hay restaurantes disponibles</h2>
             <p>{foodConfigured
@@ -85,7 +50,7 @@ export default function OptionsApp({ initialRestaurants = null }: { initialResta
               : 'Falta conectar el proyecto de Supabase para mostrar las opciones.'}</p>
           </section>
         )}
-        {phase === 'ready' && restaurants.length > 0 && (
+        {restaurants.length > 0 && (
           <section className="food-options-grid" aria-labelledby="food-options-title">
             <h2 className="sr-only" id="food-options-title">{restaurants.length} restaurantes disponibles</h2>
             {restaurants.map((restaurant) => (
@@ -100,7 +65,7 @@ export default function OptionsApp({ initialRestaurants = null }: { initialResta
                     </p>
                     <OpeningHours openingHours={restaurant.openingHours} />
                   </div>
-                  <a className="food-option-card__link" href={restaurant.sourceUrl} target="_blank" rel="noreferrer">
+                  <a className="food-option-card__link" href={restaurant.sourceUrl ?? undefined} target="_blank" rel="noreferrer">
                     Ver en Uber Eats <span aria-hidden="true">↗</span><span className="sr-only"> (se abre en una pestaña nueva)</span>
                   </a>
                 </div>
@@ -111,8 +76,4 @@ export default function OptionsApp({ initialRestaurants = null }: { initialResta
       </main>
     </div>
   );
-}
-
-export function Component() {
-  return <OptionsApp initialRestaurants={useLoaderData() as Restaurant[]} />;
 }

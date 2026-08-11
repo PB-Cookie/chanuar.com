@@ -1,7 +1,7 @@
-// @ts-nocheck -- existing presentation markup; typed schedule model/API remain enforced.
 import { useId, useMemo, useState } from 'react';
+import type { OpeningDay, OpeningPeriod, Restaurant } from '../model/types';
 
-export const WEEK_DAYS = [
+const WEEK_DAYS = [
   { id: 1, label: 'Lunes', short: 'Lun' },
   { id: 2, label: 'Martes', short: 'Mar' },
   { id: 3, label: 'Miércoles', short: 'Mié' },
@@ -13,15 +13,19 @@ export const WEEK_DAYS = [
 
 const TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
-export function normalizeOpeningHours(value) {
+export function normalizeOpeningHours(value: unknown): OpeningDay[] {
   if (!Array.isArray(value)) return [];
-  const days = new Map();
+  const days = new Map<number, OpeningDay>();
   for (const entry of value) {
-    const day = Number(entry?.day);
+    if (!entry || typeof entry !== 'object') continue;
+    const raw = entry as { day?: unknown; periods?: unknown };
+    const day = Number(raw.day);
     if (!Number.isInteger(day) || day < 1 || day > 7 || days.has(day)) continue;
-    const periods = Array.isArray(entry.periods)
-      ? entry.periods
-        .filter((period) => TIME_PATTERN.test(period?.open) && TIME_PATTERN.test(period?.close) && period.open !== period.close)
+    const periods = Array.isArray(raw.periods)
+      ? raw.periods
+        .filter((period): period is OpeningPeriod => Boolean(period && typeof period === 'object'
+          && TIME_PATTERN.test((period as OpeningPeriod).open) && TIME_PATTERN.test((period as OpeningPeriod).close)
+          && (period as OpeningPeriod).open !== (period as OpeningPeriod).close))
         .slice(0, 4)
         .map((period) => ({ open: period.open, close: period.close }))
       : [];
@@ -30,25 +34,25 @@ export function normalizeOpeningHours(value) {
   return [...days.values()].sort((a, b) => a.day - b.day);
 }
 
-export function formatOpeningPeriods(periods) {
+export function formatOpeningPeriods(periods: OpeningPeriod[] | undefined) {
   if (!periods?.length) return 'Cerrado';
   return periods.map((period) => `${period.open}–${period.close}`).join(', ');
 }
 
-export function canaryWeekDay(date = new Date()) {
+function canaryWeekDay(date = new Date()) {
   const short = new Intl.DateTimeFormat('en-GB', {
     weekday: 'short',
     timeZone: 'Atlantic/Canary',
   }).format(date);
-  return ({ Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 })[short] ?? 1;
+  return ({ Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 } as Record<string, number>)[short] ?? 1;
 }
 
-export function getTodayHours(openingHours, date = new Date()) {
+function getTodayHours(openingHours: OpeningDay[], date = new Date()) {
   const normalized = normalizeOpeningHours(openingHours);
   return normalized.find((entry) => entry.day === canaryWeekDay(date)) ?? { day: canaryWeekDay(date), periods: [] };
 }
 
-export function OpeningHours({ openingHours, compact = false }) {
+export function OpeningHours({ openingHours, compact = false }: { openingHours?: OpeningDay[]; compact?: boolean }) {
   const normalized = normalizeOpeningHours(openingHours);
   const today = getTodayHours(normalized);
 
@@ -77,25 +81,29 @@ export function OpeningHours({ openingHours, compact = false }) {
   );
 }
 
-function editableSchedule(openingHours) {
+function editableSchedule(openingHours: OpeningDay[]) {
   const normalized = normalizeOpeningHours(openingHours);
   return WEEK_DAYS.map((day) => normalized.find((entry) => entry.day === day.id) ?? { day: day.id, periods: [] });
 }
 
-export function OpeningHoursForm({ restaurant, onSave, pending = false }) {
+export function OpeningHoursForm({ restaurant, onSave, pending = false }: {
+  restaurant: Pick<Restaurant, 'id' | 'openingHours'>;
+  onSave: (restaurantId: string, openingHours: OpeningDay[]) => void;
+  pending?: boolean;
+}) {
   const formId = useId();
   const initial = useMemo(() => editableSchedule(restaurant.openingHours), [restaurant.openingHours]);
   const [schedule, setSchedule] = useState(initial);
 
-  function updateDay(dayId, updater) {
+  function updateDay(dayId: number, updater: (entry: OpeningDay) => OpeningDay) {
     setSchedule((current) => current.map((entry) => (entry.day === dayId ? updater(entry) : entry)));
   }
 
-  function toggleDay(dayId, enabled) {
+  function toggleDay(dayId: number, enabled: boolean) {
     updateDay(dayId, (entry) => ({ ...entry, periods: enabled ? [{ open: '12:00', close: '23:00' }] : [] }));
   }
 
-  function updatePeriod(dayId, index, field, value) {
+  function updatePeriod(dayId: number, index: number, field: keyof OpeningPeriod, value: string) {
     updateDay(dayId, (entry) => ({
       ...entry,
       periods: entry.periods.map((period, periodIndex) => (
@@ -104,11 +112,11 @@ export function OpeningHoursForm({ restaurant, onSave, pending = false }) {
     }));
   }
 
-  function addPeriod(dayId) {
+  function addPeriod(dayId: number) {
     updateDay(dayId, (entry) => ({ ...entry, periods: [...entry.periods, { open: '12:00', close: '16:00' }] }));
   }
 
-  function removePeriod(dayId, index) {
+  function removePeriod(dayId: number, index: number) {
     updateDay(dayId, (entry) => ({ ...entry, periods: entry.periods.filter((_, periodIndex) => periodIndex !== index) }));
   }
 
@@ -116,7 +124,7 @@ export function OpeningHoursForm({ restaurant, onSave, pending = false }) {
     <form className="food-hours-form" onSubmit={(event) => { event.preventDefault(); onSave(restaurant.id, schedule.filter((entry) => entry.periods.length)); }}>
       <div className="food-hours-form__days">
         {WEEK_DAYS.map((day) => {
-          const entry = schedule.find((candidate) => candidate.day === day.id);
+          const entry = schedule.find((candidate) => candidate.day === day.id)!;
           const enabled = Boolean(entry.periods.length);
           return (
             <fieldset className="food-hours-form__day" key={day.id}>

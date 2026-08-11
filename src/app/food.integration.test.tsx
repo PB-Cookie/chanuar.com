@@ -2,10 +2,10 @@ import React from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { RouteEnvironment } from '../../../app/RouteEnvironment';
+import { RouteEnvironment } from './RouteEnvironment';
 
-vi.mock('../api/foodApi', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../api/foodApi')>();
+vi.mock('../products/food/api/foodApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../products/food/api/foodApi')>();
   return {
     ...actual,
     foodConfigured: false,
@@ -29,9 +29,14 @@ vi.mock('../api/foodApi', async (importOriginal) => {
     },
   };
 });
-import FoodApp from './OrderRoute';
-import AdminApp, { loader as adminLoader } from './AdminRoute';
-import OptionsApp, { loader as optionsLoader } from './OptionsRoute';
+import { Component as OrderRoute, loader as orderLoader } from '../products/food/routes/OrderRoute';
+import { Component as AdminRoute, loader as adminLoader } from '../products/food/routes/AdminRoute';
+import { Component as OptionsRoute, loader as optionsLoader } from '../products/food/routes/OptionsRoute';
+
+function renderRoute(Component: React.ComponentType, loader: () => Promise<unknown>, path: string) {
+  const router = createMemoryRouter([{ path, Component, loader }], { initialEntries: [path] });
+  render(<RouterProvider router={router} />);
+}
 
 function PageEnvironmentHarness() {
   const router = createMemoryRouter([{
@@ -49,20 +54,20 @@ describe('food route integration without configured Supabase', () => {
   });
 
   it('shows the friendly no-active-week state', async () => {
-    render(<FoodApp />);
+    renderRoute(OrderRoute, orderLoader, '/food');
     expect(await screen.findByRole('heading', { name: /No hay ningún pedido abierto/ })).toBeVisible();
     expect(screen.getByText(/Falta conectar el proyecto de Supabase/)).toBeVisible();
   });
 
   it('shows the admin sign-in surface without catalog editing controls', async () => {
-    render(<AdminApp />);
+    renderRoute(AdminRoute, adminLoader, '/food/admin');
     expect(await screen.findByRole('heading', { name: 'Administración' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Entrar' })).toBeDisabled();
     expect(screen.queryByText(/editar restaurante/i)).not.toBeInTheDocument();
   });
 
   it('lists imported restaurants with descriptions and Uber Eats links', async () => {
-    render(<OptionsApp />);
+    renderRoute(OptionsRoute, optionsLoader, '/food/options');
     expect(await screen.findByRole('heading', { name: 'PSM Burger' })).toBeVisible();
     expect(screen.getByText('Hamburguesas artesanas en Telde.')).toBeVisible();
     expect(screen.getByText('45 platos disponibles')).toBeVisible();

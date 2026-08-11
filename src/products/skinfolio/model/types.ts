@@ -1,8 +1,7 @@
-export type Champion = { id: number; name: string; alias: string };
+export type Champion = { id: number; name: string };
 export type Chroma = { id: number; name: string; colors: string[]; image: string | null };
 export type Skin = {
   id: number;
-  championId: number;
   name: string;
   rarity: string;
   isLegacy: boolean;
@@ -10,7 +9,6 @@ export type Skin = {
   splash: string | null;
   chromaTotal: number;
   chromas: Chroma[];
-  skinLines: number[];
 };
 
 export type Catalog = {
@@ -28,7 +26,6 @@ export type Loot = { skinShards?: unknown[]; skinPermanents?: unknown[]; chests?
 export type Wallet = { RP: number; blueEssence: number };
 export type Offer = {
   skinId: number | null;
-  championId: number | null;
   rp: number | null;
   saleRp: number | null;
   discount: number;
@@ -46,8 +43,8 @@ export type Match = {
   deaths: number;
   assists: number;
 };
-export type OwnershipEvent = { itemType: string; itemId: number; championId: number | null; acquiredAt: string };
-export type SyncPoint = { ranAt: string; skinsOwned: number; chromasOwned: number };
+export type OwnershipEvent = { itemType: string; itemId: number; acquiredAt: string };
+export type SyncPoint = { skinsOwned: number };
 
 export type Ownership = {
   source: string;

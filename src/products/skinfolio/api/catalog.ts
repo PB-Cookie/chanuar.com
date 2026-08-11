@@ -1,11 +1,10 @@
 import type { Catalog } from '../model/types';
 
-type RawChampion = { id: number; name: string; alias: string };
+type RawChampion = { id: number; name: string };
 type RawSkin = {
   id: number; name: string; rarity?: string; isBase?: boolean; isLegacy?: boolean;
   loadScreenPath?: string; tilePath?: string; splashPath?: string; uncenteredSplashPath?: string;
   chromas?: Array<{ id: number; name?: string; colors?: string[]; chromaPath?: string }>;
-  skinLines?: Array<{ id: number }>;
 };
 
 // Catálogo público de skins y campeones desde Community Dragon.
@@ -44,7 +43,7 @@ export function rarityInfo(key: string) {
 
 /**
  * Descarga y normaliza el catálogo.
- * @returns {{ champions: Array<{id,name,alias}>, skinsByChampion: Map<number, Array>, skinById: Map<number, object>, totals: object }}
+ * @returns {{ champions: Array<{id,name}>, skinsByChampion: Map<number, Array>, skinById: Map<number, object>, totals: object }}
  */
 export async function fetchCatalog(): Promise<Catalog> {
   const [skinsRes, champsRes] = await Promise.all([
@@ -58,7 +57,7 @@ export async function fetchCatalog(): Promise<Catalog> {
 
   const champions = champsRaw
     .filter((c) => c.id > 0)
-    .map((c) => ({ id: c.id, name: c.name, alias: c.alias }))
+    .map((c) => ({ id: c.id, name: c.name }))
     .sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
   const skinsByChampion: Catalog['skinsByChampion'] = new Map(champions.map((c) => [c.id, []]));
@@ -72,7 +71,6 @@ export async function fetchCatalog(): Promise<Catalog> {
     if (!skinsByChampion.has(championId)) continue;
     const skin = {
       id: raw.id,
-      championId,
       name: raw.name,
       rarity: raw.rarity ?? 'kNoRarity',
       isLegacy: raw.isLegacy ?? false,
@@ -85,7 +83,6 @@ export async function fetchCatalog(): Promise<Catalog> {
         colors: c.colors?.length ? c.colors : ['#5b5a56', '#5b5a56'],
         image: c.chromaPath || null,
       })),
-      skinLines: raw.skinLines?.map((l) => l.id) ?? [],
     };
     skinsByChampion.get(championId)!.push(skin);
     skinById.set(skin.id, skin);

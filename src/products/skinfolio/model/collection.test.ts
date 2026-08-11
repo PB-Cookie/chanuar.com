@@ -3,11 +3,11 @@ import { buildChromaSections, buildSkinSections, chromaTotal, normalizeText, rar
 import type { Catalog, Ownership, Skin } from './types';
 
 const skins: Skin[] = [
-  { id: 1, championId: 1, name: 'Corazón', rarity: 'epic', isLegacy: false, image: null, splash: null, chromaTotal: 1, chromas: [{ id: 11, name: 'Zafiro', colors: [], image: null }], skinLines: [] },
-  { id: 2, championId: 1, name: 'Antigua', rarity: 'mythic', isLegacy: true, image: null, splash: null, chromaTotal: 0, chromas: [], skinLines: [] },
-  { id: 3, championId: 2, name: 'Nueva', rarity: 'epic', isLegacy: false, image: null, splash: null, chromaTotal: 0, chromas: [], skinLines: [] },
+  { id: 1, name: 'Corazón', rarity: 'epic', isLegacy: false, image: null, splash: null, chromaTotal: 1, chromas: [{ id: 11, name: 'Zafiro', colors: [], image: null }] },
+  { id: 2, name: 'Antigua', rarity: 'mythic', isLegacy: true, image: null, splash: null, chromaTotal: 0, chromas: [] },
+  { id: 3, name: 'Nueva', rarity: 'epic', isLegacy: false, image: null, splash: null, chromaTotal: 0, chromas: [] },
 ];
-const champions = [{ id: 1, name: 'Áhri', alias: 'Ahri' }, { id: 2, name: 'Braum', alias: 'Braum' }];
+const champions = [{ id: 1, name: 'Áhri' }, { id: 2, name: 'Braum' }];
 const catalog: Catalog = {
   champions, championById: new Map(champions.map((champion) => [champion.id, champion])),
   skinsByChampion: new Map([[1, skins.slice(0, 2)], [2, skins.slice(2)]]), skinById: new Map(skins.map((skin) => [skin.id, skin])),

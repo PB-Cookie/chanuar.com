@@ -48,7 +48,7 @@ const EMPTY_OWNERSHIP: Ownership = {
 
 function App({ initialData }: { initialData: SkinfolioRouteData }) {
   const { catalog } = initialData;
-  const [ownership, setOwnership] = useState<Ownership>(initialData.ownership ? { ...EMPTY_OWNERSHIP, ...initialData.ownership } : EMPTY_OWNERSHIP);
+  const [ownership, setOwnership] = useState<Ownership>(initialData.ownership ?? EMPTY_OWNERSHIP);
   const [warn, setWarn] = useState<string | null>(initialData.warning);
 
   const [mode, setMode] = useState<CollectionMode>('skins');
@@ -71,7 +71,7 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
     if (!file) return;
     file.text()
       .then((text) => {
-        setOwnership({ ...EMPTY_OWNERSHIP, ...ownershipFromExport(JSON.parse(text)) });
+        setOwnership(ownershipFromExport(JSON.parse(text)));
         setWarn(null);
       })
       .catch(() => setWarn('El archivo no parece un export del collector.'));

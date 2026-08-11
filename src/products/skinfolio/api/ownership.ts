@@ -55,7 +55,6 @@ const safe = <T,>(promise: Promise<T>) => promise.catch(() => null);
 
 const normalizePrice = (r: Raw): PriceEntry => ({
   skinId: r.skin_id ?? r.skinId ?? null,
-  championId: r.champion_id ?? r.championId ?? null,
   rp: r.rp ?? null,
   saleRp: r.sale_rp ?? r.saleRp ?? null,
   discount: r.discount ?? 0,
@@ -141,8 +140,8 @@ export async function fetchOwnership(): Promise<Ownership | null> {
     safe(qAll('skin_prices?select=*')),
     safe(q('matches?select=*&order=played_at.desc&limit=12')),
     safe(qAll('owned_cosmetics?select=item_type,item_id')),
-    safe(q('ownership_events?select=item_type,item_id,champion_id,acquired_at&is_initial=eq.false&order=acquired_at.desc&limit=60')),
-    safe(qAll('sync_runs?select=ran_at,stats&order=ran_at.asc')),
+    safe(q('ownership_events?select=item_type,item_id,acquired_at&is_initial=eq.false&order=acquired_at.desc&limit=60')),
+    safe(qAll('sync_runs?select=stats&order=ran_at.asc')),
   ]);
 
   const chromasBySkin = new Map();
@@ -156,16 +155,13 @@ export async function fetchOwnership(): Promise<Ownership | null> {
   const events = (eventsRaw ?? []).map((e) => ({
     itemType: e.item_type,
     itemId: e.item_id,
-    championId: e.champion_id,
     acquiredAt: e.acquired_at,
   }));
 
   const syncHistory = (syncRows ?? [])
     .filter((r) => r.stats != null)
     .map((r) => ({
-      ranAt: r.ran_at,
       skinsOwned: r.stats.skinsOwned,
-      chromasOwned: r.stats.chromasOwned,
     }));
 
   const profile = normalizeProfile(profiles[0] ?? null);

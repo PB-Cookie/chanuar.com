@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cartToPayload, cartTotal, formatEuros, normalizeSearch, orderToCart, unavailableOrderItems, validateOrder } from './utils.js';
+import { cartToPayload, cartTotal, formatEuros, normalizeSearch, orderToCart, unavailableOrderItems, validateOrder } from './order';
 
 describe('food order utilities', () => {
   it('formats integer cents as Spanish euros', () => {

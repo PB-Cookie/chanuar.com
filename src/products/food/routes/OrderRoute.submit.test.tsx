@@ -10,14 +10,15 @@ const apiMocks = vi.hoisted(() => ({
   updateOrder: vi.fn(),
 }));
 
-vi.mock('./api.js', async (importOriginal) => ({
-  ...(await importOriginal()),
+vi.mock('../api/foodApi', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api/foodApi')>()),
   foodConfigured: true,
   ...apiMocks,
 }));
 
-import FoodApp from './FoodApp.jsx';
-import { saveCredential } from './storage.js';
+import FoodApp, { loader } from './OrderRoute';
+import { FoodApiError } from '../api/foodApi';
+import { saveCredential } from '../model/storage';
 
 const menu = {
   cycle: { id: 'cycle-1', status: 'open', openedAt: '2026-08-09T12:00:00Z' },
@@ -41,7 +42,7 @@ const confirmedOrder = {
 };
 
 describe('successful order recovery', () => {
-  afterEach(cleanup);
+  afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
   beforeEach(() => {
     localStorage.clear();
@@ -96,8 +97,49 @@ describe('successful order recovery', () => {
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     await waitFor(() => expect(apiMocks.updateOrder).toHaveBeenCalledTimes(1));
-    expect(apiMocks.updateOrder.mock.calls[0][0].items).toEqual([
+    expect(apiMocks.updateOrder.mock.calls[0]![0].items).toEqual([
       { menu_item_id: 'dish-1', quantity: 1, note: null },
     ]);
+  });
+
+  it('keeps the committed credential in memory when local storage fails', async () => {
+    const user = userEvent.setup();
+    apiMocks.getOrder.mockResolvedValue(confirmedOrder);
+    const storageFailure = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+    render(<FoodApp />);
+    await screen.findByRole('heading', { name: 'La Cocina' });
+    await user.click(screen.getByRole('button', { name: /Añadir una unidad de Tortilla/ }));
+    await user.type(screen.getByPlaceholderText(/Cómo te reconocerá/), 'Ana');
+    await user.click(screen.getByRole('button', { name: 'Enviar pedido' }));
+    expect(await screen.findByText(/este navegador no permite conservar el acceso/)).toBeVisible();
+    expect(apiMocks.submitOrder).toHaveBeenCalledOnce();
+    storageFailure.mockRestore();
+  });
+});
+
+describe('order route loader', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('treats no active menu as valid loader data', async () => {
+    apiMocks.getActiveMenu.mockResolvedValue(null);
+    await expect(loader()).resolves.toEqual({ menu: null, credential: null, order: null });
+  });
+
+  it('resumes the matching local credential', async () => {
+    saveCredential({ cycleId: 'cycle-1', orderId: 'order-1', token: 'token-1' });
+    apiMocks.getActiveMenu.mockResolvedValue(menu);
+    apiMocks.getOrder.mockResolvedValue(confirmedOrder);
+    await expect(loader()).resolves.toEqual({ menu, credential: { cycleId: 'cycle-1', orderId: 'order-1', token: 'token-1' }, order: confirmedOrder });
+  });
+
+  it('forgets a missing order without failing the menu route', async () => {
+    saveCredential({ cycleId: 'cycle-1', orderId: 'order-1', token: 'token-1' });
+    apiMocks.getActiveMenu.mockResolvedValue(menu);
+    apiMocks.getOrder.mockRejectedValue(new FoodApiError('FOOD_ORDER_NOT_FOUND', 'missing'));
+    await expect(loader()).resolves.toEqual({ menu, credential: null, order: null });
+    expect(localStorage.getItem('food:last-order')).toBeNull();
   });
 });

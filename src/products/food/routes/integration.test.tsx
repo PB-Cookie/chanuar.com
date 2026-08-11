@@ -1,9 +1,11 @@
 import React from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+import { RouteEnvironment } from '../../../app/RouteEnvironment';
 
-vi.mock('./api.js', async (importOriginal) => {
-  const actual = await importOriginal();
+vi.mock('../api/foodApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/foodApi')>();
   return {
     ...actual,
     foodConfigured: false,
@@ -27,20 +29,22 @@ vi.mock('./api.js', async (importOriginal) => {
     },
   };
 });
-import FoodApp from './FoodApp.jsx';
-import AdminApp from './AdminApp.jsx';
-import OptionsApp from './OptionsApp.jsx';
-import { usePageEnvironment } from '../AppRouter.jsx';
+import FoodApp from './OrderRoute';
+import AdminApp, { loader as adminLoader } from './AdminRoute';
+import OptionsApp, { loader as optionsLoader } from './OptionsRoute';
 
-function PageEnvironmentHarness({ page }) {
-  usePageEnvironment(page);
-  return <div>ready</div>;
+function PageEnvironmentHarness() {
+  const router = createMemoryRouter([{
+    Component: RouteEnvironment,
+    children: [{ path: '/food', handle: { page: 'food' }, element: <div>ready</div> }],
+  }], { initialEntries: ['/food'] });
+  return <RouterProvider router={router} />;
 }
 
 describe('food route integration without configured Supabase', () => {
   afterEach(() => {
     cleanup();
-    document.head.querySelectorAll('link[data-skinfolio-font]').forEach((node) => node.remove());
+    document.head.querySelectorAll('link[rel="preload"][as="font"]').forEach((node) => node.remove());
     localStorage.clear();
   });
 
@@ -69,11 +73,16 @@ describe('food route integration without configured Supabase', () => {
     );
   });
 
+  it('loads restaurant options and an unauthenticated admin session at route boundaries', async () => {
+    await expect(optionsLoader()).resolves.toHaveLength(1);
+    await expect(adminLoader()).resolves.toMatchObject({ session: null, catalog: [], current: null, history: [] });
+  });
+
   it('applies food metadata and never preloads League fonts on food pages', async () => {
-    render(<PageEnvironmentHarness page="food" />);
+    render(<PageEnvironmentHarness />);
     await waitFor(() => expect(document.body).toHaveClass('food-page'));
     expect(document.title).toBe('Mesa abierta — El pedido de la semana');
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', '#f7f1e7');
-    expect(document.querySelectorAll('link[data-skinfolio-font]')).toHaveLength(0);
+    expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
   });
 });

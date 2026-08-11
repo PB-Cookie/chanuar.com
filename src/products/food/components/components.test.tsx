@@ -2,15 +2,22 @@ import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ItemDetailModal, MenuItemCard } from './FoodApp.jsx';
-import { aggregateItems, CycleTotals, parseServiceFee } from './AdminApp.jsx';
-import { OpeningHours, OpeningHoursForm, formatOpeningPeriods, normalizeOpeningHours } from './OpeningHours.jsx';
+import { MemoryRouter } from 'react-router';
+import FoodHeader from './FoodHeader';
+import { ItemDetailModal, MenuItemCard } from '../routes/OrderRoute';
+import { aggregateItems, CycleTotals, parseServiceFee } from '../routes/AdminRoute';
+import { OpeningHours, OpeningHoursForm, formatOpeningPeriods, normalizeOpeningHours } from './OpeningHours';
 
 const item = { id: 'dish-1', category: 'Entrantes', name: 'Croquetas', description: 'Cremosas', priceCents: 850, currency: 'EUR' };
 
 afterEach(cleanup);
 
 describe('employee menu controls', () => {
+  it('marks nested food navigation with React Router', () => {
+    render(<MemoryRouter initialEntries={['/food/options']}><FoodHeader /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute('aria-current', 'page');
+  });
+
   it('supports accessible quantity changes and item notes', async () => {
     const user = userEvent.setup();
     const onQuantity = vi.fn();
@@ -29,7 +36,7 @@ describe('employee menu controls', () => {
         onNote={() => {}}
       />,
     );
-    fireEvent.error(container.querySelector('img'));
+    fireEvent.error(container.querySelector('img')!);
     expect(container.querySelector('img')).not.toBeInTheDocument();
     expect(container.querySelector('.food-item-image--placeholder')).toHaveTextContent('E');
   });
@@ -83,7 +90,7 @@ describe('restaurant opening hours', () => {
 
   it('normalizes schedules and formats split shifts', () => {
     expect(normalizeOpeningHours([...openingHours, { day: 9, periods: [] }])).toEqual(openingHours);
-    expect(formatOpeningPeriods(openingHours[0].periods)).toBe('12:00–16:00, 19:00–23:30');
+    expect(formatOpeningPeriods(openingHours[0]!.periods)).toBe('12:00–16:00, 19:00–23:30');
     expect(formatOpeningPeriods([])).toBe('Cerrado');
   });
 

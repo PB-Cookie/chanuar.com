@@ -1,8 +1,8 @@
 import { supabaseEnvironment } from '../../../shared/config/supabase';
-import type { Ownership } from '../model/types';
+import type { Match, Offer, Ownership, Profile, Wallet } from '../model/types';
 
 type Raw = Record<string, any>;
-type PriceEntry = { skinId: number | null; championId: number | null; rp: number | null; saleRp: number | null; discount: number; saleEndsAt: string | null; owned: boolean };
+type PriceEntry = Offer;
 
 // Lectura de la colección. Dos fuentes posibles:
 //  1. Supabase (anon key, solo lectura garantizada por RLS) — la normal.
@@ -63,17 +63,29 @@ const normalizePrice = (r: Raw): PriceEntry => ({
   owned: Boolean(r.owned),
 });
 
-const normalizeMatch = (m: Raw) => ({
-  gameId: m.game_id ?? m.gameId ?? null,
-  playedAt: m.played_at ?? m.playedAt ?? null,
-  queueId: m.queue_id ?? m.queueId ?? null,
-  durationS: m.duration_s ?? m.durationS ?? null,
-  championId: m.champion_id ?? m.championId ?? null,
-  win: m.win ?? null,
-  kills: m.kills ?? null,
-  deaths: m.deaths ?? null,
-  assists: m.assists ?? null,
+const normalizeMatch = (m: Raw): Match => ({
+  gameId: m.game_id ?? m.gameId ?? '',
+  playedAt: m.played_at ?? m.playedAt ?? '',
+  queueId: Number(m.queue_id ?? m.queueId ?? 0),
+  durationS: Number(m.duration_s ?? m.durationS ?? 0),
+  championId: Number(m.champion_id ?? m.championId ?? 0),
+  win: Boolean(m.win),
+  kills: Number(m.kills ?? 0),
+  deaths: Number(m.deaths ?? 0),
+  assists: Number(m.assists ?? 0),
 });
+
+const normalizeProfile = (profile: Raw | null): Profile | null => profile ? {
+  gameName: String(profile.game_name ?? profile.gameName ?? ''),
+  tagLine: String(profile.tag_line ?? profile.tagLine ?? ''),
+  level: Number(profile.level ?? 0),
+  profileIconId: Number(profile.profile_icon_id ?? profile.profileIconId ?? 0),
+} : null;
+
+const normalizeWallet = (wallet: Raw | null): Wallet | null => wallet ? {
+  RP: Number(wallet.RP ?? 0),
+  blueEssence: Number(wallet.lol_blue_essence ?? wallet.blueEssence ?? 0),
+} : null;
 
 /** A partir de precios normalizados: valor de la colección y ofertas activas. */
 function priceDerived(entries: PriceEntry[]) {
@@ -94,7 +106,7 @@ function priceDerived(entries: PriceEntry[]) {
 }
 
 /** Ordena partidas por fecha desc y recorta a las 12 más recientes. */
-const topMatches = (list: Raw[]) =>
+const topMatches = (list: Match[]): Match[] =>
   list
     .slice()
     .sort((a, b) => new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime())
@@ -156,7 +168,7 @@ export async function fetchOwnership(): Promise<Ownership | null> {
       chromasOwned: r.stats.chromasOwned,
     }));
 
-  const profile = profiles[0] ?? null;
+  const profile = normalizeProfile(profiles[0] ?? null);
 
   return {
     source: 'supabase',
@@ -169,8 +181,8 @@ export async function fetchOwnership(): Promise<Ownership | null> {
     lastSyncAt: lastRun[0]?.ran_at ?? null,
     loot: lastRun[0]?.loot ?? null,
     // ── Datos v0.3 ──
-    wallet: lastRun[0]?.wallet ?? null,
-    flair: profile?.flair ?? null,
+    wallet: normalizeWallet(lastRun[0]?.wallet ?? null),
+    flair: profiles[0]?.flair ?? null,
     collectionValueRp,
     pricedOwnedCount,
     offers,
@@ -212,10 +224,10 @@ export function ownershipFromExport(json: unknown): Ownership {
     source: 'archivo',
     profile: data.summoner
       ? {
-          game_name: data.summoner.gameName,
-          tag_line: data.summoner.tagLine,
+          gameName: data.summoner.gameName,
+          tagLine: data.summoner.tagLine,
           level: data.summoner.level,
-          profile_icon_id: data.summoner.profileIconId,
+          profileIconId: data.summoner.profileIconId,
         }
       : null,
     ownedSkinIds: new Set<number>(ownedSkins.map((s: Raw) => s.id)),
@@ -226,7 +238,7 @@ export function ownershipFromExport(json: unknown): Ownership {
     lastSyncAt: data.meta?.generatedAt ?? null,
     loot: data.loot ?? null,
     // ── Datos v0.3 (exports antiguos carecen de estas secciones → defaults) ──
-    wallet: data.wallet ?? null,
+    wallet: normalizeWallet(data.wallet ?? null),
     flair: data.flair ?? null,
     collectionValueRp,
     pricedOwnedCount,

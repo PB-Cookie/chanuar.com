@@ -22,28 +22,55 @@ export type Catalog = {
   totals: { skins: number };
 };
 
+export type Profile = { gameName: string; tagLine: string; level: number; profileIconId: number };
+export type Flair = { honorLevel: number | string; challengeLevel?: string | null };
+export type Loot = { skinShards?: unknown[]; skinPermanents?: unknown[]; chests?: { count: number }[] };
+export type Wallet = { RP: number; blueEssence: number };
+export type Offer = {
+  skinId: number | null;
+  championId: number | null;
+  rp: number | null;
+  saleRp: number | null;
+  discount: number;
+  saleEndsAt: string | null;
+  owned: boolean;
+};
+export type Match = {
+  gameId: string | number;
+  playedAt: string;
+  queueId: number;
+  durationS: number;
+  championId: number;
+  win: boolean;
+  kills: number;
+  deaths: number;
+  assists: number;
+};
+export type OwnershipEvent = { itemType: string; itemId: number; championId: number | null; acquiredAt: string };
+export type SyncPoint = { ranAt: string; skinsOwned: number; chromasOwned: number };
+
 export type Ownership = {
   source: string;
-  profile: Record<string, unknown> | null;
+  profile: Profile | null;
   ownedSkinIds: Set<number>;
   ownedChromaIds: Set<number>;
   chromasOwned: number;
   chromasBySkin: Map<number, number>;
   masteryByChampion: Map<number, { points: number; level?: number }>;
   lastSyncAt: string | null;
-  loot: unknown;
-  wallet: unknown;
-  flair: unknown;
+  loot: Loot | null;
+  wallet: Wallet | null;
+  flair: Flair | null;
   collectionValueRp: number;
   pricedOwnedCount: number;
-  offers: unknown[];
-  matches: unknown[];
+  offers: Offer[];
+  matches: Match[];
   cosmetics: { wards: Set<number>; emotes: Set<number>; icons: Set<number> };
-  events: unknown[];
-  syncHistory: unknown[];
+  events: OwnershipEvent[];
+  syncHistory: SyncPoint[];
 };
 
-export type CollectionMode = 'skins' | 'chromas';
+export type CollectionMode = 'skins' | 'chromas' | 'ofertas' | 'otros' | 'actividad';
 export type CollectionView = 'all' | 'owned' | 'missing';
 export type CollectionSort = 'mastery' | 'completion' | 'alpha';
 export type SkinSection = { champ: Champion; skins: Skin[]; ownedCount: number; total: number };

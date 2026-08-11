@@ -1,27 +1,39 @@
-// @ts-nocheck -- existing presentation markup; typed catalog/ownership models remain enforced.
 import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   profileIconUrl, championIconUrl, rarityInfo, RARITIES, fetchCosmeticsCatalog,
 } from '../api/catalog';
+import type {
+  Catalog, Champion, Chroma, CollectionMode, CollectionSort, CollectionView, Flair, Loot,
+  Match, Offer, Ownership, OwnershipEvent, Profile, Skin, SyncPoint, Wallet,
+} from '../model/types';
+
+type AssetUrl = (path: string | null | undefined) => string;
+type OpenSkin = (skin: Skin, chromaId?: number | null) => void;
+type Mastery = { points: number; level?: number };
+type CssVars = CSSProperties & Record<`--${string}`, string | undefined>;
+const cssVars = (vars: Record<`--${string}`, string | undefined>) => vars as CssVars;
 
 // Búsqueda insensible a acentos/mayúsculas (mismo patrón que en App.jsx).
-const norm = (s) => (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 // "PLATINUM" → "Platinum": los niveles de reto llegan en mayúsculas.
-const titleCase = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+const titleCase = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
 
 /* ------------------------------------------------------------------ */
 
-export function Header({ profile, source, lastSyncAt, flair, onImport }) {
+export function Header({ profile, source, lastSyncAt, flair, onImport }: {
+  profile: Profile | null; source: string; lastSyncAt: string | null; flair: Flair | null; onImport: () => void;
+}) {
   return (
     <header className="header">
-      {profile?.profile_icon_id != null && (
-        <img className="header__icon" src={profileIconUrl(profile.profile_icon_id)} alt="" />
+      {profile?.profileIconId != null && (
+        <img className="header__icon" src={profileIconUrl(profile.profileIconId)} alt="" />
       )}
       <div>
         <h1 className="header__name">
-          {profile ? profile.game_name : 'Skinfolio'}
-          {profile?.tag_line && <span className="header__tag"> #{profile.tag_line}</span>}
+          {profile ? profile.gameName : 'Skinfolio'}
+          {profile?.tagLine && <span className="header__tag"> #{profile.tagLine}</span>}
         </h1>
         <div className="header__meta">
           {profile ? `Nivel ${profile.level}` : 'Colección de skins'}
@@ -51,7 +63,7 @@ export function Header({ profile, source, lastSyncAt, flair, onImport }) {
   );
 }
 
-export function relativeTime(iso) {
+function relativeTime(iso: string) {
   const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   if (mins < 1) return 'ahora mismo';
   if (mins < 60) return `hace ${mins} min`;
@@ -65,6 +77,10 @@ export function relativeTime(iso) {
 export function StatsVault({
   ownedCount, totalCount, chromasOwned, chromasTotal, byRarity, loot,
   collectionValueRp = 0, pricedOwnedCount = 0, wallet = null,
+}: {
+  ownedCount: number; totalCount: number; chromasOwned: number; chromasTotal: number;
+  byRarity: Map<string, { owned: number; total: number }>;
+  loot: Loot | null; collectionValueRp?: number; pricedOwnedCount?: number; wallet?: Wallet | null;
 }) {
   const pct = totalCount ? Math.round((ownedCount / totalCount) * 1000) / 10 : 0;
   const chests = loot?.chests?.reduce((n, c) => n + c.count, 0) ?? null;
@@ -96,7 +112,7 @@ export function StatsVault({
           )}
           {wallet && (
             <div className="vault__wallet">
-              {wallet.RP} RP · {wallet.lol_blue_essence.toLocaleString('es')} EA
+              {wallet.RP} RP · {wallet.blueEssence.toLocaleString('es')} EA
             </div>
           )}
         </div>
@@ -117,7 +133,7 @@ export function StatsVault({
           const t = byRarity.get(key);
           if (!t || t.total === 0) return null;
           return (
-            <span className="gem" key={key} style={{ '--stone': r.color }}>
+            <span className="gem" key={key} style={cssVars({ '--stone': r.color })}>
               <span className="gem__stone" aria-hidden="true" />
               <span className="gem__count">{t.owned}<span className="gem__label">/{t.total}</span></span>
               <span className="gem__label">{r.label}</span>
@@ -131,13 +147,13 @@ export function StatsVault({
 
 /* ------------------------------------------------------------------ */
 
-const VIEWS = [
+const VIEWS: [CollectionView, string][] = [
   ['all', 'Todo'],
   ['owned', 'Poseído'],
   ['missing', 'Me falta'],
 ];
 
-const TABS = [
+const TABS: [CollectionMode, string][] = [
   ['skins', 'Skins'],
   ['chromas', 'Chromas'],
   ['ofertas', 'Ofertas'],
@@ -148,6 +164,11 @@ const TABS = [
 export function Controls({
   mode, onMode, query, onQuery, view, onView, sort, onSort,
   rarities, onToggleRarity, flags, onToggleFlag, offersCount = 0,
+}: {
+  mode: CollectionMode; onMode: (mode: CollectionMode) => void; query: string; onQuery: (query: string) => void;
+  view: CollectionView; onView: (view: CollectionView) => void; sort: CollectionSort; onSort: (sort: CollectionSort) => void;
+  rarities: Set<string>; onToggleRarity: (rarity: string) => void;
+  flags: { legacy: boolean; withChromas: boolean }; onToggleFlag: (flag: 'legacy' | 'withChromas') => void; offersCount?: number;
 }) {
   const showFilters = mode === 'skins' || mode === 'chromas';
   const showSearch = showFilters || mode === 'otros';
@@ -188,7 +209,7 @@ export function Controls({
             />
           )}
           {showFilters && (
-            <select className="controls__sort" value={sort} onChange={(e) => onSort(e.target.value)} aria-label="Ordenar campeones">
+            <select className="controls__sort" value={sort} onChange={(e) => onSort(e.target.value as CollectionSort)} aria-label="Ordenar campeones">
               <option value="mastery">Por maestría</option>
               <option value="completion">Más completos</option>
               <option value="alpha">Alfabético</option>
@@ -216,7 +237,7 @@ export function Controls({
           <button
             key={key}
             className={`chip chip--gem ${rarities.has(key) ? 'chip--active' : ''}`}
-            style={{ '--stone': r.color }}
+            style={cssVars({ '--stone': r.color })}
             aria-pressed={rarities.has(key)}
             onClick={() => onToggleRarity(key)}
             title={`Rareza: ${r.label}`}
@@ -263,7 +284,9 @@ function LockIcon() {
   );
 }
 
-export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen, offer = null }) {
+export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen, offer = null }: {
+  skin: Skin; owned: boolean; chromasOwned: number; assetUrl: AssetUrl; onOpen: OpenSkin; offer?: Offer | null;
+}) {
   const rarity = rarityInfo(skin.rarity);
   // El estado (poseída, rareza, chromas) solo se ve por color/candado: hay que
   // decirlo también en el nombre accesible para lectores de pantalla.
@@ -295,7 +318,7 @@ export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen, offer = 
         </div>
       )}
       <div className="skin__name">
-        <span className="skin__gem" style={{ '--stone': rarity.color }} aria-hidden="true" />
+        <span className="skin__gem" style={cssVars({ '--stone': rarity.color })} aria-hidden="true" />
         {skin.name}
       </div>
     </article>
@@ -304,7 +327,10 @@ export function SkinCard({ skin, owned, chromasOwned, assetUrl, onOpen, offer = 
 
 /* ------------------------------------------------------------------ */
 
-export function ChampionSection({ champion, skins, ownedCount, total, ownedSkinIds, chromasBySkin, mastery, assetUrl, onOpen }) {
+export function ChampionSection({ champion, skins, ownedCount, total, ownedSkinIds, chromasBySkin, mastery, assetUrl, onOpen }: {
+  champion: Champion; skins: Skin[]; ownedCount: number; total: number; ownedSkinIds: Set<number>;
+  chromasBySkin: Map<number, number>; mastery?: Mastery; assetUrl: AssetUrl; onOpen: OpenSkin;
+}) {
   // ownedCount/total llegan calculados sobre TODAS las skins del campeón,
   // no sobre las filtradas: así "completo" no se enciende al filtrar por "Poseído".
   const complete = ownedCount === total && total > 0;
@@ -313,7 +339,7 @@ export function ChampionSection({ champion, skins, ownedCount, total, ownedSkinI
       <div className="champ__head">
         <h2 className={`champ__name ${complete ? 'champ__name--complete' : ''}`}>{champion.name}</h2>
         <span className="champ__progress">{ownedCount}/{total}{complete ? ' · completo' : ''}</span>
-        {mastery?.points > 0 && (
+        {mastery && mastery.points > 0 && (
           <span className="champ__mastery">M{mastery.level ?? '?'} · {mastery.points.toLocaleString('es')} pts</span>
         )}
       </div>
@@ -336,12 +362,12 @@ export function ChampionSection({ champion, skins, ownedCount, total, ownedSkinI
 /* ------------------------------------------------------------------ */
 /* Vista de chromas: una carta por skin, con sus chromas como gemas    */
 
-function ChromaStone({ chroma, owned, onOpen }) {
+function ChromaStone({ chroma, owned, onOpen }: { chroma: Chroma; owned: boolean; onOpen: () => void }) {
   const [c0, c1] = [chroma.colors[0], chroma.colors[1] ?? chroma.colors[0]];
   return (
     <button
       className={`chroma ${owned ? 'chroma--owned' : 'chroma--locked'}`}
-      style={{ '--c0': c0, '--c1': c1 }}
+      style={cssVars({ '--c0': c0, '--c1': c1 })}
       title={`${chroma.name}${owned ? '' : ' · no poseído'} — ver en grande`}
       aria-label={`${chroma.name}, ${owned ? 'poseído' : 'no poseído'}`}
       onClick={onOpen}
@@ -352,7 +378,9 @@ function ChromaStone({ chroma, owned, onOpen }) {
   );
 }
 
-export function ChromaCard({ skin, skinOwned, chromas, ownedChromaIds, assetUrl, onOpen }) {
+export function ChromaCard({ skin, skinOwned, chromas, ownedChromaIds, assetUrl, onOpen }: {
+  skin: Skin; skinOwned: boolean; chromas: Chroma[]; ownedChromaIds: Set<number>; assetUrl: AssetUrl; onOpen: OpenSkin;
+}) {
   const ownedCount = chromas.reduce((n, c) => n + (ownedChromaIds.has(c.id) ? 1 : 0), 0);
   const rarity = rarityInfo(skin.rarity);
   return (
@@ -362,7 +390,7 @@ export function ChromaCard({ skin, skinOwned, chromas, ownedChromaIds, assetUrl,
       </button>
       <div className="chromacard__body">
         <div className="chromacard__title">
-          <span className="skin__gem" style={{ '--stone': rarity.color }} aria-hidden="true" />
+          <span className="skin__gem" style={cssVars({ '--stone': rarity.color })} aria-hidden="true" />
           <span className="chromacard__name">{skin.name}</span>
           <span className="chromacard__count">{ownedCount}/{chromas.length}</span>
         </div>
@@ -382,7 +410,10 @@ export function ChromaCard({ skin, skinOwned, chromas, ownedChromaIds, assetUrl,
   );
 }
 
-export function ChromaSection({ champion, entries, ownedCount, total, ownedChromaIds, ownedSkinIds, mastery, assetUrl, onOpen }) {
+export function ChromaSection({ champion, entries, ownedCount, total, ownedChromaIds, ownedSkinIds, mastery, assetUrl, onOpen }: {
+  champion: Champion; entries: { skin: Skin; chromas: Chroma[] }[]; ownedCount: number; total: number;
+  ownedChromaIds: Set<number>; ownedSkinIds: Set<number>; mastery?: Mastery; assetUrl: AssetUrl; onOpen: OpenSkin;
+}) {
   // ownedCount/total vienen del total real del campeón (sin filtros), ver ChampionSection.
   const complete = ownedCount === total && total > 0;
   return (
@@ -390,7 +421,7 @@ export function ChromaSection({ champion, entries, ownedCount, total, ownedChrom
       <div className="champ__head">
         <h2 className={`champ__name ${complete ? 'champ__name--complete' : ''}`}>{champion.name}</h2>
         <span className="champ__progress">{ownedCount}/{total} chromas{complete ? ' · completo' : ''}</span>
-        {mastery?.points > 0 && (
+        {mastery && mastery.points > 0 && (
           <span className="champ__mastery">M{mastery.level ?? '?'} · {mastery.points.toLocaleString('es')} pts</span>
         )}
       </div>
@@ -414,43 +445,43 @@ export function ChromaSection({ champion, entries, ownedCount, total, ownedChrom
 /* ------------------------------------------------------------------ */
 /* Modal: splash en grande + galería de chromas                        */
 
-export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, assetUrl, onClose }) {
+export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, assetUrl, onClose }: {
+  skin: Skin; initialChromaId: number | null; skinOwned: boolean; ownedChromaIds: Set<number>; assetUrl: AssetUrl; onClose: () => void;
+}) {
   const [selectedId, setSelectedId] = useState(initialChromaId ?? null);
   const [imgFailed, setImgFailed] = useState(false);
-  const dialogRef = useRef(null);
-  const closeRef = useRef(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   // Gestión de foco del diálogo: entrar al abrir y devolverlo a la carta
   // que lo abrió al cerrar. Solo al montar/desmontar (deps vacías): si
   // dependiera de props recreadas por render, robaría el foco a mitad de uso.
   useEffect(() => {
-    const opener = document.activeElement;
+    const opener = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = '';
-      opener?.focus?.();
+      opener?.focus();
     };
   }, []);
 
   // Escape cierra; Tab queda atrapado dentro del diálogo (aria-modal es solo
   // una promesa para lectores de pantalla, no restringe el foco real).
   useEffect(() => {
-    const onKey = (e) => {
+    const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'Escape') return onClose();
       if (e.key !== 'Tab' || !dialogRef.current) return;
-      const focusables = dialogRef.current.querySelectorAll('button');
+      const focusables = dialogRef.current.querySelectorAll<HTMLButtonElement>('button');
       if (focusables.length === 0) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last!.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first!.focus(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  useEffect(() => setImgFailed(false), [selectedId]);
 
   const rarity = rarityInfo(skin.rarity);
   const chroma = selectedId != null ? skin.chromas.find((c) => c.id === selectedId) : null;
@@ -485,7 +516,7 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
 
         <div className="modal__info">
           <div className="modal__title">
-            <span className="skin__gem" style={{ '--stone': rarity.color }} aria-hidden="true" />
+            <span className="skin__gem" style={cssVars({ '--stone': rarity.color })} aria-hidden="true" />
             <h3 className="modal__name">
               {skin.name}
               {chroma && <span className="modal__chroma-name"> · {chroma.name}</span>}
@@ -503,7 +534,7 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
               <div className="modal__stones">
                 <button
                   className={`stone stone--original ${selectedId === null ? 'stone--selected' : ''}`}
-                  onClick={() => setSelectedId(null)}
+                  onClick={() => { setImgFailed(false); setSelectedId(null); }}
                   title="Skin original"
                   aria-pressed={selectedId === null}
                 >
@@ -516,8 +547,8 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
                     <button
                       key={c.id}
                       className={`stone ${owned ? 'stone--owned' : 'stone--locked'} ${selectedId === c.id ? 'stone--selected' : ''}`}
-                      style={{ '--c0': c.colors[0], '--c1': c.colors[1] ?? c.colors[0] }}
-                      onClick={() => setSelectedId(c.id)}
+                      style={cssVars({ '--c0': c.colors[0], '--c1': c.colors[1] ?? c.colors[0] })}
+                      onClick={() => { setImgFailed(false); setSelectedId(c.id); }}
                       title={`${c.name}${owned ? '' : ' · no poseído'}`}
                       aria-label={`${c.name}, ${owned ? 'poseído' : 'no poseído'}`}
                       aria-pressed={selectedId === c.id}
@@ -539,7 +570,9 @@ export function SkinModal({ skin, initialChromaId, skinOwned, ownedChromaIds, as
 /* ------------------------------------------------------------------ */
 /* Ofertas: rejilla de skins en promoción, reutiliza SkinCard          */
 
-export function OffersSection({ offers, catalog, ownedSkinIds, chromasBySkin, assetUrl, onOpen }) {
+export function OffersSection({ offers, catalog, ownedSkinIds, chromasBySkin, assetUrl, onOpen }: {
+  offers: Offer[]; catalog: Catalog; ownedSkinIds: Set<number>; chromasBySkin: Map<number, number>; assetUrl: AssetUrl; onOpen: OpenSkin;
+}) {
   if (!offers || offers.length === 0) {
     return (
       <div className="empty">
@@ -548,9 +581,10 @@ export function OffersSection({ offers, catalog, ownedSkinIds, chromasBySkin, as
     );
   }
   // Las ofertas llegan preordenadas (no poseídas primero, luego mayor descuento).
-  const resolved = offers
-    .map((offer) => ({ offer, skin: catalog.skinById.get(offer.skinId) }))
-    .filter((x) => x.skin);
+  const resolved = offers.flatMap((offer) => {
+    const skin = offer.skinId == null ? undefined : catalog.skinById.get(offer.skinId);
+    return skin ? [{ offer, skin }] : [];
+  });
   const maxEnds = offers.reduce((max, o) => {
     const t = o.saleEndsAt ? new Date(o.saleEndsAt).getTime() : 0;
     return t > max ? t : max;
@@ -583,21 +617,23 @@ export function OffersSection({ offers, catalog, ownedSkinIds, chromasBySkin, as
 /* ------------------------------------------------------------------ */
 /* Otros: cosméticos poseídos (wards, emotes, iconos), carga diferida  */
 
-const COSMETIC_GROUPS = [
+const COSMETIC_GROUPS: [keyof Ownership['cosmetics'], string][] = [
   ['wards', 'Wards'],
   ['emotes', 'Emotes'],
   ['icons', 'Iconos'],
 ];
 
-export function CosmeticsSection({ cosmetics, query, assetUrl }) {
-  const [catalog, setCatalog] = useState(null);
-  const [error, setError] = useState(null);
+export function CosmeticsSection({ cosmetics, query, assetUrl }: {
+  cosmetics: Ownership['cosmetics']; query: string; assetUrl: AssetUrl;
+}) {
+  const [catalog, setCatalog] = useState<Awaited<ReturnType<typeof fetchCosmeticsCatalog>> | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     fetchCosmeticsCatalog()
       .then((c) => { if (alive) setCatalog(c); })
-      .catch((e) => { if (alive) setError(e.message); });
+      .catch((e: unknown) => { if (alive) setError(e instanceof Error ? e.message : 'Error desconocido'); });
     return () => { alive = false; };
   }, []);
 
@@ -611,10 +647,10 @@ export function CosmeticsSection({ cosmetics, query, assetUrl }) {
     <section className="cosmetics">
       {COSMETIC_GROUPS.map(([type, label]) => {
         const map = catalog[type];
-        const ownedIds = cosmetics[type] ?? new Set();
+        const ownedIds = cosmetics[type];
         const items = [...ownedIds]
           .map((id) => map.get(id))
-          .filter((it) => it && (!q || norm(it.name).includes(q)));
+          .filter((it): it is NonNullable<typeof it> => Boolean(it && (!q || norm(it.name).includes(q))));
         return (
           <div className="cos-group" key={type}>
             <div className="section-head">
@@ -644,12 +680,12 @@ export function CosmeticsSection({ cosmetics, query, assetUrl }) {
 /* ------------------------------------------------------------------ */
 /* Actividad: evolución + adquisiciones + últimas partidas             */
 
-const QUEUES = {
+const QUEUES: Record<number, string> = {
   420: 'Solo/Dúo', 440: 'Flex', 450: 'ARAM', 400: 'Normal', 430: 'Normal',
   490: 'Partida rápida', 700: 'Clash', 900: 'URF', 1700: 'Arena', 1900: 'URF',
 };
 
-function Sparkline({ points, current }) {
+function Sparkline({ points, current }: { points: SyncPoint[]; current: number }) {
   const values = points.map((p) => p.skinsOwned);
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -678,7 +714,7 @@ function Sparkline({ points, current }) {
   );
 }
 
-function eventName(ev, catalog) {
+function eventName(ev: OwnershipEvent, catalog: Catalog) {
   switch (ev.itemType) {
     case 'skin': return catalog.skinById.get(ev.itemId)?.name ?? 'Skin nueva';
     case 'champion': return catalog.championById.get(ev.itemId)?.name ?? 'Campeón nuevo';
@@ -693,7 +729,9 @@ function eventName(ev, catalog) {
   }
 }
 
-export function ActivitySection({ syncHistory = [], events = [], matches = [], ownedCount = 0, catalog }) {
+export function ActivitySection({ syncHistory, events, matches, ownedCount, catalog }: {
+  syncHistory: SyncPoint[]; events: OwnershipEvent[]; matches: Match[]; ownedCount: number; catalog: Catalog; assetUrl?: AssetUrl;
+}) {
   return (
     <section className="activity">
       <div className="act-block">

@@ -48,8 +48,8 @@ function canaryWeekDay(date = new Date()) {
 }
 
 function getTodayHours(openingHours: OpeningDay[], date = new Date()) {
-  const normalized = normalizeOpeningHours(openingHours);
-  return normalized.find((entry) => entry.day === canaryWeekDay(date)) ?? { day: canaryWeekDay(date), periods: [] };
+  const day = canaryWeekDay(date);
+  return openingHours.find((entry) => entry.day === day) ?? { day, periods: [] };
 }
 
 export function OpeningHours({ openingHours, compact = false }: { openingHours?: OpeningDay[]; compact?: boolean }) {

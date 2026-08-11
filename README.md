@@ -1,6 +1,6 @@
 # chanuar.com
 
-The existing Skinfolio remains at `/`. The weekly food-ordering application is available at `/food`, the restaurant directory at `/food/options`, and administration at `/food/admin`.
+The portfolio is available at `/`, Skinfolio at `/skinfolio`, the weekly food-ordering application at `/food`, the restaurant directory at `/food/options`, and administration at `/food/admin`.
 
 ## Local development
 
@@ -13,4 +13,4 @@ npm test
 npm run build
 ```
 
-The Cloudflare Pages fallback in `public/_redirects` allows direct loads and refreshes for both food routes.
+Cloudflare Pages rewrites each application route to its matching static entry point. Unknown direct requests use the root `404.html`, while React Router handles unknown client-side navigation with the same portfolio-styled page.

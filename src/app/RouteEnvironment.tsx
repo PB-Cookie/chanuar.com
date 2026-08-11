@@ -1,7 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Outlet, useLocation, useMatches } from 'react-router';
 
 const META = {
+  home: {
+    title: 'Carlos Chanuar — Desarrollador full stack',
+    description:
+      'Portfolio de Carlos Alberto Chanuar Martínez, desarrollador full stack. Proyectos web y formas de contacto.',
+    theme: '#080b12',
+    siteName: 'chanuar.com',
+    image: '/favicon.svg',
+    icon: '/favicon.svg',
+  },
   skinfolio: {
     title: 'Skinfolio — Colección de skins',
     description: 'Mi colección de skins de League of Legends: skins, chromas, ofertas y progreso.',
@@ -38,16 +47,23 @@ const META = {
     icon: '/food-og.png',
   },
   notFound: {
-    title: 'Página no encontrada',
+    title: 'Página no encontrada — chanuar.com',
     description: 'La página que buscas no existe.',
-    theme: '#f7f1e7',
+    theme: '#080b12',
     siteName: 'chanuar.com',
-    image: '/food-og.png',
-    icon: '/food-og.png',
+    image: '/favicon.svg',
+    icon: '/favicon.svg',
   },
 } as const;
 
 export type Page = keyof typeof META;
+
+const CANONICAL_PATH: Partial<Record<Page, string>> = {
+  home: '/',
+  skinfolio: '/skinfolio',
+  food: '/food',
+  options: '/food/options',
+};
 
 export function RouteEnvironment() {
   const matches = useMatches();
@@ -58,16 +74,28 @@ export function RouteEnvironment() {
   const name = (page?.handle as { page: Page } | undefined)?.page ?? 'notFound';
   const meta = META[name];
   const image = new URL(meta.image, window.location.origin).href;
+  const canonicalPath = CANONICAL_PATH[name];
+  const pageUrl = new URL(canonicalPath ?? location.pathname, window.location.origin).href;
+  const previousPath = useRef(location.pathname);
 
   useEffect(() => {
     document.documentElement.lang = 'es';
     document.body.className =
       name === 'skinfolio'
         ? 'skinfolio-page'
-        : name === 'notFound'
-          ? 'not-found-page'
+        : name === 'home' || name === 'notFound'
+          ? 'portfolio-page'
           : 'food-page';
   }, [name]);
+
+  useEffect(() => {
+    const routeChanged = previousPath.current !== location.pathname;
+    previousPath.current = location.pathname;
+
+    if (routeChanged) {
+      document.getElementById('main-content')?.focus();
+    }
+  }, [location.pathname]);
 
   return (
     <>
@@ -79,15 +107,31 @@ export function RouteEnvironment() {
       <meta property="og:type" content="website" />
       <meta property="og:locale" content="es_ES" />
       <meta property="og:site_name" content={meta.siteName} />
-      <meta property="og:url" content={new URL(location.pathname, window.location.origin).href} />
+      <meta property="og:url" content={pageUrl} />
       <meta property="og:image" content={image} />
-      <meta property="og:image:width" content={name === 'skinfolio' ? '1280' : '1536'} />
-      <meta property="og:image:height" content={name === 'skinfolio' ? '720' : '1024'} />
-      <meta name="twitter:card" content="summary_large_image" />
+      <meta
+        property="og:image:width"
+        content={
+          name === 'skinfolio' ? '1280' : name === 'home' || name === 'notFound' ? '64' : '1536'
+        }
+      />
+      <meta
+        property="og:image:height"
+        content={
+          name === 'skinfolio' ? '720' : name === 'home' || name === 'notFound' ? '64' : '1024'
+        }
+      />
+      <meta
+        name="twitter:card"
+        content={name === 'home' || name === 'notFound' ? 'summary' : 'summary_large_image'}
+      />
       <meta name="twitter:title" content={meta.title} />
       <meta name="twitter:description" content={meta.description} />
       <meta name="twitter:image" content={image} />
-      {name === 'admin' && <meta name="robots" content="noindex, nofollow" />}
+      {(name === 'admin' || name === 'notFound') && (
+        <meta name="robots" content="noindex, nofollow" />
+      )}
+      {canonicalPath && <link rel="canonical" href={pageUrl} />}
       <link
         rel="icon"
         type={meta.icon.endsWith('.svg') ? 'image/svg+xml' : 'image/png'}

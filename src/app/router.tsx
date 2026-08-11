@@ -1,4 +1,5 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
+import { Home } from './Home';
 import { NotFound } from './NotFound';
 import { RouteEnvironment } from './RouteEnvironment';
 
@@ -8,6 +9,11 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
+        handle: { page: 'home' },
+        Component: Home,
+      },
+      {
+        path: 'skinfolio',
         handle: { page: 'skinfolio' },
         lazy: () => import('../products/skinfolio/routes/SkinfolioRoute'),
       },

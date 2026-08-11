@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://chanuar.com/sitemap.xml

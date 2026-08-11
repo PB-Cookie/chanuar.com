@@ -6,7 +6,10 @@ import { routes } from './router';
 import { RouteEnvironment, type Page } from './RouteEnvironment';
 import { ErrorBoundary as FoodErrorBoundary } from '../products/food/routes/FoodLayout';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  document.head.querySelectorAll('link[rel="preload"][as="font"]').forEach((node) => node.remove());
+});
 
 describe('application router', () => {
   it.each(['/', '/skinfolio', '/food', '/food/options', '/food/admin'])(
@@ -31,15 +34,36 @@ describe('application router', () => {
   });
 
   it.each([
-    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', 'portfolio-page', '/'],
-    ['skinfolio', '/skinfolio', 'Skinfolio — Colección de skins', 'skinfolio-page', '/skinfolio'],
-    ['food', '/food', 'Mesa abierta — El pedido de la semana', 'food-page', '/food'],
-    ['options', '/food/options', 'Restaurantes — Mesa abierta', 'food-page', '/food/options'],
-    ['admin', '/food/admin', 'Administración — Mesa abierta', 'food-page', null],
-    ['notFound', '/missing', 'Página no encontrada — chanuar.com', 'portfolio-page', null],
+    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', 'portfolio-page', '#080b12', '/'],
+    [
+      'skinfolio',
+      '/skinfolio',
+      'Skinfolio — Colección de skins',
+      'skinfolio-page',
+      '#010a13',
+      '/skinfolio',
+    ],
+    ['food', '/food', 'Mesa abierta — El pedido de la semana', 'food-page', '#f7f1e7', '/food'],
+    [
+      'options',
+      '/food/options',
+      'Restaurantes — Mesa abierta',
+      'food-page',
+      '#f7f1e7',
+      '/food/options',
+    ],
+    ['admin', '/food/admin', 'Administración — Mesa abierta', 'food-page', '#f7f1e7', null],
+    [
+      'notFound',
+      '/missing',
+      'Página no encontrada — chanuar.com',
+      'portfolio-page',
+      '#080b12',
+      null,
+    ],
   ] as const)(
     'applies %s metadata and body environment',
-    async (page, path, title, bodyClass, canonicalPath) => {
+    async (page, path, title, bodyClass, theme, canonicalPath) => {
       const router = createMemoryRouter(
         [
           {
@@ -52,6 +76,10 @@ describe('application router', () => {
       render(<RouterProvider router={router} />);
       await waitFor(() => expect(document.title).toBe(title));
       expect(document.body).toHaveClass(bodyClass);
+      expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', theme);
+      expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(
+        page === 'skinfolio' ? 2 : 0,
+      );
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonicalPath) {
         expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);

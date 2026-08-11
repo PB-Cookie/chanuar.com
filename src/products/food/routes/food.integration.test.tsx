@@ -1,11 +1,10 @@
-import React from 'react';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import type { ComponentType } from 'react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { RouteEnvironment } from './RouteEnvironment';
 
-vi.mock('../products/food/api/foodApi', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../products/food/api/foodApi')>();
+vi.mock('../api/foodApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/foodApi')>();
   return {
     ...actual,
     foodConfigured: false,
@@ -29,40 +28,22 @@ vi.mock('../products/food/api/foodApi', async (importOriginal) => {
     },
   };
 });
-import { Component as OrderRoute, loader as orderLoader } from '../products/food/routes/OrderRoute';
-import { Component as AdminRoute, loader as adminLoader } from '../products/food/routes/AdminRoute';
-import {
-  Component as OptionsRoute,
-  loader as optionsLoader,
-} from '../products/food/routes/OptionsRoute';
 
-function renderRoute(Component: React.ComponentType, loader: () => Promise<unknown>, path: string) {
+import { Component as OrderRoute, loader as orderLoader } from './OrderRoute';
+import { Component as AdminRoute, loader as adminLoader } from './AdminRoute';
+import { Component as OptionsRoute, loader as optionsLoader } from './OptionsRoute';
+
+function renderRoute(Component: ComponentType, loader: () => Promise<unknown>, path: string) {
   const router = createMemoryRouter([{ path, Component, loader }], { initialEntries: [path] });
   render(<RouterProvider router={router} />);
 }
 
-function PageEnvironmentHarness() {
-  const router = createMemoryRouter(
-    [
-      {
-        Component: RouteEnvironment,
-        children: [{ path: '/food', handle: { page: 'food' }, element: <div>ready</div> }],
-      },
-    ],
-    { initialEntries: ['/food'] },
-  );
-  return <RouterProvider router={router} />;
-}
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
 
 describe('food route integration without configured Supabase', () => {
-  afterEach(() => {
-    cleanup();
-    document.head
-      .querySelectorAll('link[rel="preload"][as="font"]')
-      .forEach((node) => node.remove());
-    localStorage.clear();
-  });
-
   it('shows the friendly no-active-week state', async () => {
     renderRoute(OrderRoute, orderLoader, '/food');
     expect(
@@ -98,16 +79,5 @@ describe('food route integration without configured Supabase', () => {
       current: null,
       history: [],
     });
-  });
-
-  it('applies food metadata and never preloads League fonts on food pages', async () => {
-    render(<PageEnvironmentHarness />);
-    await waitFor(() => expect(document.body).toHaveClass('food-page'));
-    expect(document.title).toBe('Mesa abierta — El pedido de la semana');
-    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
-      'content',
-      '#f7f1e7',
-    );
-    expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
   });
 });

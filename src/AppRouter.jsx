@@ -104,7 +104,7 @@ function usePageEnvironment(page) {
 }
 
 function RouteLoading() {
-  return <div className="route-loading" aria-label="Cargando">Cargando…</div>;
+  return <div className="route-loading" role="status" aria-live="polite">Cargando…</div>;
 }
 
 function NotFound() {

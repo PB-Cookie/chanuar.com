@@ -16,6 +16,7 @@ vi.mock('./api.js', async (importOriginal) => {
         imageUrl: 'https://example.com/psm.jpg',
         sourceUrl: 'https://www.ubereats.com/es/store/psm-burger-telde/example',
         availableItems: 45,
+        openingHours: [{ day: 1, periods: [{ open: '12:00', close: '23:30' }] }],
       },
     ]),
     foodAuth: {
@@ -61,6 +62,7 @@ describe('food route integration without configured Supabase', () => {
     expect(await screen.findByRole('heading', { name: 'PSM Burger' })).toBeVisible();
     expect(screen.getByText('Hamburguesas artesanas en Telde.')).toBeVisible();
     expect(screen.getByText('45 platos disponibles')).toBeVisible();
+    expect(screen.getByText('Horario')).toBeVisible();
     expect(screen.getByRole('link', { name: /Ver en Uber Eats/ })).toHaveAttribute(
       'href',
       'https://www.ubereats.com/es/store/psm-burger-telde/example',

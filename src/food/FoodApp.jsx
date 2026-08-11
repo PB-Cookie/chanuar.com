@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FoodApiError, foodConfigured, getActiveMenu, getOrder, submitOrder, updateOrder } from './api.js';
 import FoodHeader from './FoodHeader.jsx';
+import { OpeningHours } from './OpeningHours.jsx';
 import { forgetCredential, readLastCredential, saveCredential } from './storage.js';
 import {
   MAX_QUANTITY,
@@ -17,7 +18,7 @@ import {
 
 function LoadingState() {
   return (
-    <main className="food-state" aria-busy="true" aria-label="Cargando el pedido semanal">
+    <main id="main-content" className="food-state" tabIndex={-1} aria-busy="true" aria-label="Cargando el pedido semanal">
       <div className="food-skeleton food-skeleton--title" />
       <div className="food-skeleton food-skeleton--hero" />
       <div className="food-skeleton-grid">
@@ -31,7 +32,7 @@ function LoadingState() {
 
 function EmptyWeek({ configured = true }) {
   return (
-    <main className="food-state food-state--centered">
+    <main id="main-content" className="food-state food-state--centered" tabIndex={-1}>
       <div className="food-state__symbol" aria-hidden="true">☼</div>
       <p className="food-kicker">Esta semana</p>
       <h1>No hay ningún pedido abierto</h1>
@@ -44,7 +45,7 @@ function EmptyWeek({ configured = true }) {
 
 function ErrorState({ message, onRetry }) {
   return (
-    <main className="food-state food-state--centered" role="alert">
+    <main id="main-content" className="food-state food-state--centered" tabIndex={-1} role="alert">
       <div className="food-state__symbol food-state__symbol--error" aria-hidden="true">!</div>
       <h1>No hemos podido abrir el menú</h1>
       <p>{message}</p>
@@ -76,28 +77,27 @@ function MenuItemImage({ item, className }) {
 function MenuItemCard({ item, entry, onQuantity, onNote, onOpen = () => {} }) {
   const quantity = entry?.quantity ?? 0;
   return (
-    <article className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`}>
-      <button
+    <article className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`} aria-labelledby={`food-menu-item-${item.id}`}>
+      <div
         className="food-menu-card__image-button"
-        type="button"
-        onClick={(event) => onOpen(item, event)}
-        aria-label={`Ampliar imagen de ${item.name}`}
+        onClick={() => onOpen(item)}
+        aria-hidden="true"
       >
         <MenuItemImage item={item} className="food-menu-card__image" />
-      </button>
+      </div>
       <div className="food-menu-card__body">
         <p className="food-menu-card__category">{item.category}</p>
         <div className="food-menu-card__heading">
-          <h3>{item.name}</h3>
+          <h3 id={`food-menu-item-${item.id}`}>{item.name}</h3>
           <strong>{formatEuros(item.priceCents, item.currency)}</strong>
         </div>
         {item.description && <p className="food-menu-card__description">{item.description}</p>}
         <button className="food-menu-card__details" type="button" onClick={(event) => onOpen(item, event)}>
           Ver detalles
         </button>
-        <div className="food-quantity" aria-label={`Cantidad de ${item.name}`}>
+        <div className="food-quantity" role="group" aria-label={`Cantidad de ${item.name}`}>
           <button type="button" onClick={() => onQuantity(item.id, quantity - 1)} disabled={!quantity} aria-label={`Quitar una unidad de ${item.name}`}>−</button>
-          <output aria-live="polite">{quantity}</output>
+          <span className="food-quantity__value" aria-label={`${quantity} unidades`}>{quantity}</span>
           <button type="button" onClick={() => onQuantity(item.id, quantity + 1)} disabled={quantity >= MAX_QUANTITY} aria-label={`Añadir una unidad de ${item.name}`}>+</button>
         </div>
         {quantity > 0 && (
@@ -187,9 +187,9 @@ function ItemDetailModal({ item, entry, onQuantity, onClose }) {
           </p>
           <div className="food-item-modal__actions">
             <span>{quantity ? `${quantity} en tu pedido` : 'Añádelo a tu pedido'}</span>
-            <div className="food-quantity" aria-label={`Cantidad de ${item.name}`}>
+            <div className="food-quantity" role="group" aria-label={`Cantidad de ${item.name}`}>
               <button type="button" onClick={() => onQuantity(item.id, quantity - 1)} disabled={!quantity} aria-label={`Quitar una unidad de ${item.name}`}>−</button>
-              <output aria-live="polite">{quantity}</output>
+              <span className="food-quantity__value" aria-label={`${quantity} unidades`}>{quantity}</span>
               <button type="button" onClick={() => onQuantity(item.id, quantity + 1)} disabled={quantity >= MAX_QUANTITY} aria-label={`Añadir una unidad de ${item.name}`}>+</button>
             </div>
           </div>
@@ -201,7 +201,7 @@ function ItemDetailModal({ item, entry, onQuantity, onClose }) {
 
 function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warning = '' }) {
   return (
-    <main className="food-confirmation">
+    <main id="main-content" className="food-confirmation" tabIndex={-1}>
       <div className="food-confirmation__status" aria-hidden="true">✓</div>
       <p className="food-kicker">Pedido guardado</p>
       <h1>Todo listo, {order.displayName}</h1>
@@ -251,9 +251,13 @@ export default function FoodApp() {
   const [deviceWarning, setDeviceWarning] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const detailOpenerRef = useRef(null);
+  const formErrorRef = useRef(null);
+  const displayNameRef = useRef(null);
+  const orderNoteRef = useRef(null);
+  const [invalidField, setInvalidField] = useState('');
 
   function openItemDetails(item, event) {
-    detailOpenerRef.current = event.currentTarget;
+    detailOpenerRef.current = event?.currentTarget ?? null;
     setSelectedItem(item);
   }
 
@@ -338,10 +342,20 @@ export default function FoodApp() {
     const validationMessage = validateOrder({ displayName, orderNote, cart });
     if (validationMessage) {
       setMessage(validationMessage);
+      const nextInvalidField = !displayName.trim() || displayName.trim().length > 80
+        ? 'displayName'
+        : orderNote.length > 500 ? 'orderNote' : 'cart';
+      setInvalidField(nextInvalidField);
+      window.requestAnimationFrame(() => {
+        if (nextInvalidField === 'displayName') displayNameRef.current?.focus();
+        else if (nextInvalidField === 'orderNote') orderNoteRef.current?.focus();
+        else formErrorRef.current?.focus();
+      });
       return;
     }
     setPending(true);
     setMessage('');
+    setInvalidField('');
     try {
       const items = cartToPayload(cart);
       let nextCredential = credential;
@@ -451,18 +465,19 @@ export default function FoodApp() {
   return (
     <div className="food-shell">
       <FoodHeader />
-      <main>
-        <section className={`food-hero${active.restaurant.imageUrl ? ' food-hero--photo' : ''}`}>
+      <main id="main-content" tabIndex={-1}>
+        <section className={`food-hero${active.restaurant.imageUrl ? ' food-hero--photo' : ''}`} aria-labelledby="food-restaurant-title">
           {active.restaurant.imageUrl && <img src={active.restaurant.imageUrl} alt="" />}
           <div className="food-hero__shade" />
           <div className="food-hero__content">
             <p className="food-kicker">Pedido abierto</p>
-            <h1>{active.restaurant.name}</h1>
+            <h1 id="food-restaurant-title">{active.restaurant.name}</h1>
             {active.restaurant.description && <p>{active.restaurant.description}</p>}
             <span>Abierto desde {formatSpanishDate(active.cycle.openedAt)}</span>
+            <OpeningHours openingHours={active.restaurant.openingHours} compact />
             {active.restaurant.sourceUrl && (
               <a className="food-hero__source" href={active.restaurant.sourceUrl} target="_blank" rel="noreferrer">
-                Ver en Uber Eats <span aria-hidden="true">↗</span>
+                Ver en Uber Eats <span aria-hidden="true">↗</span><span className="sr-only"> (se abre en una pestaña nueva)</span>
               </a>
             )}
           </div>
@@ -483,9 +498,9 @@ export default function FoodApp() {
               <div className="food-filters">
                 <label className="food-search">
                   <span className="sr-only">Buscar en la carta</span>
-                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar un plato…" />
+                  <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar un plato…" />
                 </label>
-                <div className="food-categories" aria-label="Filtrar por categoría">
+                <div className="food-categories" role="group" aria-label="Filtrar por categoría">
                   {categories.map((value) => (
                     <button
                       type="button"
@@ -497,6 +512,7 @@ export default function FoodApp() {
                   ))}
                 </div>
               </div>
+              <p className="sr-only" role="status" aria-live="polite">{visibleItems.length} {visibleItems.length === 1 ? 'plato encontrado' : 'platos encontrados'}</p>
               {visibleItems.length ? (
                 <div className="food-menu-grid">
                   {visibleItems.map((item) => (
@@ -516,7 +532,7 @@ export default function FoodApp() {
             </section>
 
             <aside className="food-cart" aria-label="Tu pedido">
-              <div className="food-cart__top"><p className="food-kicker">Tu selección</p><span>{count} {count === 1 ? 'unidad' : 'unidades'}</span></div>
+              <div className="food-cart__top"><p className="food-kicker">Tu selección</p><span role="status" aria-live="polite">{count} {count === 1 ? 'unidad' : 'unidades'}</span></div>
               <h2>Tu pedido</h2>
               {count ? (
                 <div className="food-cart__lines">
@@ -530,13 +546,13 @@ export default function FoodApp() {
               <form onSubmit={handleSubmit} noValidate>
                 <label className="food-field">
                   <span>Tu nombre <small>{displayName.length}/80</small></span>
-                  <input required maxLength={80} value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Cómo te reconocerá el equipo" />
+                  <input ref={displayNameRef} required autoComplete="name" maxLength={80} value={displayName} onChange={(event) => { setDisplayName(event.target.value); if (invalidField === 'displayName') setInvalidField(''); }} placeholder="Cómo te reconocerá el equipo" aria-invalid={invalidField === 'displayName'} aria-describedby={invalidField === 'displayName' ? 'food-order-error' : undefined} />
                 </label>
                 <label className="food-field">
                   <span>Nota general <small>{orderNote.length}/500 · opcional</small></span>
-                  <textarea maxLength={500} value={orderNote} onChange={(event) => setOrderNote(event.target.value)} placeholder="Algo que debamos saber sobre todo el pedido…" />
+                  <textarea ref={orderNoteRef} maxLength={500} value={orderNote} onChange={(event) => { setOrderNote(event.target.value); if (invalidField === 'orderNote') setInvalidField(''); }} placeholder="Algo que debamos saber sobre todo el pedido…" aria-invalid={invalidField === 'orderNote'} aria-describedby={invalidField === 'orderNote' ? 'food-order-error' : undefined} />
                 </label>
-                {message && <div className="food-form-error" role="alert">{message}</div>}
+                {message && <div ref={formErrorRef} id="food-order-error" className="food-form-error" role="alert" tabIndex={-1}>{message}</div>}
                 <button className="food-button food-button--wide" type="submit" disabled={pending || !count}>
                   {pending ? 'Guardando…' : credential ? 'Guardar cambios' : 'Enviar pedido'}
                 </button>

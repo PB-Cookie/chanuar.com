@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ItemDetailModal, MenuItemCard } from './FoodApp.jsx';
 import { aggregateItems, CycleTotals, parseServiceFee } from './AdminApp.jsx';
+import { OpeningHours, OpeningHoursForm, formatOpeningPeriods, normalizeOpeningHours } from './OpeningHours.jsx';
 
 const item = { id: 'dish-1', category: 'Entrantes', name: 'Croquetas', description: 'Cremosas', priceCents: 850, currency: 'EUR' };
 
@@ -47,6 +48,7 @@ describe('employee menu controls', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Ver detalles' }));
     expect(onOpen).toHaveBeenCalledWith(item, expect.any(Object));
+    expect(screen.getAllByRole('button')).toHaveLength(3);
   });
 
   it('shows the full description in an accessible modal and closes with Escape', async () => {
@@ -70,6 +72,38 @@ describe('employee menu controls', () => {
     expect(screen.getByRole('button', { name: 'Cerrar detalles' })).toHaveFocus();
     await user.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
+describe('restaurant opening hours', () => {
+  const openingHours = [
+    { day: 1, periods: [{ open: '12:00', close: '16:00' }, { open: '19:00', close: '23:30' }] },
+    { day: 2, periods: [{ open: '12:00', close: '23:30' }] },
+  ];
+
+  it('normalizes schedules and formats split shifts', () => {
+    expect(normalizeOpeningHours([...openingHours, { day: 9, periods: [] }])).toEqual(openingHours);
+    expect(formatOpeningPeriods(openingHours[0].periods)).toBe('12:00–16:00, 19:00–23:30');
+    expect(formatOpeningPeriods([])).toBe('Cerrado');
+  });
+
+  it('shows a full, labelled weekly schedule', async () => {
+    const user = userEvent.setup();
+    render(<OpeningHours openingHours={openingHours} />);
+    await user.click(screen.getByText('Horario'));
+    expect(screen.getByText('Lunes')).toBeVisible();
+    expect(screen.getAllByText('Cerrado')).toHaveLength(5);
+  });
+
+  it('lets an administrator enable a day and save structured hours', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    render(<OpeningHoursForm restaurant={{ id: 'restaurant-1', openingHours: [] }} onSave={onSave} />);
+    await user.click(screen.getByRole('checkbox', { name: 'Lunes' }));
+    await user.click(screen.getByRole('button', { name: 'Guardar horario' }));
+    expect(onSave).toHaveBeenCalledWith('restaurant-1', [
+      { day: 1, periods: [{ open: '12:00', close: '23:00' }] },
+    ]);
   });
 });
 

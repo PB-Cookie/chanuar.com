@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(26);
+select extensions.plan(30);
 
 select extensions.has_table('food', 'food_admins', 'food.food_admins exists');
 select extensions.has_table('food', 'restaurants', 'food.restaurants exists');
@@ -42,6 +42,14 @@ select extensions.function_privs_are(
   'authenticated role can call cycle closure, which applies the allowlist internally'
 );
 select extensions.function_privs_are(
+  'anon', 'public', 'food_admin_update_restaurant_hours', array['uuid', 'jsonb'], array[]::text[],
+  'anon cannot update restaurant opening hours'
+);
+select extensions.function_privs_are(
+  'authenticated', 'public', 'food_admin_update_restaurant_hours', array['uuid', 'jsonb'], array['EXECUTE'],
+  'authenticated role can call the hours function, which applies the allowlist internally'
+);
+select extensions.function_privs_are(
   'anon', 'public', 'food_scraper_sync_catalog', array['jsonb', 'jsonb', 'boolean', 'boolean'], array[]::text[],
   'anon cannot publish scraper catalogs'
 );
@@ -72,6 +80,16 @@ insert into food.menu_items (id, restaurant_id, scraper_key, category, name, pri
 values
   ('00000000-0000-0000-0000-00000000f201', '00000000-0000-0000-0000-00000000f101', 'dish-a', 'Platos', 'Plato A', 725),
   ('00000000-0000-0000-0000-00000000f202', '00000000-0000-0000-0000-00000000f101', 'dish-b', 'Platos', 'Plato B', 950);
+
+select extensions.ok(
+  food.food_valid_opening_hours('[{"day":1,"periods":[{"open":"12:00","close":"23:30"}]}]'::jsonb),
+  'structured weekly opening hours are accepted'
+);
+select extensions.is(
+  food.food_valid_opening_hours('[{"day":1,"periods":[{"open":"25:00","close":"23:30"}]}]'::jsonb),
+  false,
+  'invalid opening times are rejected'
+);
 
 insert into food.order_cycles (id, restaurant_id, created_by)
 values ('00000000-0000-0000-0000-00000000f301', '00000000-0000-0000-0000-00000000f101', '00000000-0000-0000-0000-00000000f001');

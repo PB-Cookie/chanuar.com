@@ -1,6 +1,6 @@
 # chanuar.com
 
-The existing Skinfolio remains at `/`. The weekly food-ordering application is available at `/food`, with administration at `/food/admin`.
+The existing Skinfolio remains at `/`. The weekly food-ordering application is available at `/food`, the restaurant directory at `/food/options`, and administration at `/food/admin`.
 
 ## Local development
 

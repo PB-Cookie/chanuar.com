@@ -63,6 +63,20 @@ function normalizeItem(item) {
   };
 }
 
+function normalizeRestaurant(restaurant) {
+  if (!restaurant) return null;
+  return {
+    ...restaurant,
+    id: restaurant.id,
+    name: restaurant.name,
+    description: restaurant.description ?? '',
+    imageUrl: restaurant.image_url ?? restaurant.imageUrl ?? null,
+    sourceUrl: restaurant.source_url ?? restaurant.sourceUrl ?? null,
+    availableItems: restaurant.available_items ?? restaurant.availableItems ?? 0,
+    openingHours: restaurant.opening_hours ?? restaurant.openingHours ?? [],
+  };
+}
+
 function normalizeOrder(order) {
   if (!order) return null;
   return {
@@ -74,11 +88,7 @@ function normalizeOrder(order) {
     createdAt: order.created_at ?? order.createdAt,
     updatedAt: order.updated_at ?? order.updatedAt,
     totalCents: order.total_cents ?? order.totalCents ?? 0,
-    restaurant: order.restaurant ? {
-      id: order.restaurant.id,
-      name: order.restaurant.name,
-      imageUrl: order.restaurant.image_url ?? order.restaurant.imageUrl ?? null,
-    } : null,
+    restaurant: normalizeRestaurant(order.restaurant),
     items: (order.items ?? []).map((item) => ({
       id: item.id,
       menuItemId: item.menu_item_id ?? item.menuItemId,
@@ -101,13 +111,7 @@ export async function getActiveMenu() {
       status: data.cycle.status,
       openedAt: data.cycle.opened_at ?? data.cycle.openedAt,
     },
-    restaurant: {
-      id: data.restaurant.id,
-      name: data.restaurant.name,
-      description: data.restaurant.description ?? '',
-      imageUrl: data.restaurant.image_url ?? data.restaurant.imageUrl ?? null,
-      sourceUrl: data.restaurant.source_url ?? data.restaurant.sourceUrl ?? null,
-    },
+    restaurant: normalizeRestaurant(data.restaurant),
     menuItems: (data.menu_items ?? data.menuItems ?? []).map(normalizeItem),
   };
 }
@@ -115,14 +119,7 @@ export async function getActiveMenu() {
 export async function getRestaurantOptions() {
   if (!foodConfigured) return [];
   const data = await rpc('food_restaurant_options');
-  return (data ?? []).map((restaurant) => ({
-    id: restaurant.id,
-    name: restaurant.name,
-    description: restaurant.description ?? '',
-    imageUrl: restaurant.image_url ?? restaurant.imageUrl ?? null,
-    sourceUrl: restaurant.source_url ?? restaurant.sourceUrl,
-    availableItems: restaurant.available_items ?? restaurant.availableItems ?? 0,
-  }));
+  return (data ?? []).map(normalizeRestaurant);
 }
 
 export async function submitOrder({ cycleId, displayName, note, items }) {
@@ -176,14 +173,18 @@ export const foodAuth = {
 
 export const foodAdminApi = {
   access: () => rpc('food_admin_access'),
-  catalog: () => rpc('food_admin_catalog'),
+  catalog: async () => (await rpc('food_admin_catalog') ?? []).map(normalizeRestaurant),
   current: () => rpc('food_admin_current'),
   history: () => rpc('food_admin_history'),
   openCycle: (restaurantId) => rpc('food_admin_open_cycle', { p_restaurant_id: restaurantId }),
+  updateRestaurantHours: async (restaurantId, openingHours) => normalizeRestaurant(await rpc('food_admin_update_restaurant_hours', {
+    p_restaurant_id: restaurantId,
+    p_opening_hours: openingHours,
+  })),
   closeCycle: (cycleId, serviceFeeCents) => rpc('food_admin_close_cycle', {
     p_cycle_id: cycleId,
     p_service_fee_cents: serviceFeeCents,
   }),
 };
 
-export { normalizeOrder, asFoodError };
+export { normalizeOrder, normalizeRestaurant, asFoodError };

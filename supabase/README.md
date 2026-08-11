@@ -8,6 +8,10 @@ Catalog imports call `public.food_scraper_sync_catalog` with the service-role ke
 The function validates and publishes the entire restaurant snapshot in one
 transaction; the publishable frontend key cannot execute it.
 
+Restaurant opening hours are stored separately from scraper-owned catalog data.
+An approved administrator can edit up to four opening periods per day from the
+**Restaurantes** tab in `/food/admin`; times use the `Atlantic/Canary` timezone.
+
 ## First administrator
 
 1. Create the administrator in Supabase Authentication (email/password).

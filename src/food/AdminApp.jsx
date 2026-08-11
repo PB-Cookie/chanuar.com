@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { foodAdminApi, foodAuth, foodConfigured } from './api.js';
 import { formatEuros, formatSpanishDate } from './utils.js';
 import FoodHeader from './FoodHeader.jsx';
+import { OpeningHours, OpeningHoursForm } from './OpeningHours.jsx';
 
 function parseServiceFee(value) {
   const normalized = String(value ?? '').trim().replace(/\s/g, '').replace(',', '.');
@@ -14,7 +15,7 @@ function AdminSignIn({ onSubmit, pending, error }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   return (
-    <main className="food-admin-auth">
+    <main id="main-content" className="food-admin-auth" tabIndex={-1}>
       <p className="food-kicker">Zona reservada</p>
       <h1>Administración</h1>
       <p>Accede con tu cuenta aprobada para abrir, revisar y cerrar el pedido semanal.</p>
@@ -24,9 +25,9 @@ function AdminSignIn({ onSubmit, pending, error }) {
         </div>
       )}
       <form onSubmit={(event) => { event.preventDefault(); onSubmit(email, password); }}>
-        <label className="food-field"><span>Correo electrónico</span><input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-        <label className="food-field"><span>Contraseña</span><input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} /></label>
-        {error && <div className="food-form-error" role="alert">{error}</div>}
+        <label className="food-field"><span>Correo electrónico</span><input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? 'food-sign-in-error' : undefined} /></label>
+        <label className="food-field"><span>Contraseña</span><input type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={error ? 'food-sign-in-error' : undefined} /></label>
+        {error && <div id="food-sign-in-error" className="food-form-error" role="alert">{error}</div>}
         <button className="food-button food-button--wide" type="submit" disabled={pending || !foodConfigured}>{pending ? 'Entrando…' : 'Entrar'}</button>
       </form>
       <a className="food-admin-auth__back" href="/food">← Volver al pedido</a>
@@ -36,7 +37,7 @@ function AdminSignIn({ onSubmit, pending, error }) {
 
 function Unauthorized({ email, onSignOut }) {
   return (
-    <main className="food-state food-state--centered">
+    <main id="main-content" className="food-state food-state--centered" tabIndex={-1}>
       <div className="food-state__symbol food-state__symbol--error" aria-hidden="true">!</div>
       <p className="food-kicker">Acceso limitado</p>
       <h1>Esta cuenta no es administradora</h1>
@@ -128,6 +129,29 @@ function OpenCycleCard({ catalog, onOpen, pending }) {
   );
 }
 
+function RestaurantHoursManager({ catalog, onSave, pending }) {
+  return (
+    <section className="food-admin-restaurants" aria-labelledby="restaurant-hours-title">
+      <div className="food-section-heading">
+        <div><p className="food-kicker">Disponibilidad</p><h2 id="restaurant-hours-title">Horarios de restaurantes</h2></div>
+        <span>{catalog.length} restaurantes</span>
+      </div>
+      <p className="food-admin-restaurants__intro">Configura los días y tramos de apertura. Los cambios aparecen en el pedido y en la página de restaurantes.</p>
+      <div className="food-admin-restaurant-list">
+        {catalog.map((restaurant) => (
+          <details className="food-admin-restaurant" key={restaurant.id}>
+            <summary><strong>{restaurant.name}</strong><span>{restaurant.availableItems} platos</span></summary>
+            <div className="food-admin-restaurant__body">
+              <OpeningHours openingHours={restaurant.openingHours} />
+              <OpeningHoursForm restaurant={restaurant} onSave={onSave} pending={pending} />
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function History({ cycles }) {
   return (
     <section className="food-admin-history">
@@ -156,6 +180,7 @@ export default function AdminApp() {
   const [error, setError] = useState('');
   const [serviceFee, setServiceFee] = useState('0,00');
   const [serviceFeeError, setServiceFeeError] = useState('');
+  const [notice, setNotice] = useState('');
 
   async function loadDashboard() {
     setError('');
@@ -173,6 +198,34 @@ export default function AdminApp() {
       if (loadError.code === 'FOOD_FORBIDDEN') setAuthorized(false);
       else setError(loadError.message);
     }
+  }
+
+  async function saveRestaurantHours(restaurantId, openingHours) {
+    setPending(true); setError(''); setNotice('');
+    try {
+      const updated = await foodAdminApi.updateRestaurantHours(restaurantId, openingHours);
+      setCatalog((currentCatalog) => currentCatalog.map((restaurant) => (
+        restaurant.id === restaurantId ? { ...restaurant, ...updated } : restaurant
+      )));
+      setNotice(`Horario de ${updated.name} guardado.`);
+    } catch (saveError) {
+      setError(saveError.message);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function handleTabKeyDown(event) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    const tabs = [...event.currentTarget.parentElement.querySelectorAll('[role="tab"]')];
+    const index = tabs.indexOf(event.currentTarget);
+    const nextIndex = event.key === 'Home' ? 0
+      : event.key === 'End' ? tabs.length - 1
+        : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    event.preventDefault();
+    const next = tabs[nextIndex];
+    setTab(next.dataset.tab);
+    next.focus();
   }
 
   useEffect(() => {
@@ -220,27 +273,30 @@ export default function AdminApp() {
     finally { setPending(false); }
   }
 
-  if (session === undefined) return <div className="food-shell"><FoodHeader compact /><main className="food-state"><div className="food-skeleton food-skeleton--title" /><div className="food-skeleton food-skeleton--hero" /></main></div>;
+  if (session === undefined) return <div className="food-shell"><FoodHeader compact /><main id="main-content" className="food-state" tabIndex={-1} aria-busy="true" aria-label="Comprobando la sesión"><div className="food-skeleton food-skeleton--title" /><div className="food-skeleton food-skeleton--hero" /></main></div>;
   if (!session) return <div className="food-shell"><FoodHeader compact /><AdminSignIn onSubmit={signIn} pending={pending} error={error} /></div>;
   if (authorized === false) return <div className="food-shell"><FoodHeader compact /><Unauthorized email={session.user.email} onSignOut={signOut} /></div>;
 
   return (
     <div className="food-shell food-shell--admin">
       <FoodHeader compact />
-      <main className="food-admin">
+      <main id="main-content" className="food-admin" tabIndex={-1}>
         <header className="food-admin__header">
           <div><p className="food-kicker">Panel de equipo</p><h1>Pedido semanal</h1><p>{session.user.email}</p></div>
           <button className="food-button food-button--quiet" type="button" onClick={signOut} disabled={pending}>Cerrar sesión</button>
         </header>
-        <nav className="food-admin-tabs" aria-label="Secciones de administración">
-          <button type="button" className={tab === 'current' ? 'is-active' : ''} onClick={() => setTab('current')}>Semana actual</button>
-          <button type="button" className={tab === 'history' ? 'is-active' : ''} onClick={() => setTab('history')}>Historial <span>{history.length}</span></button>
-        </nav>
+        <div className="food-admin-tabs" role="tablist" aria-label="Secciones de administración">
+          <button id="admin-tab-current" data-tab="current" role="tab" type="button" aria-selected={tab === 'current'} aria-controls="admin-panel" tabIndex={tab === 'current' ? 0 : -1} className={tab === 'current' ? 'is-active' : ''} onKeyDown={handleTabKeyDown} onClick={() => setTab('current')}>Semana actual</button>
+          <button id="admin-tab-restaurants" data-tab="restaurants" role="tab" type="button" aria-selected={tab === 'restaurants'} aria-controls="admin-panel" tabIndex={tab === 'restaurants' ? 0 : -1} className={tab === 'restaurants' ? 'is-active' : ''} onKeyDown={handleTabKeyDown} onClick={() => setTab('restaurants')}>Restaurantes <span>{catalog.length}</span></button>
+          <button id="admin-tab-history" data-tab="history" role="tab" type="button" aria-selected={tab === 'history'} aria-controls="admin-panel" tabIndex={tab === 'history' ? 0 : -1} className={tab === 'history' ? 'is-active' : ''} onKeyDown={handleTabKeyDown} onClick={() => setTab('history')}>Historial <span>{history.length}</span></button>
+        </div>
         {error && <div className="food-admin-error" role="alert"><span>{error}</span><button type="button" onClick={loadDashboard}>Reintentar</button></div>}
-        {authorized === undefined ? <div className="food-state food-state--inline" aria-busy="true">Comprobando permisos…</div> : tab === 'history' ? <History cycles={history} /> : current ? (
+        {notice && <div className="food-admin-notice" role="status">{notice}</div>}
+        <div id="admin-panel" role="tabpanel" aria-labelledby={`admin-tab-${tab}`} tabIndex={0}>
+        {authorized === undefined ? <div className="food-state food-state--inline" aria-busy="true">Comprobando permisos…</div> : tab === 'history' ? <History cycles={history} /> : tab === 'restaurants' ? <RestaurantHoursManager catalog={catalog} onSave={saveRestaurantHours} pending={pending} /> : current ? (
           <>
             <section className="food-admin-current">
-              <div><p className="food-kicker">Pedido abierto</p><h2>{current.restaurant.name}</h2><p>Desde {formatSpanishDate(current.cycle.opened_at ?? current.cycle.openedAt)}</p></div>
+              <div><p className="food-kicker">Pedido abierto</p><h2>{current.restaurant.name}</h2><p>Desde {formatSpanishDate(current.cycle.opened_at ?? current.cycle.openedAt)}</p><OpeningHours openingHours={catalog.find((restaurant) => restaurant.id === current.restaurant.id)?.openingHours} compact /></div>
               <form className="food-admin-current__close" onSubmit={closeCycle}>
                 <label>
                   <span>Gastos de servicio</span>
@@ -253,9 +309,10 @@ export default function AdminApp() {
             <OrderGroups cycle={current} serviceFeeCents={parseServiceFee(serviceFee) ?? 0} />
           </>
         ) : <OpenCycleCard catalog={catalog} onOpen={openCycle} pending={pending} />}
+        </div>
       </main>
     </div>
   );
 }
 
-export { aggregateItems, AdminSignIn, CycleTotals, History, OrderGroups, parseServiceFee };
+export { aggregateItems, AdminSignIn, CycleTotals, History, OrderGroups, RestaurantHoursManager, parseServiceFee };

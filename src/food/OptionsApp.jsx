@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { foodConfigured, getRestaurantOptions } from './api.js';
 import FoodHeader from './FoodHeader.jsx';
+import { OpeningHours } from './OpeningHours.jsx';
 
 function RestaurantImage({ restaurant }) {
   const [failed, setFailed] = useState(false);
@@ -27,6 +28,7 @@ function RestaurantImage({ restaurant }) {
 function OptionsLoading() {
   return (
     <div className="food-options-grid" aria-busy="true" aria-label="Cargando restaurantes">
+      <p className="sr-only" role="status">Cargando restaurantes…</p>
       {[0, 1, 2, 3, 4, 5].map((item) => <div className="food-skeleton food-options-skeleton" key={item} />)}
     </div>
   );
@@ -55,7 +57,7 @@ export default function OptionsApp() {
   return (
     <div className="food-shell">
       <FoodHeader />
-      <main className="food-options">
+      <main id="main-content" className="food-options" tabIndex={-1}>
         <header className="food-options__intro">
           <p className="food-kicker">Todas las opciones</p>
           <h1>¿Dónde pedimos esta semana?</h1>
@@ -79,20 +81,22 @@ export default function OptionsApp() {
           </section>
         )}
         {phase === 'ready' && restaurants.length > 0 && (
-          <section className="food-options-grid" aria-label={`${restaurants.length} restaurantes disponibles`}>
+          <section className="food-options-grid" aria-labelledby="food-options-title">
+            <h2 className="sr-only" id="food-options-title">{restaurants.length} restaurantes disponibles</h2>
             {restaurants.map((restaurant) => (
               <article className="food-option-card" key={restaurant.id}>
                 <RestaurantImage restaurant={restaurant} />
                 <div className="food-option-card__body">
                   <div>
                     <p className="food-option-card__count">{restaurant.availableItems} platos disponibles</p>
-                    <h2>{restaurant.name}</h2>
+                    <h3>{restaurant.name}</h3>
                     <p className="food-option-card__description">
                       {restaurant.description || 'Consulta su propuesta y todos los platos disponibles en Uber Eats.'}
                     </p>
+                    <OpeningHours openingHours={restaurant.openingHours} />
                   </div>
                   <a className="food-option-card__link" href={restaurant.sourceUrl} target="_blank" rel="noreferrer">
-                    Ver en Uber Eats <span aria-hidden="true">↗</span>
+                    Ver en Uber Eats <span aria-hidden="true">↗</span><span className="sr-only"> (se abre en una pestaña nueva)</span>
                   </a>
                 </div>
               </article>

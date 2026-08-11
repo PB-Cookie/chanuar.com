@@ -2,7 +2,7 @@
 
 ## Architecture and ownership
 
-This is one Vite application using React 19, React Router 7 Data Mode, and strict TypeScript. Read `ARCHITECTURE.md` before changing module boundaries.
+This is one Vite application using React 19, React Router 7 Data Mode, and strict TypeScript. Keep the boundaries below intact when changing application structure.
 
 - `src/app/` owns startup, routing, route metadata, body environments, the portfolio home, and
   the portfolio-styled 404 surface.

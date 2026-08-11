@@ -19,7 +19,7 @@ export function ErrorBoundary() {
   const error = useRouteError() as Error | undefined;
   const revalidator = useRevalidator();
   return (
-    <main className="food-state food-state--centered" role="alert">
+    <main id="main-content" className="food-state food-state--centered" role="alert" tabIndex={-1}>
       <h1>No hemos podido cargar Mesa abierta</h1>
       <p>{error?.message ?? 'Ha ocurrido un error inesperado.'}</p>
       <button className="food-button" type="button" onClick={() => revalidator.revalidate()}>

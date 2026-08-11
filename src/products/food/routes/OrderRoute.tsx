@@ -133,9 +133,7 @@ function MenuItemCard({
           >
             −
           </button>
-          <span className="food-quantity__value" aria-label={`${quantity} unidades`}>
-            {quantity}
-          </span>
+          <span className="food-quantity__value">{quantity}</span>
           <button
             type="button"
             onClick={() => onQuantity(item.id, quantity + 1)}
@@ -258,9 +256,7 @@ function ItemDetailModal({
               >
                 −
               </button>
-              <span className="food-quantity__value" aria-label={`${quantity} unidades`}>
-                {quantity}
-              </span>
+              <span className="food-quantity__value">{quantity}</span>
               <button
                 type="button"
                 onClick={() => onQuantity(item.id, quantity + 1)}

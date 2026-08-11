@@ -148,126 +148,131 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
 
   return (
     <div className="app">
-      <input ref={fileInput} type="file" accept="application/json" hidden onChange={importFile} />
-      <Header
-        profile={ownership.profile}
-        source={ownership.source}
-        lastSyncAt={ownership.lastSyncAt}
-        flair={ownership.flair}
-        onImport={() => fileInput.current?.click()}
-      />
+      <a className="skinfolio-skip" href="#main-content">
+        Saltar al contenido
+      </a>
+      <main id="main-content" tabIndex={-1}>
+        <input ref={fileInput} type="file" accept="application/json" hidden onChange={importFile} />
+        <Header
+          profile={ownership.profile}
+          source={ownership.source}
+          lastSyncAt={ownership.lastSyncAt}
+          flair={ownership.flair}
+          onImport={() => fileInput.current?.click()}
+        />
 
-      {warn && (
-        <div className="notice">
-          <strong>Aviso:</strong> {warn}
-          <button onClick={() => setWarn(null)}>Cerrar</button>
-        </div>
-      )}
+        {warn && (
+          <div className="notice" role="alert">
+            <strong>Aviso:</strong> {warn}
+            <button onClick={() => setWarn(null)}>Cerrar</button>
+          </div>
+        )}
 
-      {ownership.source === 'ninguna' && (
-        <div className="notice">
-          <strong>Todavía no hay datos de tu colección.</strong> Configura las variables de Supabase
-          (<code>web/.env</code>) o importa el JSON generado por el collector.
-          <button onClick={() => fileInput.current?.click()}>Importar JSON</button>
-        </div>
-      )}
+        {ownership.source === 'ninguna' && (
+          <div className="notice">
+            <strong>Todavía no hay datos de tu colección.</strong> Configura las variables de
+            Supabase (<code>web/.env</code>) o importa el JSON generado por el collector.
+            <button onClick={() => fileInput.current?.click()}>Importar JSON</button>
+          </div>
+        )}
 
-      <StatsVault
-        ownedCount={ownership.ownedSkinIds.size}
-        totalCount={catalog.totals.skins}
-        chromasOwned={ownership.chromasOwned}
-        chromasTotal={chromasTotal}
-        byRarity={byRarity}
-        loot={ownership.loot}
-        collectionValueRp={ownership.collectionValueRp}
-        pricedOwnedCount={ownership.pricedOwnedCount}
-        wallet={ownership.wallet}
-      />
+        <StatsVault
+          ownedCount={ownership.ownedSkinIds.size}
+          totalCount={catalog.totals.skins}
+          chromasOwned={ownership.chromasOwned}
+          chromasTotal={chromasTotal}
+          byRarity={byRarity}
+          loot={ownership.loot}
+          collectionValueRp={ownership.collectionValueRp}
+          pricedOwnedCount={ownership.pricedOwnedCount}
+          wallet={ownership.wallet}
+        />
 
-      <Controls
-        mode={mode}
-        onMode={setMode}
-        query={query}
-        onQuery={setQuery}
-        view={view}
-        onView={setView}
-        sort={sort}
-        onSort={setSort}
-        rarities={rarities}
-        onToggleRarity={toggleRarity}
-        flags={flags}
-        onToggleFlag={toggleFlag}
-        offersCount={ownership.offers.length}
-      />
+        <Controls
+          mode={mode}
+          onMode={setMode}
+          query={query}
+          onQuery={setQuery}
+          view={view}
+          onView={setView}
+          sort={sort}
+          onSort={setSort}
+          rarities={rarities}
+          onToggleRarity={toggleRarity}
+          flags={flags}
+          onToggleFlag={toggleFlag}
+          offersCount={ownership.offers.length}
+        />
 
-      {isCollection && sections.length === 0 && (
-        <div className="empty">
-          {ownership.source === 'ninguna' && view !== 'all'
-            ? 'Aún no hay colección cargada: importa el JSON del collector para ver lo que tienes.'
-            : 'Nada coincide con esos filtros. Prueba con otro nombre o quita alguno.'}
-        </div>
-      )}
+        {isCollection && sections.length === 0 && (
+          <div className="empty">
+            {ownership.source === 'ninguna' && view !== 'all'
+              ? 'Aún no hay colección cargada: importa el JSON del collector para ver lo que tienes.'
+              : 'Nada coincide con esos filtros. Prueba con otro nombre o quita alguno.'}
+          </div>
+        )}
 
-      {mode === 'skins' &&
-        skinSections.map(({ champ, skins, ownedCount, total }) => (
-          <ChampionSection
-            key={champ.id}
-            champion={champ}
-            skins={skins}
-            ownedCount={ownedCount}
-            total={total}
+        {mode === 'skins' &&
+          skinSections.map(({ champ, skins, ownedCount, total }) => (
+            <ChampionSection
+              key={champ.id}
+              champion={champ}
+              skins={skins}
+              ownedCount={ownedCount}
+              total={total}
+              ownedSkinIds={ownership.ownedSkinIds}
+              chromasBySkin={ownership.chromasBySkin}
+              mastery={ownership.masteryByChampion.get(champ.id)}
+              assetUrl={assetUrl}
+              onOpen={openSkin}
+            />
+          ))}
+
+        {mode === 'chromas' &&
+          chromaSections.map(({ champ, entries, ownedCount, total }) => (
+            <ChromaSection
+              key={champ.id}
+              champion={champ}
+              entries={entries}
+              ownedCount={ownedCount}
+              total={total}
+              ownedChromaIds={ownership.ownedChromaIds}
+              ownedSkinIds={ownership.ownedSkinIds}
+              mastery={ownership.masteryByChampion.get(champ.id)}
+              assetUrl={assetUrl}
+              onOpen={openSkin}
+            />
+          ))}
+
+        {mode === 'ofertas' && (
+          <OffersSection
+            offers={ownership.offers}
+            catalog={catalog}
             ownedSkinIds={ownership.ownedSkinIds}
             chromasBySkin={ownership.chromasBySkin}
-            mastery={ownership.masteryByChampion.get(champ.id)}
             assetUrl={assetUrl}
             onOpen={openSkin}
           />
-        ))}
+        )}
 
-      {mode === 'chromas' &&
-        chromaSections.map(({ champ, entries, ownedCount, total }) => (
-          <ChromaSection
-            key={champ.id}
-            champion={champ}
-            entries={entries}
-            ownedCount={ownedCount}
-            total={total}
-            ownedChromaIds={ownership.ownedChromaIds}
-            ownedSkinIds={ownership.ownedSkinIds}
-            mastery={ownership.masteryByChampion.get(champ.id)}
+        {mode === 'otros' && (
+          <CosmeticsSection
+            cosmetics={ownership.cosmetics}
+            query={deferredQuery}
             assetUrl={assetUrl}
-            onOpen={openSkin}
           />
-        ))}
+        )}
 
-      {mode === 'ofertas' && (
-        <OffersSection
-          offers={ownership.offers}
-          catalog={catalog}
-          ownedSkinIds={ownership.ownedSkinIds}
-          chromasBySkin={ownership.chromasBySkin}
-          assetUrl={assetUrl}
-          onOpen={openSkin}
-        />
-      )}
-
-      {mode === 'otros' && (
-        <CosmeticsSection
-          cosmetics={ownership.cosmetics}
-          query={deferredQuery}
-          assetUrl={assetUrl}
-        />
-      )}
-
-      {mode === 'actividad' && (
-        <ActivitySection
-          syncHistory={ownership.syncHistory}
-          events={ownership.events}
-          matches={ownership.matches}
-          ownedCount={ownership.ownedSkinIds.size}
-          catalog={catalog}
-        />
-      )}
+        {mode === 'actividad' && (
+          <ActivitySection
+            syncHistory={ownership.syncHistory}
+            events={ownership.events}
+            matches={ownership.matches}
+            ownedCount={ownership.ownedSkinIds.size}
+            catalog={catalog}
+          />
+        )}
+      </main>
 
       {modal && (
         <SkinModal
@@ -291,7 +296,7 @@ export function ErrorBoundary() {
   const error = useRouteError() as Error;
   const revalidator = useRevalidator();
   return (
-    <main className="app">
+    <main id="main-content" className="app" tabIndex={-1}>
       <div className="notice" role="alert">
         <strong>Algo ha fallado:</strong> {error.message}.{' '}
         <button type="button" onClick={() => revalidator.revalidate()}>

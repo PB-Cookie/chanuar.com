@@ -77,7 +77,7 @@ export function Header({
       <span className={`header__source ${source === 'supabase' ? 'header__source--live' : ''}`}>
         {source === 'supabase' ? 'Supabase' : source === 'archivo' ? 'Archivo local' : 'Sin datos'}
       </span>
-      <button className="btn" onClick={onImport}>
+      <button className="btn" type="button" onClick={onImport}>
         Importar JSON
       </button>
     </header>

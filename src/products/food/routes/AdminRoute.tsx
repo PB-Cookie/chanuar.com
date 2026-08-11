@@ -106,7 +106,7 @@ function AdminSignIn({
 function CycleTotals({ cycle, serviceFeeCents }: { cycle: AdminCycle; serviceFeeCents?: number }) {
   const { subtotal, fee, total } = cycleAmounts(cycle, serviceFeeCents);
   return (
-    <div className="food-cycle-totals" aria-label="Totales del pedido">
+    <div className="food-cycle-totals" role="group" aria-label="Totales del pedido">
       <div>
         <span>Subtotal de pedidos</span>
         <strong>{formatEuros(subtotal)}</strong>
@@ -135,7 +135,7 @@ function OrderGroups({ cycle, serviceFeeCents }: { cycle: AdminCycle; serviceFee
             {cycle.orders.length} {cycle.orders.length === 1 ? 'persona' : 'personas'}
           </h2>
         </div>
-        <div className="food-admin-toggle" aria-label="Agrupar pedidos">
+        <div className="food-admin-toggle" role="group" aria-label="Agrupar pedidos">
           <button
             type="button"
             className={mode === 'people' ? 'is-active' : ''}

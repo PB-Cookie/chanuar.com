@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(30);
+select extensions.plan(32);
 
 select extensions.has_table('food', 'food_admins', 'food.food_admins exists');
 select extensions.has_table('food', 'restaurants', 'food.restaurants exists');
@@ -61,6 +61,31 @@ select extensions.function_privs_are(
   'service_role', 'public', 'food_scraper_sync_catalog', array['jsonb', 'jsonb', 'boolean', 'boolean'], array['EXECUTE'],
   'only the service role can publish scraper catalogs'
 );
+
+select set_config('request.jwt.claim.role', 'service_role', true);
+set local role service_role;
+select extensions.is(
+  (public.food_scraper_sync_catalog(
+    '{"scraper_key":"hours-test","name":"Hours Test","source_url":"https://example.invalid","opening_hours":[{"day":1,"periods":[{"open":"12:00","close":"23:00"}]}]}'::jsonb,
+    '[{"scraper_key":"item-a","category":"Test","name":"Item A","price_cents":100,"currency":"EUR","source_url":"https://example.invalid","sort_order":0}]'::jsonb,
+    true,
+    true
+  )->>'dry_run')::boolean,
+  true,
+  'scraper RPC accepts a validated weekly schedule'
+);
+select extensions.throws_ok(
+  $$select public.food_scraper_sync_catalog(
+    '{"scraper_key":"hours-test","name":"Hours Test","source_url":"https://example.invalid"}'::jsonb,
+    '[{"scraper_key":"item-a","category":"Test","name":"Item A","price_cents":100,"currency":"EUR","source_url":"https://example.invalid","sort_order":0}]'::jsonb,
+    true,
+    true
+  )$$,
+  'P0001', 'FOOD_SCRAPER_INVALID_INPUT',
+  'scraper RPC rejects restaurant snapshots without opening hours'
+);
+reset role;
+select set_config('request.jwt.claim.role', '', true);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password,

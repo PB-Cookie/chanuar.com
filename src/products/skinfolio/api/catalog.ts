@@ -6,6 +6,9 @@ type RawSkin = {
   loadScreenPath?: string; tilePath?: string; splashPath?: string; uncenteredSplashPath?: string;
   chromas?: Array<{ id: number; name?: string; colors?: string[]; chromaPath?: string }>;
 };
+type RawWard = { id: number; name: string; wardImagePath: string };
+type RawEmote = { id: number; name?: string; inventoryIcon: string };
+type RawIcon = { id: number; title?: string; imagePath: string };
 
 // Catálogo público de skins y campeones desde Community Dragon.
 // El catálogo NO vive en nuestra base de datos: aquí está siempre al día
@@ -104,12 +107,12 @@ let cosmeticsCatalogPromise: Promise<{
 }> | null = null;
 export function fetchCosmeticsCatalog() {
   cosmeticsCatalogPromise ??= (async () => {
-    const get = (f: string): Promise<any[]> => fetch(`${BASE}/v1/${f}.json`).then((r) => {
+    const get = <T,>(f: string): Promise<T[]> => fetch(`${BASE}/v1/${f}.json`).then((r) => {
       if (!r.ok) throw new Error(`No se pudo descargar ${f}`);
-      return r.json();
+      return r.json() as Promise<T[]>;
     });
     const [wards, emotes, icons] = await Promise.all([
-      get('ward-skins'), get('summoner-emotes'), get('summoner-icons'),
+      get<RawWard>('ward-skins'), get<RawEmote>('summoner-emotes'), get<RawIcon>('summoner-icons'),
     ]);
     return {
       wards: new Map(wards.map((w) => [w.id, { id: w.id, name: w.name, image: w.wardImagePath }])),

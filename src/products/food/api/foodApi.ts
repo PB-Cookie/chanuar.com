@@ -26,7 +26,45 @@ export class FoodApiError extends Error {
   }
 }
 
-type Raw = Record<string, any>;
+type RawMenuItem = {
+  id: string; restaurant_id?: string; restaurantId?: string; category?: string | null; name: string;
+  description?: string | null; price_cents?: number; priceCents?: number; currency?: string | null;
+  image_url?: string | null; imageUrl?: string | null; available?: boolean;
+};
+type RawRestaurant = {
+  id: string; name: string; description?: string | null; image_url?: string | null; imageUrl?: string | null;
+  source_url?: string | null; sourceUrl?: string | null; available_items?: number; availableItems?: number;
+  opening_hours?: OpeningDay[]; openingHours?: OpeningDay[];
+};
+type RawOrderItem = {
+  id: string; menu_item_id?: string; menuItemId?: string; item_name?: string; name?: string;
+  unit_price_cents?: number; unitPriceCents?: number; quantity: number; note?: string | null;
+  line_total_cents?: number; lineTotalCents?: number;
+};
+type RawOrder = {
+  id: string; cycle_id?: string; cycleId?: string; cycle_status?: string; cycleStatus?: string;
+  display_name?: string; displayName?: string; note?: string | null; created_at?: string; createdAt?: string;
+  updated_at?: string; updatedAt?: string; total_cents?: number; totalCents?: number;
+  restaurant?: RawRestaurant | null; items?: RawOrderItem[];
+};
+type RawActiveMenu = {
+  cycle: { id: string; status: string; opened_at?: string; openedAt?: string };
+  restaurant: RawRestaurant | null; menu_items?: RawMenuItem[]; menuItems?: RawMenuItem[];
+};
+type RawAdminItem = {
+  id: string; menu_item_id: string; item_name: string; unit_price_cents: number;
+  currency?: string | null; quantity: number; note?: string | null;
+};
+type RawAdminOrder = {
+  id: string; display_name?: string; note?: string | null; created_at?: string; updated_at?: string;
+  total_cents?: number; items?: RawAdminItem[];
+};
+type RawCycle = { id?: string; status?: string; opened_at?: string; closed_at?: string | null; service_fee_cents?: number };
+type RawAdminCycle = RawCycle & {
+  cycle?: RawCycle; restaurant: RawRestaurant | null; subtotal_cents?: number;
+  total_cents?: number; orders?: RawAdminOrder[];
+};
+type RawSubmitResult = { order_id: string; edit_token: string };
 
 function errorCode(error: unknown) {
   const value = error as { message?: string; details?: string };
@@ -47,7 +85,7 @@ async function rpc<T>(name: string, params: Record<string, unknown> = {}): Promi
   return data as T;
 }
 
-function normalizeItem(item: Raw) {
+function normalizeItem(item: RawMenuItem) {
   return {
     id: String(item.id), restaurantId: String(item.restaurant_id ?? item.restaurantId), category: item.category || 'Otros',
     name: String(item.name), description: item.description ?? '', priceCents: Number(item.price_cents ?? item.priceCents),
@@ -55,7 +93,7 @@ function normalizeItem(item: Raw) {
   };
 }
 
-function normalizeRestaurant(restaurant: Raw | null): Restaurant | null {
+function normalizeRestaurant(restaurant: RawRestaurant | null): Restaurant | null {
   if (!restaurant) return null;
   return {
     id: String(restaurant.id), name: String(restaurant.name), description: restaurant.description ?? '',
@@ -65,14 +103,14 @@ function normalizeRestaurant(restaurant: Raw | null): Restaurant | null {
   };
 }
 
-function normalizeOrder(order: Raw | null): FoodOrder | null {
+function normalizeOrder(order: RawOrder | null): FoodOrder | null {
   if (!order) return null;
   return {
     id: String(order.id), cycleId: String(order.cycle_id ?? order.cycleId), cycleStatus: String(order.cycle_status ?? order.cycleStatus),
-    displayName: String(order.display_name ?? order.displayName), note: order.note ?? '', createdAt: order.created_at ?? order.createdAt,
-    updatedAt: order.updated_at ?? order.updatedAt, totalCents: Number(order.total_cents ?? order.totalCents ?? 0),
-    restaurant: normalizeRestaurant(order.restaurant),
-    items: (order.items ?? []).map((item: Raw) => ({
+    displayName: String(order.display_name ?? order.displayName), note: order.note ?? '', createdAt: String(order.created_at ?? order.createdAt),
+    updatedAt: String(order.updated_at ?? order.updatedAt), totalCents: Number(order.total_cents ?? order.totalCents ?? 0),
+    restaurant: normalizeRestaurant(order.restaurant ?? null),
+    items: (order.items ?? []).map((item) => ({
       id: String(item.id), menuItemId: String(item.menu_item_id ?? item.menuItemId), name: String(item.item_name ?? item.name),
       unitPriceCents: Number(item.unit_price_cents ?? item.unitPriceCents), quantity: Number(item.quantity), note: item.note ?? '',
       lineTotalCents: Number(item.line_total_cents ?? item.lineTotalCents),
@@ -80,7 +118,7 @@ function normalizeOrder(order: Raw | null): FoodOrder | null {
   };
 }
 
-function requireOrder(order: Raw | null): FoodOrder {
+function requireOrder(order: RawOrder | null): FoodOrder {
   const normalized = normalizeOrder(order);
   if (!normalized) throw new FoodApiError('FOOD_ORDER_NOT_FOUND', ERROR_MESSAGES.FOOD_ORDER_NOT_FOUND!);
   return normalized;
@@ -88,43 +126,43 @@ function requireOrder(order: Raw | null): FoodOrder {
 
 export async function getActiveMenu(): Promise<ActiveMenu | null> {
   if (!foodConfigured) return null;
-  const data = await rpc<Raw | null>('food_active_menu');
+  const data = await rpc<RawActiveMenu | null>('food_active_menu');
   if (!data) return null;
   const restaurant = normalizeRestaurant(data.restaurant);
   if (!restaurant) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'El restaurante activo no es válido.');
-  return { cycle: { id: String(data.cycle.id), status: String(data.cycle.status), openedAt: data.cycle.opened_at ?? data.cycle.openedAt }, restaurant, menuItems: (data.menu_items ?? data.menuItems ?? []).map(normalizeItem) };
+  return { cycle: { id: String(data.cycle.id), status: String(data.cycle.status), openedAt: String(data.cycle.opened_at ?? data.cycle.openedAt) }, restaurant, menuItems: (data.menu_items ?? data.menuItems ?? []).map(normalizeItem) };
 }
 
 export async function getRestaurantOptions(): Promise<Restaurant[]> {
   if (!foodConfigured) return [];
-  return (await rpc<Raw[]>('food_restaurant_options') ?? []).map(normalizeRestaurant).filter((item): item is Restaurant => item !== null);
+  return (await rpc<RawRestaurant[]>('food_restaurant_options') ?? []).map(normalizeRestaurant).filter((item): item is Restaurant => item !== null);
 }
 
 export async function submitOrder(input: { cycleId: string; displayName: string; note: string; items: OrderItemPayload[] }) {
-  const data = await rpc<Raw>('food_submit_order', { p_cycle_id: input.cycleId, p_display_name: input.displayName, p_note: input.note || null, p_items: input.items });
+  const data = await rpc<RawSubmitResult>('food_submit_order', { p_cycle_id: input.cycleId, p_display_name: input.displayName, p_note: input.note || null, p_items: input.items });
   return { orderId: String(data.order_id), token: String(data.edit_token) };
 }
 
 export async function getOrder(orderId: string, token: string) {
-  return requireOrder(await rpc<Raw | null>('food_get_order', { p_order_id: orderId, p_token: token }));
+  return requireOrder(await rpc<RawOrder | null>('food_get_order', { p_order_id: orderId, p_token: token }));
 }
 
 export async function updateOrder(input: { orderId: string; token: string; displayName: string; note: string; items: OrderItemPayload[] }) {
-  return requireOrder(await rpc<Raw | null>('food_update_order', { p_order_id: input.orderId, p_token: input.token, p_display_name: input.displayName, p_note: input.note || null, p_items: input.items }));
+  return requireOrder(await rpc<RawOrder | null>('food_update_order', { p_order_id: input.orderId, p_token: input.token, p_display_name: input.displayName, p_note: input.note || null, p_items: input.items }));
 }
 
-function normalizeAdminCycle(cycle: Raw | null): AdminCycle | null {
+function normalizeAdminCycle(cycle: RawAdminCycle | null): AdminCycle | null {
   if (!cycle) return null;
   const restaurant = normalizeRestaurant(cycle.restaurant);
   if (!restaurant) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'El ciclo no contiene un restaurante válido.');
-  const orders = (cycle.orders ?? []).map((order: Raw) => ({
+  const orders = (cycle.orders ?? []).map((order) => ({
     id: String(order.id),
     displayName: String(order.display_name ?? ''),
     note: order.note ?? '',
     createdAt: order.created_at ?? '',
     updatedAt: order.updated_at ?? '',
     totalCents: Number(order.total_cents ?? 0),
-    items: (order.items ?? []).map((item: Raw) => ({
+    items: (order.items ?? []).map((item) => ({
       id: String(item.id),
       menuItemId: String(item.menu_item_id),
       name: String(item.item_name),
@@ -177,11 +215,11 @@ export const foodAuth = {
 export const foodAdminApi = {
   access: () => rpc<boolean>('food_admin_access'),
   catalog: () => getRestaurantOptionsFromAdmin(),
-  current: async () => normalizeAdminCycle(await rpc<Raw | null>('food_admin_current')),
-  history: async () => (await rpc<Raw[]>('food_admin_history') ?? []).map(normalizeAdminCycle).filter((cycle): cycle is AdminCycle => cycle !== null),
+  current: async () => normalizeAdminCycle(await rpc<RawAdminCycle | null>('food_admin_current')),
+  history: async () => (await rpc<RawAdminCycle[]>('food_admin_history') ?? []).map(normalizeAdminCycle).filter((cycle): cycle is AdminCycle => cycle !== null),
   openCycle: (restaurantId: string) => rpc('food_admin_open_cycle', { p_restaurant_id: restaurantId }),
   async updateRestaurantHours(restaurantId: string, openingHours: OpeningDay[]) {
-    const restaurant = normalizeRestaurant(await rpc<Raw>('food_admin_update_restaurant_hours', { p_restaurant_id: restaurantId, p_opening_hours: openingHours }));
+    const restaurant = normalizeRestaurant(await rpc<RawRestaurant>('food_admin_update_restaurant_hours', { p_restaurant_id: restaurantId, p_opening_hours: openingHours }));
     if (!restaurant) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'El restaurante actualizado no es válido.');
     return restaurant;
   },
@@ -189,5 +227,5 @@ export const foodAdminApi = {
 };
 
 async function getRestaurantOptionsFromAdmin() {
-  return (await rpc<Raw[]>('food_admin_catalog') ?? []).map(normalizeRestaurant).filter((item): item is Restaurant => item !== null);
+  return (await rpc<RawRestaurant[]>('food_admin_catalog') ?? []).map(normalizeRestaurant).filter((item): item is Restaurant => item !== null);
 }

@@ -4,9 +4,12 @@ import { useLoaderData, useRevalidator, useRouteError } from 'react-router';
 import { fetchCatalog, assetUrl } from '../api/catalog';
 import { fetchOwnership, ownershipFromExport, dbConfigured } from '../api/ownership';
 import {
-  Header, StatsVault, Controls, ChampionSection, ChromaSection, SkinModal,
-  OffersSection, CosmeticsSection, ActivitySection,
-} from '../components/parts';
+  Header, StatsVault, Controls, ChampionSection, ChromaSection,
+} from '../components/CollectionParts';
+import { ActivitySection } from '../components/ActivitySection';
+import { CosmeticsSection } from '../components/CosmeticsSection';
+import { OffersSection } from '../components/OffersSection';
+import { SkinModal } from '../components/SkinModal';
 import { buildChromaSections, buildSkinSections, chromaTotal, rarityTotals } from '../model/collection';
 import type { Catalog, CollectionMode, CollectionSort, CollectionView, Ownership, Skin } from '../model/types';
 import '../skinfolio.css';
@@ -14,13 +17,16 @@ import '../skinfolio.css';
 type SkinfolioRouteData = { catalog: Catalog; ownership: Ownership | null; warning: string | null };
 
 export async function loader(): Promise<SkinfolioRouteData> {
-  const catalog = await fetchCatalog();
-  if (!dbConfigured) return { catalog, ownership: null, warning: null };
-  try {
-    return { catalog, ownership: await fetchOwnership(), warning: null };
-  } catch (error) {
-    return { catalog, ownership: null, warning: `No se pudo leer tu colección de Supabase (${(error as Error).message}). Puedes importar el JSON del collector.` };
+  const [catalogResult, ownershipResult] = await Promise.allSettled([
+    fetchCatalog(),
+    dbConfigured ? fetchOwnership() : Promise.resolve({ ownership: null, warning: null }),
+  ]);
+  if (catalogResult.status === 'rejected') throw catalogResult.reason;
+  if (ownershipResult.status === 'rejected') {
+    const message = ownershipResult.reason instanceof Error ? ownershipResult.reason.message : 'Error desconocido';
+    return { catalog: catalogResult.value, ownership: null, warning: `No se pudo leer tu colección de Supabase (${message}). Puedes importar el JSON del collector.` };
   }
+  return { catalog: catalogResult.value, ...ownershipResult.value };
 }
 
 const EMPTY_OWNERSHIP: Ownership = {
@@ -213,7 +219,6 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
           matches={ownership.matches}
           ownedCount={ownership.ownedSkinIds.size}
           catalog={catalog}
-          assetUrl={assetUrl}
         />
       )}
 

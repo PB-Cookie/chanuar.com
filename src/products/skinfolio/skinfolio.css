@@ -76,7 +76,8 @@ body.skinfolio-page {
   --radius: 4px;
 }
 
-* { box-sizing: border-box; }
+body.skinfolio-page,
+body.skinfolio-page * { box-sizing: border-box; }
 
 body.skinfolio-page {
   margin: 0;
@@ -90,11 +91,12 @@ body.skinfolio-page {
   line-height: 1.45;
 }
 
+@scope (body.skinfolio-page) {
 .app { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px; }
 
-body.skinfolio-page a { color: var(--arcane); }
+a { color: var(--arcane); }
 
-body.skinfolio-page :focus-visible {
+:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
@@ -937,4 +939,5 @@ body.skinfolio-page :focus-visible {
 
 @media (max-width: 560px) {
   .cos-grid { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+}
 }

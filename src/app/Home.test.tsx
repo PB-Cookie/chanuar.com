@@ -25,6 +25,8 @@ describe('portfolio surfaces', () => {
       'https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/',
     );
     expect(screen.getByRole('navigation', { name: 'Perfiles y contacto' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Proyectos' })).toHaveAttribute('href', '/#proyectos');
+    expect(screen.getByRole('link', { name: 'Contacto' })).toHaveAttribute('href', '/#contacto');
     expect(screen.getByRole('link', { name: /Skinfolio/ })).toHaveAttribute('href', '/skinfolio');
     expect(screen.getByRole('link', { name: /Mesa abierta/ })).toHaveAttribute('href', '/food');
   });

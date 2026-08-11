@@ -241,6 +241,7 @@ body.portfolio-page * {
 
   .portfolio-social {
     margin-top: 28px;
+    scroll-margin-top: 112px;
   }
 
   .portfolio-projects {

@@ -14,8 +14,8 @@ export function PortfolioShell({ children }: PropsWithChildren) {
           @chanuar
         </NavLink>
         <nav aria-label="Navegación principal">
-          <Link to="/#proyectos">Proyectos</Link>
-          <a href="mailto:carlos@chanuar.com">Contacto</a>
+          <a href="/#proyectos">Proyectos</a>
+          <a href="/#contacto">Contacto</a>
         </nav>
       </header>
       {children}
@@ -49,7 +49,7 @@ export function Home() {
               Escribirme
             </a>
           </div>
-          <nav className="portfolio-social" aria-label="Perfiles y contacto">
+          <nav id="contacto" className="portfolio-social" aria-label="Perfiles y contacto">
             <a href="https://github.com/chanuar" rel="me">
               GitHub <span aria-hidden="true">↗</span>
             </a>

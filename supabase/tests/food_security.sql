@@ -2,7 +2,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(32);
+select extensions.plan(33);
 
 select extensions.has_table('food', 'food_admins', 'food.food_admins exists');
 select extensions.has_table('food', 'restaurants', 'food.restaurants exists');
@@ -105,6 +105,36 @@ insert into food.menu_items (id, restaurant_id, scraper_key, category, name, pri
 values
   ('00000000-0000-0000-0000-00000000f201', '00000000-0000-0000-0000-00000000f101', 'dish-a', 'Platos', 'Plato A', 725),
   ('00000000-0000-0000-0000-00000000f202', '00000000-0000-0000-0000-00000000f101', 'dish-b', 'Platos', 'Plato B', 950);
+
+insert into food.food_admins (user_id)
+values ('00000000-0000-0000-0000-00000000f001');
+
+select set_config('request.jwt.claim.role', 'authenticated', true);
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000f001', true);
+set local role authenticated;
+select public.food_admin_update_restaurant_hours(
+  '00000000-0000-0000-0000-00000000f101',
+  '[{"day":1,"periods":[{"open":"09:00","close":"17:00"}]}]'::jsonb
+);
+reset role;
+
+select set_config('request.jwt.claim.role', 'service_role', true);
+set local role service_role;
+select public.food_scraper_sync_catalog(
+  '{"scraper_key":"test-restaurant","name":"Restaurante de prueba","source_url":"https://example.invalid","opening_hours":[{"day":1,"periods":[{"open":"12:00","close":"23:00"}]}]}'::jsonb,
+  '[{"scraper_key":"dish-a","category":"Platos","name":"Plato A","price_cents":725,"currency":"EUR"},{"scraper_key":"dish-b","category":"Platos","name":"Plato B","price_cents":950,"currency":"EUR"}]'::jsonb,
+  true,
+  false
+);
+reset role;
+select set_config('request.jwt.claim.role', '', true);
+select set_config('request.jwt.claim.sub', '', true);
+
+select extensions.is(
+  (select opening_hours from food.restaurants where id = '00000000-0000-0000-0000-00000000f101'),
+  '[{"day":1,"periods":[{"open":"09:00","close":"17:00"}]}]'::jsonb,
+  'scraper sync preserves an administrator-managed opening schedule'
+);
 
 select extensions.ok(
   food.food_valid_opening_hours('[{"day":1,"periods":[{"open":"12:00","close":"23:30"}]}]'::jsonb),

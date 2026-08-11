@@ -11,9 +11,10 @@ transaction; the publishable frontend key cannot execute it.
 Apply `20260811010000_scraper_opening_hours.sql` before deploying the scraper
 version that publishes `opening_hours`; older versions of the RPC ignore that field.
 
-Restaurant opening hours are stored separately from scraper-owned catalog data.
-An approved administrator can edit up to four opening periods per day from the
-**Restaurantes** tab in `/food/admin`; times use the `Atlantic/Canary` timezone.
+Scraper opening hours initialize and refresh a restaurant until an approved
+administrator edits its schedule from the **Restaurantes** tab in `/food/admin`.
+After that first manual edit, later catalog syncs preserve the administrator's
+hours. Schedules support up to four periods per day in `Atlantic/Canary` time.
 
 ## First administrator
 

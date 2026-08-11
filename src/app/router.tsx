@@ -9,41 +9,26 @@ export const routes: RouteObject[] = [
       {
         index: true,
         handle: { page: 'skinfolio' },
-        lazy: async () => {
-          const route = await import('../products/skinfolio/routes/SkinfolioRoute');
-          return { Component: route.Component, loader: route.loader, ErrorBoundary: route.ErrorBoundary };
-        },
+        lazy: () => import('../products/skinfolio/routes/SkinfolioRoute'),
       },
       {
         path: 'food',
         handle: { page: 'food' },
-        lazy: async () => {
-          const route = await import('../products/food/routes/FoodLayout');
-          return { Component: route.Component, ErrorBoundary: route.ErrorBoundary };
-        },
+        lazy: () => import('../products/food/routes/FoodLayout'),
         children: [
           {
             index: true,
-            lazy: async () => {
-              const route = await import('../products/food/routes/OrderRoute');
-              return { Component: route.Component, loader: route.loader };
-            },
+            lazy: () => import('../products/food/routes/OrderRoute'),
           },
           {
             path: 'options',
             handle: { page: 'options' },
-            lazy: async () => {
-              const route = await import('../products/food/routes/OptionsRoute');
-              return { Component: route.Component, loader: route.loader };
-            },
+            lazy: () => import('../products/food/routes/OptionsRoute'),
           },
           {
             path: 'admin',
             handle: { page: 'admin' },
-            lazy: async () => {
-              const route = await import('../products/food/routes/AdminRoute');
-              return { Component: route.Component, loader: route.loader };
-            },
+            lazy: () => import('../products/food/routes/AdminRoute'),
           },
         ],
       },

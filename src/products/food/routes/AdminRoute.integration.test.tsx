@@ -21,7 +21,12 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../api/foodApi', () => ({
   foodConfigured: true,
   FoodApiError: class FoodApiError extends Error {
-    constructor(public code: string, message: string) { super(message); }
+    constructor(
+      public code: string,
+      message: string,
+    ) {
+      super(message);
+    }
   },
   foodAuth: {
     session: mocks.session,
@@ -54,7 +59,9 @@ const restaurant = {
 };
 
 function renderAdmin() {
-  const router = createMemoryRouter([{ path: '/food/admin', Component, loader }], { initialEntries: ['/food/admin'] });
+  const router = createMemoryRouter([{ path: '/food/admin', Component, loader }], {
+    initialEntries: ['/food/admin'],
+  });
   render(<RouterProvider router={router} />);
 }
 
@@ -63,12 +70,17 @@ describe('authenticated food administration', () => {
     vi.clearAllMocks();
     mocks.sessionValue = null;
     mocks.session.mockImplementation(() => Promise.resolve(mocks.sessionValue));
-    mocks.signIn.mockImplementation(() => { mocks.sessionValue = session; return Promise.resolve(session); });
+    mocks.signIn.mockImplementation(() => {
+      mocks.sessionValue = session;
+      return Promise.resolve(session);
+    });
     mocks.access.mockResolvedValue(true);
     mocks.catalog.mockResolvedValue([restaurant]);
     mocks.current.mockResolvedValue(null);
     mocks.history.mockResolvedValue([]);
-    mocks.updateRestaurantHours.mockImplementation((_id, openingHours) => Promise.resolve({ ...restaurant, openingHours }));
+    mocks.updateRestaurantHours.mockImplementation((_id, openingHours) =>
+      Promise.resolve({ ...restaurant, openingHours }),
+    );
   });
 
   afterEach(cleanup);

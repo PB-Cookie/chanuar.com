@@ -2,11 +2,49 @@ import { useEffect } from 'react';
 import { Outlet, useLocation, useMatches } from 'react-router';
 
 const META = {
-  skinfolio: { title: 'Skinfolio — Colección de skins', description: 'Mi colección de skins de League of Legends: skins, chromas, ofertas y progreso.', theme: '#010a13', siteName: 'Skinfolio', image: 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin27/images/ahri_splash_centered_27.jpg', icon: '/favicon.svg' },
-  food: { title: 'Mesa abierta — El pedido de la semana', description: 'Elige restaurante, comparte la carta y reúne el pedido semanal del equipo en un solo lugar.', theme: '#f7f1e7', siteName: 'Mesa abierta', image: '/food-og.png', icon: '/food-og.png' },
-  options: { title: 'Restaurantes — Mesa abierta', description: 'Consulta los restaurantes disponibles, descubre su propuesta y abre su carta en Uber Eats.', theme: '#f7f1e7', siteName: 'Mesa abierta', image: '/food-og.png', icon: '/food-og.png' },
-  admin: { title: 'Administración — Mesa abierta', description: 'Administración segura del pedido semanal del equipo.', theme: '#f7f1e7', siteName: 'Mesa abierta', image: '/food-og.png', icon: '/food-og.png' },
-  notFound: { title: 'Página no encontrada', description: 'La página que buscas no existe.', theme: '#f7f1e7', siteName: 'chanuar.com', image: '/food-og.png', icon: '/food-og.png' },
+  skinfolio: {
+    title: 'Skinfolio — Colección de skins',
+    description: 'Mi colección de skins de League of Legends: skins, chromas, ofertas y progreso.',
+    theme: '#010a13',
+    siteName: 'Skinfolio',
+    image:
+      'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin27/images/ahri_splash_centered_27.jpg',
+    icon: '/favicon.svg',
+  },
+  food: {
+    title: 'Mesa abierta — El pedido de la semana',
+    description:
+      'Elige restaurante, comparte la carta y reúne el pedido semanal del equipo en un solo lugar.',
+    theme: '#f7f1e7',
+    siteName: 'Mesa abierta',
+    image: '/food-og.png',
+    icon: '/food-og.png',
+  },
+  options: {
+    title: 'Restaurantes — Mesa abierta',
+    description:
+      'Consulta los restaurantes disponibles, descubre su propuesta y abre su carta en Uber Eats.',
+    theme: '#f7f1e7',
+    siteName: 'Mesa abierta',
+    image: '/food-og.png',
+    icon: '/food-og.png',
+  },
+  admin: {
+    title: 'Administración — Mesa abierta',
+    description: 'Administración segura del pedido semanal del equipo.',
+    theme: '#f7f1e7',
+    siteName: 'Mesa abierta',
+    image: '/food-og.png',
+    icon: '/food-og.png',
+  },
+  notFound: {
+    title: 'Página no encontrada',
+    description: 'La página que buscas no existe.',
+    theme: '#f7f1e7',
+    siteName: 'chanuar.com',
+    image: '/food-og.png',
+    icon: '/food-og.png',
+  },
 } as const;
 
 export type Page = keyof typeof META;
@@ -14,14 +52,21 @@ export type Page = keyof typeof META;
 export function RouteEnvironment() {
   const matches = useMatches();
   const location = useLocation();
-  const page = [...matches].reverse().find((match) => (match.handle as { page?: Page } | undefined)?.page);
+  const page = [...matches]
+    .reverse()
+    .find((match) => (match.handle as { page?: Page } | undefined)?.page);
   const name = (page?.handle as { page: Page } | undefined)?.page ?? 'notFound';
   const meta = META[name];
   const image = new URL(meta.image, window.location.origin).href;
 
   useEffect(() => {
     document.documentElement.lang = 'es';
-    document.body.className = name === 'skinfolio' ? 'skinfolio-page' : name === 'notFound' ? 'not-found-page' : 'food-page';
+    document.body.className =
+      name === 'skinfolio'
+        ? 'skinfolio-page'
+        : name === 'notFound'
+          ? 'not-found-page'
+          : 'food-page';
   }, [name]);
 
   return (
@@ -43,9 +88,29 @@ export function RouteEnvironment() {
       <meta name="twitter:description" content={meta.description} />
       <meta name="twitter:image" content={image} />
       {name === 'admin' && <meta name="robots" content="noindex, nofollow" />}
-      <link rel="icon" type={meta.icon.endsWith('.svg') ? 'image/svg+xml' : 'image/png'} href={meta.icon} />
-      {name === 'skinfolio' && <link rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" href="/fonts/beaufort-bold.woff2" />}
-      {name === 'skinfolio' && <link rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" href="/fonts/spiegel-regular.woff2" />}
+      <link
+        rel="icon"
+        type={meta.icon.endsWith('.svg') ? 'image/svg+xml' : 'image/png'}
+        href={meta.icon}
+      />
+      {name === 'skinfolio' && (
+        <link
+          rel="preload"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          href="/fonts/beaufort-bold.woff2"
+        />
+      )}
+      {name === 'skinfolio' && (
+        <link
+          rel="preload"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+          href="/fonts/spiegel-regular.woff2"
+        />
+      )}
       <Outlet />
     </>
   );

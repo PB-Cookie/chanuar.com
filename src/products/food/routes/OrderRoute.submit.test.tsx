@@ -30,25 +30,55 @@ const menu = {
     imageUrl: null,
     sourceUrl: 'https://www.ubereats.com/es/store/la-cocina/example',
   },
-  menuItems: [{
-    id: 'dish-1', restaurantId: 'restaurant-1', category: 'Platos', name: 'Tortilla',
-    description: 'Una tortilla recién hecha con papas del país.', priceCents: 700, currency: 'EUR', imageUrl: 'https://example.invalid/tortilla.jpg', available: true,
-  }],
+  menuItems: [
+    {
+      id: 'dish-1',
+      restaurantId: 'restaurant-1',
+      category: 'Platos',
+      name: 'Tortilla',
+      description: 'Una tortilla recién hecha con papas del país.',
+      priceCents: 700,
+      currency: 'EUR',
+      imageUrl: 'https://example.invalid/tortilla.jpg',
+      available: true,
+    },
+  ],
 };
 
 const confirmedOrder = {
-  id: 'order-1', cycleId: 'cycle-1', cycleStatus: 'open', displayName: 'Ana', note: '',
-  createdAt: '2026-08-09T12:00:00Z', updatedAt: '2026-08-09T12:01:00Z', totalCents: 700,
-  items: [{ id: 'line-1', menuItemId: 'dish-1', name: 'Tortilla', unitPriceCents: 700, quantity: 1, note: '', lineTotalCents: 700 }],
+  id: 'order-1',
+  cycleId: 'cycle-1',
+  cycleStatus: 'open',
+  displayName: 'Ana',
+  note: '',
+  createdAt: '2026-08-09T12:00:00Z',
+  updatedAt: '2026-08-09T12:01:00Z',
+  totalCents: 700,
+  items: [
+    {
+      id: 'line-1',
+      menuItemId: 'dish-1',
+      name: 'Tortilla',
+      unitPriceCents: 700,
+      quantity: 1,
+      note: '',
+      lineTotalCents: 700,
+    },
+  ],
 };
 
 function renderOrder() {
-  const router = createMemoryRouter([{ path: '/food', Component, loader }], { initialEntries: ['/food'] });
+  const router = createMemoryRouter([{ path: '/food', Component, loader }], {
+    initialEntries: ['/food'],
+  });
   render(<RouterProvider router={router} />);
 }
 
 describe('successful order recovery', () => {
-  afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
 
   beforeEach(() => {
     localStorage.clear();
@@ -69,12 +99,17 @@ describe('successful order recovery', () => {
       'href',
       menu.restaurant.sourceUrl,
     );
-    expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute('href', '/food/options');
+    expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute(
+      'href',
+      '/food/options',
+    );
     fireEvent.error(document.querySelector('.food-menu-card__image')!);
     expect(document.querySelector('.food-item-image--placeholder')).toHaveTextContent('P');
     const details = screen.getByRole('button', { name: 'Ver detalles' });
     await user.click(details);
-    expect(screen.getByRole('dialog', { name: 'Tortilla' })).toHaveTextContent('Una tortilla recién hecha');
+    expect(screen.getByRole('dialog', { name: 'Tortilla' })).toHaveTextContent(
+      'Una tortilla recién hecha',
+    );
     expect(screen.getByRole('button', { name: 'Cerrar detalles' })).toHaveFocus();
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -83,7 +118,9 @@ describe('successful order recovery', () => {
     await user.type(screen.getByPlaceholderText(/Cómo te reconocerá/), 'Ana');
     await user.click(screen.getByRole('button', { name: 'Enviar pedido' }));
 
-    expect(await screen.findByText(/El pedido se ha guardado, pero no pudimos cargar la confirmación/)).toBeVisible();
+    expect(
+      await screen.findByText(/El pedido se ha guardado, pero no pudimos cargar la confirmación/),
+    ).toBeVisible();
     expect(apiMocks.submitOrder).toHaveBeenCalledTimes(1);
     expect(localStorage.getItem('food:last-order')).toContain('order-1');
 
@@ -101,7 +138,15 @@ describe('successful order recovery', () => {
       totalCents: 1500,
       items: [
         confirmedOrder.items[0],
-        { id: 'line-2', menuItemId: 'dish-gone', name: 'Croquetas', unitPriceCents: 400, quantity: 2, note: '', lineTotalCents: 800 },
+        {
+          id: 'line-2',
+          menuItemId: 'dish-gone',
+          name: 'Croquetas',
+          unitPriceCents: 400,
+          quantity: 2,
+          note: '',
+          lineTotalCents: 800,
+        },
       ],
     });
     renderOrder();
@@ -120,7 +165,9 @@ describe('successful order recovery', () => {
   it('keeps the committed credential in memory when local storage fails', async () => {
     const user = userEvent.setup();
     apiMocks.getOrder.mockResolvedValue(confirmedOrder);
-    const storageFailure = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+    const storageFailure = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
     renderOrder();
     await screen.findByRole('heading', { name: 'La Cocina' });
     await user.click(screen.getByRole('button', { name: /Añadir una unidad de Tortilla/ }));
@@ -147,7 +194,11 @@ describe('order route loader', () => {
     saveCredential({ cycleId: 'cycle-1', orderId: 'order-1', token: 'token-1' });
     apiMocks.getActiveMenu.mockResolvedValue(menu);
     apiMocks.getOrder.mockResolvedValue(confirmedOrder);
-    await expect(loader()).resolves.toEqual({ menu, credential: { cycleId: 'cycle-1', orderId: 'order-1', token: 'token-1' }, order: confirmedOrder });
+    await expect(loader()).resolves.toEqual({
+      menu,
+      credential: { cycleId: 'cycle-1', orderId: 'order-1', token: 'token-1' },
+      order: confirmedOrder,
+    });
   });
 
   it('forgets a missing order without failing the menu route', async () => {

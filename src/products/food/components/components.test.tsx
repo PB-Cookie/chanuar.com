@@ -5,21 +5,38 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import FoodHeader from './FoodHeader';
 import { aggregateItems, cycleAmounts, parseServiceFee } from '../model/admin';
-import { OpeningHours, OpeningHoursForm, formatOpeningPeriods, normalizeOpeningHours } from './OpeningHours';
+import {
+  OpeningHours,
+  OpeningHoursForm,
+  formatOpeningPeriods,
+  normalizeOpeningHours,
+} from './OpeningHours';
 
 afterEach(cleanup);
 
 describe('employee menu controls', () => {
   it('marks nested food navigation with React Router', () => {
-    render(<MemoryRouter initialEntries={['/food/options']}><FoodHeader /></MemoryRouter>);
-    expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute('aria-current', 'page');
+    render(
+      <MemoryRouter initialEntries={['/food/options']}>
+        <FoodHeader />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('link', { name: 'Restaurantes' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
-
 });
 
 describe('restaurant opening hours', () => {
   const openingHours = [
-    { day: 1, periods: [{ open: '12:00', close: '16:00' }, { open: '19:00', close: '23:30' }] },
+    {
+      day: 1,
+      periods: [
+        { open: '12:00', close: '16:00' },
+        { open: '19:00', close: '23:30' },
+      ],
+    },
     { day: 2, periods: [{ open: '12:00', close: '23:30' }] },
   ];
 
@@ -40,7 +57,9 @@ describe('restaurant opening hours', () => {
   it('lets an administrator enable a day and save structured hours', async () => {
     const user = userEvent.setup();
     const onSave = vi.fn();
-    render(<OpeningHoursForm restaurant={{ id: 'restaurant-1', openingHours: [] }} onSave={onSave} />);
+    render(
+      <OpeningHoursForm restaurant={{ id: 'restaurant-1', openingHours: [] }} onSave={onSave} />,
+    );
     await user.click(screen.getByRole('checkbox', { name: 'Lunes' }));
     await user.click(screen.getByRole('button', { name: 'Guardar horario' }));
     expect(onSave).toHaveBeenCalledWith('restaurant-1', [
@@ -52,10 +71,48 @@ describe('restaurant opening hours', () => {
 describe('administrator item grouping', () => {
   it('aggregates quantities, totals, and attributed notes', () => {
     const result = aggregateItems([
-      { id: '1', displayName: 'Ana', note: '', createdAt: '', updatedAt: '', totalCents: 800, items: [{ id: '1', menuItemId: 'a', name: 'Croquetas', quantity: 2, unitPriceCents: 400, currency: 'EUR', note: 'Sin salsa' }] },
-      { id: '2', displayName: 'Luis', note: '', createdAt: '', updatedAt: '', totalCents: 400, items: [{ id: '2', menuItemId: 'a', name: 'Croquetas', quantity: 1, unitPriceCents: 400, currency: 'EUR', note: '' }] },
+      {
+        id: '1',
+        displayName: 'Ana',
+        note: '',
+        createdAt: '',
+        updatedAt: '',
+        totalCents: 800,
+        items: [
+          {
+            id: '1',
+            menuItemId: 'a',
+            name: 'Croquetas',
+            quantity: 2,
+            unitPriceCents: 400,
+            currency: 'EUR',
+            note: 'Sin salsa',
+          },
+        ],
+      },
+      {
+        id: '2',
+        displayName: 'Luis',
+        note: '',
+        createdAt: '',
+        updatedAt: '',
+        totalCents: 400,
+        items: [
+          {
+            id: '2',
+            menuItemId: 'a',
+            name: 'Croquetas',
+            quantity: 1,
+            unitPriceCents: 400,
+            currency: 'EUR',
+            note: '',
+          },
+        ],
+      },
     ]);
-    expect(result).toEqual([{ name: 'Croquetas', quantity: 3, totalCents: 1200, notes: ['Ana: Sin salsa'] }]);
+    expect(result).toEqual([
+      { name: 'Croquetas', quantity: 3, totalCents: 1200, notes: ['Ana: Sin salsa'] },
+    ]);
   });
 
   it('parses service fees as integer cents and rejects malformed amounts', () => {
@@ -66,12 +123,30 @@ describe('administrator item grouping', () => {
   });
 
   it('keeps service fees separate from order subtotals', () => {
-    expect(cycleAmounts({
-      id: 'cycle-1', status: 'open', openedAt: '', closedAt: null,
-      restaurant: { id: 'restaurant-1', name: 'PSM', description: '', imageUrl: null, sourceUrl: null, availableItems: 0, openingHours: [] },
-      subtotalCents: 1200, serviceFeeCents: 250, totalCents: 1450, orders: [],
-    })).toEqual({
-      subtotal: 1200, fee: 250, total: 1450,
+    expect(
+      cycleAmounts({
+        id: 'cycle-1',
+        status: 'open',
+        openedAt: '',
+        closedAt: null,
+        restaurant: {
+          id: 'restaurant-1',
+          name: 'PSM',
+          description: '',
+          imageUrl: null,
+          sourceUrl: null,
+          availableItems: 0,
+          openingHours: [],
+        },
+        subtotalCents: 1200,
+        serviceFeeCents: 250,
+        totalCents: 1450,
+        orders: [],
+      }),
+    ).toEqual({
+      subtotal: 1200,
+      fee: 250,
+      total: 1450,
     });
   });
 });

@@ -31,7 +31,10 @@ vi.mock('../products/food/api/foodApi', async (importOriginal) => {
 });
 import { Component as OrderRoute, loader as orderLoader } from '../products/food/routes/OrderRoute';
 import { Component as AdminRoute, loader as adminLoader } from '../products/food/routes/AdminRoute';
-import { Component as OptionsRoute, loader as optionsLoader } from '../products/food/routes/OptionsRoute';
+import {
+  Component as OptionsRoute,
+  loader as optionsLoader,
+} from '../products/food/routes/OptionsRoute';
 
 function renderRoute(Component: React.ComponentType, loader: () => Promise<unknown>, path: string) {
   const router = createMemoryRouter([{ path, Component, loader }], { initialEntries: [path] });
@@ -39,23 +42,32 @@ function renderRoute(Component: React.ComponentType, loader: () => Promise<unkno
 }
 
 function PageEnvironmentHarness() {
-  const router = createMemoryRouter([{
-    Component: RouteEnvironment,
-    children: [{ path: '/food', handle: { page: 'food' }, element: <div>ready</div> }],
-  }], { initialEntries: ['/food'] });
+  const router = createMemoryRouter(
+    [
+      {
+        Component: RouteEnvironment,
+        children: [{ path: '/food', handle: { page: 'food' }, element: <div>ready</div> }],
+      },
+    ],
+    { initialEntries: ['/food'] },
+  );
   return <RouterProvider router={router} />;
 }
 
 describe('food route integration without configured Supabase', () => {
   afterEach(() => {
     cleanup();
-    document.head.querySelectorAll('link[rel="preload"][as="font"]').forEach((node) => node.remove());
+    document.head
+      .querySelectorAll('link[rel="preload"][as="font"]')
+      .forEach((node) => node.remove());
     localStorage.clear();
   });
 
   it('shows the friendly no-active-week state', async () => {
     renderRoute(OrderRoute, orderLoader, '/food');
-    expect(await screen.findByRole('heading', { name: /No hay ningún pedido abierto/ })).toBeVisible();
+    expect(
+      await screen.findByRole('heading', { name: /No hay ningún pedido abierto/ }),
+    ).toBeVisible();
     expect(screen.getByText(/Falta conectar el proyecto de Supabase/)).toBeVisible();
   });
 
@@ -80,14 +92,22 @@ describe('food route integration without configured Supabase', () => {
 
   it('loads restaurant options and an unauthenticated admin session at route boundaries', async () => {
     await expect(optionsLoader()).resolves.toHaveLength(1);
-    await expect(adminLoader()).resolves.toMatchObject({ session: null, catalog: [], current: null, history: [] });
+    await expect(adminLoader()).resolves.toMatchObject({
+      session: null,
+      catalog: [],
+      current: null,
+      history: [],
+    });
   });
 
   it('applies food metadata and never preloads League fonts on food pages', async () => {
     render(<PageEnvironmentHarness />);
     await waitFor(() => expect(document.body).toHaveClass('food-page'));
     expect(document.title).toBe('Mesa abierta — El pedido de la semana');
-    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', '#f7f1e7');
+    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute(
+      'content',
+      '#f7f1e7',
+    );
     expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
   });
 });

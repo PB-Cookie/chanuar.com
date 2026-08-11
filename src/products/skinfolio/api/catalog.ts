@@ -2,8 +2,15 @@ import type { Catalog } from '../model/types';
 
 type RawChampion = { id: number; name: string };
 type RawSkin = {
-  id: number; name: string; rarity?: string; isBase?: boolean; isLegacy?: boolean;
-  loadScreenPath?: string; tilePath?: string; splashPath?: string; uncenteredSplashPath?: string;
+  id: number;
+  name: string;
+  rarity?: string;
+  isBase?: boolean;
+  isLegacy?: boolean;
+  loadScreenPath?: string;
+  tilePath?: string;
+  splashPath?: string;
+  uncenteredSplashPath?: string;
   chromas?: Array<{ id: number; name?: string; colors?: string[]; chromaPath?: string }>;
 };
 type RawWard = { id: number; name: string; wardImagePath: string };
@@ -31,13 +38,13 @@ export function championIconUrl(id: number | null | undefined) {
 }
 
 export const RARITIES = {
-  kNoRarity:     { label: 'Estándar',      color: 'var(--r-standard)' },
-  kEpic:         { label: 'Épica',         color: 'var(--r-epic)' },
-  kLegendary:    { label: 'Legendaria',    color: 'var(--r-legendary)' },
-  kMythic:       { label: 'Mítica',        color: 'var(--r-mythic)' },
-  kUltimate:     { label: 'Definitiva',    color: 'var(--r-ultimate)' },
-  kExalted:      { label: 'Exaltada',      color: 'var(--r-exalted)' },
-  kTranscendent: { label: 'Trascendente',  color: 'var(--r-transcendent)' },
+  kNoRarity: { label: 'Estándar', color: 'var(--r-standard)' },
+  kEpic: { label: 'Épica', color: 'var(--r-epic)' },
+  kLegendary: { label: 'Legendaria', color: 'var(--r-legendary)' },
+  kMythic: { label: 'Mítica', color: 'var(--r-mythic)' },
+  kUltimate: { label: 'Definitiva', color: 'var(--r-ultimate)' },
+  kExalted: { label: 'Exaltada', color: 'var(--r-exalted)' },
+  kTranscendent: { label: 'Trascendente', color: 'var(--r-transcendent)' },
 };
 
 export function rarityInfo(key: string) {
@@ -53,10 +60,11 @@ export async function fetchCatalog(): Promise<Catalog> {
     fetch(`${BASE}/v1/skins.json`),
     fetch(`${BASE}/v1/champion-summary.json`),
   ]);
-  if (!skinsRes.ok || !champsRes.ok) throw new Error('No se pudo descargar el catálogo de Community Dragon');
+  if (!skinsRes.ok || !champsRes.ok)
+    throw new Error('No se pudo descargar el catálogo de Community Dragon');
 
-  const skinsRaw = await skinsRes.json() as Record<string, RawSkin>;   // objeto { [skinId]: skin }
-  const champsRaw = await champsRes.json() as RawChampion[]; // array [{ id, name, alias }]
+  const skinsRaw = (await skinsRes.json()) as Record<string, RawSkin>; // objeto { [skinId]: skin }
+  const champsRaw = (await champsRes.json()) as RawChampion[]; // array [{ id, name, alias }]
 
   const champions = champsRaw
     .filter((c) => c.id > 0)
@@ -65,7 +73,7 @@ export async function fetchCatalog(): Promise<Catalog> {
 
   const skinsByChampion: Catalog['skinsByChampion'] = new Map(champions.map((c) => [c.id, []]));
   const skinById: Catalog['skinById'] = new Map();
-  const chromaById: Catalog['chromaById'] = new Map();      // chromaId → { skin, chroma } (línea temporal, modal)
+  const chromaById: Catalog['chromaById'] = new Map(); // chromaId → { skin, chroma } (línea temporal, modal)
   const championById = new Map(champions.map((c) => [c.id, c]));
 
   for (const raw of Object.values(skinsRaw)) {
@@ -82,7 +90,10 @@ export async function fetchCatalog(): Promise<Catalog> {
       chromaTotal: raw.chromas?.length ?? 0,
       chromas: (raw.chromas ?? []).map((c) => ({
         id: c.id,
-        name: (c.name ?? '').replace(raw.name, '').replace(/[()]/g, '').trim() || c.name || `Chroma ${c.id}`,
+        name:
+          (c.name ?? '').replace(raw.name, '').replace(/[()]/g, '').trim() ||
+          c.name ||
+          `Chroma ${c.id}`,
         colors: c.colors?.length ? c.colors : ['#5b5a56', '#5b5a56'],
         image: c.chromaPath || null,
       })),
@@ -93,7 +104,14 @@ export async function fetchCatalog(): Promise<Catalog> {
   }
   for (const list of skinsByChampion.values()) list.sort((a, b) => a.id - b.id);
 
-  return { champions, championById, skinsByChampion, skinById, chromaById, totals: { skins: skinById.size } };
+  return {
+    champions,
+    championById,
+    skinsByChampion,
+    skinById,
+    chromaById,
+    totals: { skins: skinById.size },
+  };
 }
 
 /**
@@ -107,17 +125,30 @@ let cosmeticsCatalogPromise: Promise<{
 }> | null = null;
 export function fetchCosmeticsCatalog() {
   cosmeticsCatalogPromise ??= (async () => {
-    const get = <T,>(f: string): Promise<T[]> => fetch(`${BASE}/v1/${f}.json`).then((r) => {
-      if (!r.ok) throw new Error(`No se pudo descargar ${f}`);
-      return r.json() as Promise<T[]>;
-    });
+    const get = <T>(f: string): Promise<T[]> =>
+      fetch(`${BASE}/v1/${f}.json`).then((r) => {
+        if (!r.ok) throw new Error(`No se pudo descargar ${f}`);
+        return r.json() as Promise<T[]>;
+      });
     const [wards, emotes, icons] = await Promise.all([
-      get<RawWard>('ward-skins'), get<RawEmote>('summoner-emotes'), get<RawIcon>('summoner-icons'),
+      get<RawWard>('ward-skins'),
+      get<RawEmote>('summoner-emotes'),
+      get<RawIcon>('summoner-icons'),
     ]);
     return {
       wards: new Map(wards.map((w) => [w.id, { id: w.id, name: w.name, image: w.wardImagePath }])),
-      emotes: new Map(emotes.map((e) => [e.id, { id: e.id, name: e.name || `Emote ${e.id}`, image: e.inventoryIcon }])),
-      icons: new Map(icons.map((i) => [i.id, { id: i.id, name: i.title || `Icono ${i.id}`, image: i.imagePath }])),
+      emotes: new Map(
+        emotes.map((e) => [
+          e.id,
+          { id: e.id, name: e.name || `Emote ${e.id}`, image: e.inventoryIcon },
+        ]),
+      ),
+      icons: new Map(
+        icons.map((i) => [
+          i.id,
+          { id: i.id, name: i.title || `Icono ${i.id}`, image: i.imagePath },
+        ]),
+      ),
     };
   })();
   return cosmeticsCatalogPromise;

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { cartToPayload, cartTotal, formatEuros, normalizeSearch, orderToCart, unavailableOrderItems, validateOrder } from './order';
+import {
+  cartToPayload,
+  cartTotal,
+  formatEuros,
+  normalizeSearch,
+  orderToCart,
+  unavailableOrderItems,
+  validateOrder,
+} from './order';
 
 describe('food order utilities', () => {
   it('formats integer cents as Spanish euros', () => {
@@ -18,8 +26,12 @@ describe('food order utilities', () => {
   it('validates the required name, item, quantities, and bounded notes', () => {
     expect(validateOrder({ displayName: '', orderNote: '', cart: {} })).toMatch(/nombre/);
     expect(validateOrder({ displayName: 'Ana', orderNote: '', cart: {} })).toMatch(/plato/);
-    expect(validateOrder({ displayName: 'Ana', orderNote: '', cart: { a: { quantity: 21, note: '' } } })).toMatch(/entre 1 y 20/);
-    expect(validateOrder({ displayName: 'Ana', orderNote: '', cart: { a: { quantity: 1, note: '' } } })).toBeNull();
+    expect(
+      validateOrder({ displayName: 'Ana', orderNote: '', cart: { a: { quantity: 21, note: '' } } }),
+    ).toMatch(/entre 1 y 20/);
+    expect(
+      validateOrder({ displayName: 'Ana', orderNote: '', cart: { a: { quantity: 1, note: '' } } }),
+    ).toBeNull();
   });
 
   it('round-trips order items into a replacement payload', () => {
@@ -28,10 +40,12 @@ describe('food order utilities', () => {
   });
 
   it('removes unavailable items from a resumed editable cart', () => {
-    const order = { items: [
-      { menuItemId: 'available', name: 'Tortilla', quantity: 1, note: '' },
-      { menuItemId: 'gone', name: 'Croquetas', quantity: 2, note: '' },
-    ] };
+    const order = {
+      items: [
+        { menuItemId: 'available', name: 'Tortilla', quantity: 1, note: '' },
+        { menuItemId: 'gone', name: 'Croquetas', quantity: 2, note: '' },
+      ],
+    };
     const menu = [{ id: 'available' }];
     expect(orderToCart(order, menu)).toEqual({ available: { quantity: 1, note: '' } });
     expect(unavailableOrderItems(order, menu).map((item) => item.name)).toEqual(['Croquetas']);

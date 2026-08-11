@@ -4,14 +4,30 @@ import { useLoaderData, useRevalidator, useRouteError } from 'react-router';
 import { fetchCatalog, assetUrl } from '../api/catalog';
 import { fetchOwnership, ownershipFromExport, dbConfigured } from '../api/ownership';
 import {
-  Header, StatsVault, Controls, ChampionSection, ChromaSection,
+  Header,
+  StatsVault,
+  Controls,
+  ChampionSection,
+  ChromaSection,
 } from '../components/CollectionParts';
 import { ActivitySection } from '../components/ActivitySection';
 import { CosmeticsSection } from '../components/CosmeticsSection';
 import { OffersSection } from '../components/OffersSection';
 import { SkinModal } from '../components/SkinModal';
-import { buildChromaSections, buildSkinSections, chromaTotal, rarityTotals } from '../model/collection';
-import type { Catalog, CollectionMode, CollectionSort, CollectionView, Ownership, Skin } from '../model/types';
+import {
+  buildChromaSections,
+  buildSkinSections,
+  chromaTotal,
+  rarityTotals,
+} from '../model/collection';
+import type {
+  Catalog,
+  CollectionMode,
+  CollectionSort,
+  CollectionView,
+  Ownership,
+  Skin,
+} from '../model/types';
 import '../skinfolio.css';
 
 type SkinfolioRouteData = { catalog: Catalog; ownership: Ownership | null; warning: string | null };
@@ -23,8 +39,15 @@ export async function loader(): Promise<SkinfolioRouteData> {
   ]);
   if (catalogResult.status === 'rejected') throw catalogResult.reason;
   if (ownershipResult.status === 'rejected') {
-    const message = ownershipResult.reason instanceof Error ? ownershipResult.reason.message : 'Error desconocido';
-    return { catalog: catalogResult.value, ownership: null, warning: `No se pudo leer tu colección de Supabase (${message}). Puedes importar el JSON del collector.` };
+    const message =
+      ownershipResult.reason instanceof Error
+        ? ownershipResult.reason.message
+        : 'Error desconocido';
+    return {
+      catalog: catalogResult.value,
+      ownership: null,
+      warning: `No se pudo leer tu colección de Supabase (${message}). Puedes importar el JSON del collector.`,
+    };
   }
   return { catalog: catalogResult.value, ...ownershipResult.value };
 }
@@ -75,7 +98,8 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
   function importFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    file.text()
+    file
+      .text()
       .then((text) => {
         setOwnership(ownershipFromExport(JSON.parse(text)));
         setWarn(null);
@@ -91,16 +115,33 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
       else next.add(key);
       return next;
     });
-  const toggleFlag = (key: 'legacy' | 'withChromas') => setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleFlag = (key: 'legacy' | 'withChromas') =>
+    setFlags((prev) => ({ ...prev, [key]: !prev[key] }));
 
   // Totales por rareza para la estantería de gemas
   const byRarity = useMemo(() => rarityTotals(catalog, ownership), [catalog, ownership]);
 
   const chromasTotal = useMemo(() => chromaTotal(catalog), [catalog]);
 
-  const filters = useMemo(() => ({ query: deferredQuery, view, sort, rarities, legacy: flags.legacy, withChromas: flags.withChromas }), [deferredQuery, view, sort, rarities, flags]);
-  const skinSections = useMemo(() => mode === 'skins' ? buildSkinSections(catalog, ownership, filters) : [], [catalog, ownership, mode, filters]);
-  const chromaSections = useMemo(() => mode === 'chromas' ? buildChromaSections(catalog, ownership, filters) : [], [catalog, ownership, mode, filters]);
+  const filters = useMemo(
+    () => ({
+      query: deferredQuery,
+      view,
+      sort,
+      rarities,
+      legacy: flags.legacy,
+      withChromas: flags.withChromas,
+    }),
+    [deferredQuery, view, sort, rarities, flags],
+  );
+  const skinSections = useMemo(
+    () => (mode === 'skins' ? buildSkinSections(catalog, ownership, filters) : []),
+    [catalog, ownership, mode, filters],
+  );
+  const chromaSections = useMemo(
+    () => (mode === 'chromas' ? buildChromaSections(catalog, ownership, filters) : []),
+    [catalog, ownership, mode, filters],
+  );
 
   const isCollection = mode === 'skins' || mode === 'chromas';
   const sections = mode === 'skins' ? skinSections : chromaSections;
@@ -144,12 +185,18 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
       />
 
       <Controls
-        mode={mode} onMode={setMode}
-        query={query} onQuery={setQuery}
-        view={view} onView={setView}
-        sort={sort} onSort={setSort}
-        rarities={rarities} onToggleRarity={toggleRarity}
-        flags={flags} onToggleFlag={toggleFlag}
+        mode={mode}
+        onMode={setMode}
+        query={query}
+        onQuery={setQuery}
+        view={view}
+        onView={setView}
+        sort={sort}
+        onSort={setSort}
+        rarities={rarities}
+        onToggleRarity={toggleRarity}
+        flags={flags}
+        onToggleFlag={toggleFlag}
         offersCount={ownership.offers.length}
       />
 
@@ -243,5 +290,14 @@ export function Component() {
 export function ErrorBoundary() {
   const error = useRouteError() as Error;
   const revalidator = useRevalidator();
-  return <main className="app"><div className="notice" role="alert"><strong>Algo ha fallado:</strong> {error.message}. <button type="button" onClick={() => revalidator.revalidate()}>Reintentar</button></div></main>;
+  return (
+    <main className="app">
+      <div className="notice" role="alert">
+        <strong>Algo ha fallado:</strong> {error.message}.{' '}
+        <button type="button" onClick={() => revalidator.revalidate()}>
+          Reintentar
+        </button>
+      </div>
+    </main>
+  );
 }

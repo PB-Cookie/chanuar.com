@@ -23,7 +23,10 @@ export function readLastCredential(storage: Storage = window.localStorage): Cred
   }
 }
 
-export function forgetCredential(credential: Credential | null, storage: Storage = window.localStorage) {
+export function forgetCredential(
+  credential: Credential | null,
+  storage: Storage = window.localStorage,
+) {
   if (!credential) return;
   storage.removeItem(credentialKey(credential.cycleId, credential.orderId));
   const current = readLastCredential(storage);

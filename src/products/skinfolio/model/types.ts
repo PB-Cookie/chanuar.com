@@ -22,7 +22,11 @@ export type Catalog = {
 
 export type Profile = { gameName: string; tagLine: string; level: number; profileIconId: number };
 export type Flair = { honorLevel: number | string; challengeLevel?: string | null };
-export type Loot = { skinShards?: unknown[]; skinPermanents?: unknown[]; chests?: { count: number }[] };
+export type Loot = {
+  skinShards?: unknown[];
+  skinPermanents?: unknown[];
+  chests?: { count: number }[];
+};
 export type Wallet = { RP: number; blueEssence: number };
 export type Offer = {
   skinId: number | null;
@@ -71,4 +75,9 @@ export type CollectionMode = 'skins' | 'chromas' | 'ofertas' | 'otros' | 'activi
 export type CollectionView = 'all' | 'owned' | 'missing';
 export type CollectionSort = 'mastery' | 'completion' | 'alpha';
 export type SkinSection = { champ: Champion; skins: Skin[]; ownedCount: number; total: number };
-export type ChromaSection = { champ: Champion; entries: { skin: Skin; chromas: Chroma[] }[]; ownedCount: number; total: number };
+export type ChromaSection = {
+  champ: Champion;
+  entries: { skin: Skin; chromas: Chroma[] }[];
+  ownedCount: number;
+  total: number;
+};

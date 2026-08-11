@@ -1,7 +1,14 @@
 import { useEffect, useEffectEvent, useMemo, useReducer, useRef, useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import { useLoaderData } from 'react-router';
-import { FoodApiError, foodConfigured, getActiveMenu, getOrder, submitOrder, updateOrder } from '../api/foodApi';
+import {
+  FoodApiError,
+  foodConfigured,
+  getActiveMenu,
+  getOrder,
+  submitOrder,
+  updateOrder,
+} from '../api/foodApi';
 import FoodHeader from '../components/FoodHeader';
 import { OpeningHours } from '../components/OpeningHours';
 import { forgetCredential, readLastCredential, saveCredential } from '../model/storage';
@@ -18,12 +25,21 @@ import {
   validateOrder,
 } from '../model/order';
 import { initialOrderWorkflow, orderWorkflowReducer } from '../model/orderState';
-import type { Cart, CartEntry, Credential, FoodOrder, MenuItem, OrderRouteData, Restaurant } from '../model/types';
+import type {
+  Cart,
+  CartEntry,
+  Credential,
+  FoodOrder,
+  MenuItem,
+  OrderRouteData,
+  Restaurant,
+} from '../model/types';
 
 export async function loader(): Promise<OrderRouteData> {
   const menu = await getActiveMenu();
   const credential = readLastCredential();
-  if (!credential || (menu && credential.cycleId !== menu.cycle.id)) return { menu, credential: null, order: null };
+  if (!credential || (menu && credential.cycleId !== menu.cycle.id))
+    return { menu, credential: null, order: null };
   try {
     return { menu, credential, order: await getOrder(credential.orderId, credential.token) };
   } catch (error) {
@@ -38,12 +54,16 @@ export async function loader(): Promise<OrderRouteData> {
 function EmptyWeek({ configured = true }: { configured?: boolean }) {
   return (
     <main id="main-content" className="food-state food-state--centered" tabIndex={-1}>
-      <div className="food-state__symbol" aria-hidden="true">☼</div>
+      <div className="food-state__symbol" aria-hidden="true">
+        ☼
+      </div>
       <p className="food-kicker">Esta semana</p>
       <h1>No hay ningún pedido abierto</h1>
-      <p>{configured
-        ? 'Cuando el equipo elija restaurante, aquí aparecerá el menú para hacer tu pedido.'
-        : 'La aplicación está lista. Falta conectar el proyecto de Supabase para empezar a recibir pedidos.'}</p>
+      <p>
+        {configured
+          ? 'Cuando el equipo elija restaurante, aquí aparecerá el menú para hacer tu pedido.'
+          : 'La aplicación está lista. Falta conectar el proyecto de Supabase para empezar a recibir pedidos.'}
+      </p>
     </main>
   );
 }
@@ -68,7 +88,13 @@ function MenuItemImage({ item, className }: { item: MenuItem; className: string 
   );
 }
 
-function MenuItemCard({ item, entry, onQuantity, onNote, onOpen }: {
+function MenuItemCard({
+  item,
+  entry,
+  onQuantity,
+  onNote,
+  onOpen,
+}: {
   item: MenuItem;
   entry?: CartEntry;
   onQuantity: (itemId: string, quantity: number) => void;
@@ -77,12 +103,11 @@ function MenuItemCard({ item, entry, onQuantity, onNote, onOpen }: {
 }) {
   const quantity = entry?.quantity ?? 0;
   return (
-    <article className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`} aria-labelledby={`food-menu-item-${item.id}`}>
-      <div
-        className="food-menu-card__image-button"
-        onClick={() => onOpen(item)}
-        aria-hidden="true"
-      >
+    <article
+      className={`food-menu-card${quantity ? ' food-menu-card--selected' : ''}`}
+      aria-labelledby={`food-menu-item-${item.id}`}
+    >
+      <div className="food-menu-card__image-button" onClick={() => onOpen(item)} aria-hidden="true">
         <MenuItemImage item={item} className="food-menu-card__image" />
       </div>
       <div className="food-menu-card__body">
@@ -92,17 +117,39 @@ function MenuItemCard({ item, entry, onQuantity, onNote, onOpen }: {
           <strong>{formatEuros(item.priceCents, item.currency)}</strong>
         </div>
         {item.description && <p className="food-menu-card__description">{item.description}</p>}
-        <button className="food-menu-card__details" type="button" onClick={(event) => onOpen(item, event)}>
+        <button
+          className="food-menu-card__details"
+          type="button"
+          onClick={(event) => onOpen(item, event)}
+        >
           Ver detalles
         </button>
         <div className="food-quantity" role="group" aria-label={`Cantidad de ${item.name}`}>
-          <button type="button" onClick={() => onQuantity(item.id, quantity - 1)} disabled={!quantity} aria-label={`Quitar una unidad de ${item.name}`}>−</button>
-          <span className="food-quantity__value" aria-label={`${quantity} unidades`}>{quantity}</span>
-          <button type="button" onClick={() => onQuantity(item.id, quantity + 1)} disabled={quantity >= MAX_QUANTITY} aria-label={`Añadir una unidad de ${item.name}`}>+</button>
+          <button
+            type="button"
+            onClick={() => onQuantity(item.id, quantity - 1)}
+            disabled={!quantity}
+            aria-label={`Quitar una unidad de ${item.name}`}
+          >
+            −
+          </button>
+          <span className="food-quantity__value" aria-label={`${quantity} unidades`}>
+            {quantity}
+          </span>
+          <button
+            type="button"
+            onClick={() => onQuantity(item.id, quantity + 1)}
+            disabled={quantity >= MAX_QUANTITY}
+            aria-label={`Añadir una unidad de ${item.name}`}
+          >
+            +
+          </button>
         </div>
         {quantity > 0 && (
           <label className="food-field food-field--item-note">
-            <span>Nota para este plato <small>{entry?.note.length ?? 0}/240</small></span>
+            <span>
+              Nota para este plato <small>{entry?.note.length ?? 0}/240</small>
+            </span>
             <input
               value={entry?.note ?? ''}
               maxLength={240}
@@ -116,7 +163,12 @@ function MenuItemCard({ item, entry, onQuantity, onNote, onOpen }: {
   );
 }
 
-function ItemDetailModal({ item, entry, onQuantity, onClose }: {
+function ItemDetailModal({
+  item,
+  entry,
+  onQuantity,
+  onClose,
+}: {
   item: MenuItem;
   entry?: CartEntry;
   onQuantity: (itemId: string, quantity: number) => void;
@@ -139,7 +191,11 @@ function ItemDetailModal({ item, entry, onQuantity, onClose }: {
       }
       if (event.key !== 'Tab') return;
 
-      const focusable = [...(panelRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])') ?? [])];
+      const focusable = [
+        ...(panelRef.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+        ) ?? []),
+      ];
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -185,16 +241,34 @@ function ItemDetailModal({ item, entry, onQuantity, onClose }: {
         <div className="food-item-modal__content">
           <p className="food-menu-card__category">{item.category}</p>
           <h2 id={`food-item-title-${item.id}`}>{item.name}</h2>
-          <strong className="food-item-modal__price">{formatEuros(item.priceCents, item.currency)}</strong>
+          <strong className="food-item-modal__price">
+            {formatEuros(item.priceCents, item.currency)}
+          </strong>
           <p id={`food-item-description-${item.id}`} className="food-item-modal__description">
             {item.description || 'Este plato no tiene descripción disponible.'}
           </p>
           <div className="food-item-modal__actions">
             <span>{quantity ? `${quantity} en tu pedido` : 'Añádelo a tu pedido'}</span>
             <div className="food-quantity" role="group" aria-label={`Cantidad de ${item.name}`}>
-              <button type="button" onClick={() => onQuantity(item.id, quantity - 1)} disabled={!quantity} aria-label={`Quitar una unidad de ${item.name}`}>−</button>
-              <span className="food-quantity__value" aria-label={`${quantity} unidades`}>{quantity}</span>
-              <button type="button" onClick={() => onQuantity(item.id, quantity + 1)} disabled={quantity >= MAX_QUANTITY} aria-label={`Añadir una unidad de ${item.name}`}>+</button>
+              <button
+                type="button"
+                onClick={() => onQuantity(item.id, quantity - 1)}
+                disabled={!quantity}
+                aria-label={`Quitar una unidad de ${item.name}`}
+              >
+                −
+              </button>
+              <span className="food-quantity__value" aria-label={`${quantity} unidades`}>
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => onQuantity(item.id, quantity + 1)}
+                disabled={quantity >= MAX_QUANTITY}
+                aria-label={`Añadir una unidad de ${item.name}`}
+              >
+                +
+              </button>
             </div>
           </div>
         </div>
@@ -203,7 +277,14 @@ function ItemDetailModal({ item, entry, onQuantity, onClose }: {
   );
 }
 
-function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warning = '' }: {
+function OrderConfirmation({
+  order,
+  restaurant,
+  editable,
+  onEdit,
+  onForget,
+  warning = '',
+}: {
   order: FoodOrder;
   restaurant: Restaurant | null;
   editable: boolean;
@@ -213,7 +294,9 @@ function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warn
 }) {
   return (
     <main id="main-content" className="food-confirmation" tabIndex={-1}>
-      <div className="food-confirmation__status" aria-hidden="true">✓</div>
+      <div className="food-confirmation__status" aria-hidden="true">
+        ✓
+      </div>
       <p className="food-kicker">Pedido guardado</p>
       <h1>Todo listo, {order.displayName}</h1>
       <p className="food-confirmation__lead">
@@ -228,19 +311,45 @@ function OrderConfirmation({ order, restaurant, editable, onEdit, onForget, warn
         </div>
         {order.items.map((item) => (
           <div className="food-receipt__line" key={item.id ?? item.menuItemId}>
-            <span><strong>{item.quantity} ×</strong> {item.name}{item.note && <small>{item.note}</small>}</span>
-            <strong>{formatEuros(item.lineTotalCents ?? item.unitPriceCents * item.quantity)}</strong>
+            <span>
+              <strong>{item.quantity} ×</strong> {item.name}
+              {item.note && <small>{item.note}</small>}
+            </span>
+            <strong>
+              {formatEuros(item.lineTotalCents ?? item.unitPriceCents * item.quantity)}
+            </strong>
           </div>
         ))}
-        {order.note && <div className="food-receipt__note"><strong>Nota general</strong><p>{order.note}</p></div>}
-        <div className="food-receipt__total"><span>Total</span><strong>{formatEuros(order.totalCents)}</strong></div>
+        {order.note && (
+          <div className="food-receipt__note">
+            <strong>Nota general</strong>
+            <p>{order.note}</p>
+          </div>
+        )}
+        <div className="food-receipt__total">
+          <span>Total</span>
+          <strong>{formatEuros(order.totalCents)}</strong>
+        </div>
       </section>
       <div className="food-confirmation__actions">
-        {editable && <button className="food-button" type="button" onClick={onEdit}>Editar pedido</button>}
-        <button className="food-button food-button--quiet" type="button" onClick={onForget}>Olvidar en este dispositivo</button>
+        {editable && (
+          <button className="food-button" type="button" onClick={onEdit}>
+            Editar pedido
+          </button>
+        )}
+        <button className="food-button food-button--quiet" type="button" onClick={onForget}>
+          Olvidar en este dispositivo
+        </button>
       </div>
-      {warning && <div className="food-form-error" role="status">{warning}</div>}
-      <p className="food-help">Si olvidas el pedido, seguirá enviado pero no podrás recuperarlo ni editarlo desde este dispositivo.</p>
+      {warning && (
+        <div className="food-form-error" role="status">
+          {warning}
+        </div>
+      )}
+      <p className="food-help">
+        Si olvidas el pedido, seguirá enviado pero no podrás recuperarlo ni editarlo desde este
+        dispositivo.
+      </p>
     </main>
   );
 }
@@ -250,12 +359,18 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
   const { active, savedOrder, credential, editing } = workflow;
   const [displayName, setDisplayName] = useState(initialData.order?.displayName ?? '');
   const [orderNote, setOrderNote] = useState(initialData.order?.note ?? '');
-  const [cart, setCart] = useState<Cart>(() => orderToCart(initialData.order, initialData.menu?.menuItems ?? null));
+  const [cart, setCart] = useState<Cart>(() =>
+    orderToCart(initialData.order, initialData.menu?.menuItems ?? null),
+  );
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState('');
-  const [unavailableItems, setUnavailableItems] = useState(() => initialData.order && initialData.menu ? unavailableOrderItems(initialData.order, initialData.menu.menuItems) : []);
+  const [unavailableItems, setUnavailableItems] = useState(() =>
+    initialData.order && initialData.menu
+      ? unavailableOrderItems(initialData.order, initialData.menu.menuItems)
+      : [],
+  );
   const [deviceWarning, setDeviceWarning] = useState('');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const detailOpenerRef = useRef<HTMLElement | null>(null);
@@ -281,9 +396,10 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
 
   const visibleItems = useMemo(() => {
     const q = normalizeSearch(query.trim());
-    return (active?.menuItems ?? []).filter((item) =>
-      (category === 'Todos' || item.category === category)
-      && (!q || normalizeSearch(`${item.name} ${item.description} ${item.category}`).includes(q)),
+    return (active?.menuItems ?? []).filter(
+      (item) =>
+        (category === 'Todos' || item.category === category) &&
+        (!q || normalizeSearch(`${item.name} ${item.description} ${item.category}`).includes(q)),
     );
   }, [active, category, query]);
 
@@ -291,13 +407,20 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
     setCart((current) => {
       const next = { ...current };
       if (nextQuantity <= 0) delete next[itemId];
-      else next[itemId] = { quantity: Math.min(nextQuantity, MAX_QUANTITY), note: current[itemId]?.note ?? '' };
+      else
+        next[itemId] = {
+          quantity: Math.min(nextQuantity, MAX_QUANTITY),
+          note: current[itemId]?.note ?? '',
+        };
       return next;
     });
   }
 
   function setItemNote(itemId: string, note: string) {
-    setCart((current) => ({ ...current, [itemId]: { quantity: current[itemId]?.quantity ?? 1, note } }));
+    setCart((current) => ({
+      ...current,
+      [itemId]: { quantity: current[itemId]?.quantity ?? 1, note },
+    }));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -306,9 +429,12 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
     const validationMessage = validateOrder({ displayName, orderNote, cart });
     if (validationMessage) {
       setMessage(validationMessage);
-      const nextInvalidField = !displayName.trim() || displayName.trim().length > 80
-        ? 'displayName'
-        : orderNote.length > 500 ? 'orderNote' : 'cart';
+      const nextInvalidField =
+        !displayName.trim() || displayName.trim().length > 80
+          ? 'displayName'
+          : orderNote.length > 500
+            ? 'orderNote'
+            : 'cart';
       setInvalidField(nextInvalidField);
       window.requestAnimationFrame(() => {
         if (nextInvalidField === 'displayName') displayNameRef.current?.focus();
@@ -336,7 +462,9 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
           saveCredential(credential);
           setDeviceWarning('');
         } catch {
-          setDeviceWarning('El pedido está guardado, pero este navegador no permite conservar el acceso. Mantén esta pestaña abierta si necesitas editarlo.');
+          setDeviceWarning(
+            'El pedido está guardado, pero este navegador no permite conservar el acceso. Mantén esta pestaña abierta si necesitas editarlo.',
+          );
         }
       } else {
         const created = await submitOrder({
@@ -345,7 +473,11 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
           note: orderNote.trim(),
           items,
         });
-        nextCredential = { cycleId: active.cycle.id, orderId: created.orderId, token: created.token };
+        nextCredential = {
+          cycleId: active.cycle.id,
+          orderId: created.orderId,
+          token: created.token,
+        };
         // The server has committed at this point. Record that fact before any
         // fallible local-storage or confirmation request so a retry updates the
         // existing order instead of creating a duplicate.
@@ -354,16 +486,24 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
           saveCredential(nextCredential);
           setDeviceWarning('');
         } catch {
-          setDeviceWarning('El pedido está guardado, pero este navegador no permite conservar el acceso. Mantén esta pestaña abierta si necesitas editarlo.');
+          setDeviceWarning(
+            'El pedido está guardado, pero este navegador no permite conservar el acceso. Mantén esta pestaña abierta si necesitas editarlo.',
+          );
         }
         try {
           order = await getOrder(created.orderId, created.token);
         } catch {
-          setMessage('El pedido se ha guardado, pero no pudimos cargar la confirmación. Pulsa “Guardar cambios” para recuperarla sin crear otro pedido.');
+          setMessage(
+            'El pedido se ha guardado, pero no pudimos cargar la confirmación. Pulsa “Guardar cambios” para recuperarla sin crear otro pedido.',
+          );
           return;
         }
       }
-      if (!nextCredential) throw new FoodApiError('FOOD_INVALID_RESPONSE', 'No hemos podido recuperar el acceso al pedido.');
+      if (!nextCredential)
+        throw new FoodApiError(
+          'FOOD_INVALID_RESPONSE',
+          'No hemos podido recuperar el acceso al pedido.',
+        );
       dispatch({ type: 'saved', credential: nextCredential, order });
       setUnavailableItems([]);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -383,7 +523,12 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
   }
 
   function handleForget() {
-    if (!window.confirm('El pedido seguirá enviado, pero perderás el acceso para editarlo. ¿Quieres olvidarlo en este dispositivo?')) return;
+    if (
+      !window.confirm(
+        'El pedido seguirá enviado, pero perderás el acceso para editarlo. ¿Quieres olvidarlo en este dispositivo?',
+      )
+    )
+      return;
     forgetCredential(credential);
     setUnavailableItems([]);
     setDeviceWarning('');
@@ -393,7 +538,13 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
     dispatch({ type: 'forget' });
   }
 
-  if (!active) return <div className="food-shell"><FoodHeader /><EmptyWeek configured={foodConfigured} /></div>;
+  if (!active)
+    return (
+      <div className="food-shell">
+        <FoodHeader />
+        <EmptyWeek configured={foodConfigured} />
+      </div>
+    );
   if (savedOrder && !editing) {
     return (
       <div className="food-shell">
@@ -406,7 +557,9 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
             dispatch({ type: 'edit' });
             if (unavailableItems.length) {
               const names = unavailableItems.map((item) => item.name).join(', ');
-              setMessage(`${names} ya no ${unavailableItems.length === 1 ? 'está disponible y se quitará' : 'están disponibles y se quitarán'} al guardar los cambios.`);
+              setMessage(
+                `${names} ya no ${unavailableItems.length === 1 ? 'está disponible y se quitará' : 'están disponibles y se quitarán'} al guardar los cambios.`,
+              );
             }
           }}
           onForget={handleForget}
@@ -423,7 +576,10 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
     <div className="food-shell">
       <FoodHeader />
       <main id="main-content" tabIndex={-1}>
-        <section className={`food-hero${active.restaurant.imageUrl ? ' food-hero--photo' : ''}`} aria-labelledby="food-restaurant-title">
+        <section
+          className={`food-hero${active.restaurant.imageUrl ? ' food-hero--photo' : ''}`}
+          aria-labelledby="food-restaurant-title"
+        >
           {active.restaurant.imageUrl && <img src={active.restaurant.imageUrl} alt="" />}
           <div className="food-hero__shade" />
           <div className="food-hero__content">
@@ -433,8 +589,14 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
             <span>Abierto desde {formatSpanishDate(active.cycle.openedAt)}</span>
             <OpeningHours openingHours={active.restaurant.openingHours} compact />
             {active.restaurant.sourceUrl && (
-              <a className="food-hero__source" href={active.restaurant.sourceUrl} target="_blank" rel="noreferrer">
-                Ver en Uber Eats <span aria-hidden="true">↗</span><span className="sr-only"> (se abre en una pestaña nueva)</span>
+              <a
+                className="food-hero__source"
+                href={active.restaurant.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ver en Uber Eats <span aria-hidden="true">↗</span>
+                <span className="sr-only"> (se abre en una pestaña nueva)</span>
               </a>
             )}
           </div>
@@ -443,19 +605,30 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
         {active.menuItems.length === 0 ? (
           <section className="food-state food-state--inline">
             <h2>El menú todavía está vacío</h2>
-            <p>Vuelve en un rato: el restaurante está seleccionado, pero aún no hay platos disponibles.</p>
+            <p>
+              Vuelve en un rato: el restaurante está seleccionado, pero aún no hay platos
+              disponibles.
+            </p>
           </section>
         ) : (
           <div className="food-order-layout">
             <section className="food-menu" aria-labelledby="menu-title">
               <div className="food-section-heading">
-                <div><p className="food-kicker">Elige lo que te apetezca</p><h2 id="menu-title">Carta</h2></div>
+                <div>
+                  <p className="food-kicker">Elige lo que te apetezca</p>
+                  <h2 id="menu-title">Carta</h2>
+                </div>
                 <span>{active.menuItems.length} platos</span>
               </div>
               <div className="food-filters">
                 <label className="food-search">
                   <span className="sr-only">Buscar en la carta</span>
-                  <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar un plato…" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Buscar un plato…"
+                  />
                 </label>
                 <div className="food-categories" role="group" aria-label="Filtrar por categoría">
                   {categories.map((value) => (
@@ -465,11 +638,16 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
                       className={category === value ? 'is-active' : ''}
                       aria-pressed={category === value}
                       onClick={() => setCategory(value)}
-                    >{value}</button>
+                    >
+                      {value}
+                    </button>
                   ))}
                 </div>
               </div>
-              <p className="sr-only" role="status" aria-live="polite">{visibleItems.length} {visibleItems.length === 1 ? 'plato encontrado' : 'platos encontrados'}</p>
+              <p className="sr-only" role="status" aria-live="polite">
+                {visibleItems.length}{' '}
+                {visibleItems.length === 1 ? 'plato encontrado' : 'platos encontrados'}
+              </p>
               {visibleItems.length ? (
                 <div className="food-menu-grid">
                   {visibleItems.map((item) => (
@@ -484,38 +662,107 @@ function FoodApp({ initialData }: { initialData: OrderRouteData }) {
                   ))}
                 </div>
               ) : (
-                <div className="food-inline-empty">No hay platos que coincidan. Prueba otra búsqueda o categoría.</div>
+                <div className="food-inline-empty">
+                  No hay platos que coincidan. Prueba otra búsqueda o categoría.
+                </div>
               )}
             </section>
 
             <aside className="food-cart" aria-label="Tu pedido">
-              <div className="food-cart__top"><p className="food-kicker">Tu selección</p><span role="status" aria-live="polite">{count} {count === 1 ? 'unidad' : 'unidades'}</span></div>
+              <div className="food-cart__top">
+                <p className="food-kicker">Tu selección</p>
+                <span role="status" aria-live="polite">
+                  {count} {count === 1 ? 'unidad' : 'unidades'}
+                </span>
+              </div>
               <h2>Tu pedido</h2>
               {count ? (
                 <div className="food-cart__lines">
                   {Object.entries(cart).map(([id, entry]) => {
                     const item = active.menuItems.find((candidate) => candidate.id === id);
-                    return item ? <div key={id}><span>{entry.quantity} × {item.name}</span><strong>{formatEuros(item.priceCents * entry.quantity)}</strong></div> : null;
+                    return item ? (
+                      <div key={id}>
+                        <span>
+                          {entry.quantity} × {item.name}
+                        </span>
+                        <strong>{formatEuros(item.priceCents * entry.quantity)}</strong>
+                      </div>
+                    ) : null;
                   })}
                 </div>
-              ) : <p className="food-cart__empty">Añade algún plato de la carta para empezar.</p>}
-              <div className="food-cart__total"><span>Total</span><strong>{formatEuros(total)}</strong></div>
+              ) : (
+                <p className="food-cart__empty">Añade algún plato de la carta para empezar.</p>
+              )}
+              <div className="food-cart__total">
+                <span>Total</span>
+                <strong>{formatEuros(total)}</strong>
+              </div>
               <form onSubmit={handleSubmit} noValidate>
                 <label className="food-field">
-                  <span>Tu nombre <small>{displayName.length}/80</small></span>
-                  <input ref={displayNameRef} required autoComplete="name" maxLength={80} value={displayName} onChange={(event) => { setDisplayName(event.target.value); if (invalidField === 'displayName') setInvalidField(''); }} placeholder="Cómo te reconocerá el equipo" aria-invalid={invalidField === 'displayName'} aria-describedby={invalidField === 'displayName' ? 'food-order-error' : undefined} />
+                  <span>
+                    Tu nombre <small>{displayName.length}/80</small>
+                  </span>
+                  <input
+                    ref={displayNameRef}
+                    required
+                    autoComplete="name"
+                    maxLength={80}
+                    value={displayName}
+                    onChange={(event) => {
+                      setDisplayName(event.target.value);
+                      if (invalidField === 'displayName') setInvalidField('');
+                    }}
+                    placeholder="Cómo te reconocerá el equipo"
+                    aria-invalid={invalidField === 'displayName'}
+                    aria-describedby={
+                      invalidField === 'displayName' ? 'food-order-error' : undefined
+                    }
+                  />
                 </label>
                 <label className="food-field">
-                  <span>Nota general <small>{orderNote.length}/500 · opcional</small></span>
-                  <textarea ref={orderNoteRef} maxLength={500} value={orderNote} onChange={(event) => { setOrderNote(event.target.value); if (invalidField === 'orderNote') setInvalidField(''); }} placeholder="Algo que debamos saber sobre todo el pedido…" aria-invalid={invalidField === 'orderNote'} aria-describedby={invalidField === 'orderNote' ? 'food-order-error' : undefined} />
+                  <span>
+                    Nota general <small>{orderNote.length}/500 · opcional</small>
+                  </span>
+                  <textarea
+                    ref={orderNoteRef}
+                    maxLength={500}
+                    value={orderNote}
+                    onChange={(event) => {
+                      setOrderNote(event.target.value);
+                      if (invalidField === 'orderNote') setInvalidField('');
+                    }}
+                    placeholder="Algo que debamos saber sobre todo el pedido…"
+                    aria-invalid={invalidField === 'orderNote'}
+                    aria-describedby={invalidField === 'orderNote' ? 'food-order-error' : undefined}
+                  />
                 </label>
-                {message && <div ref={formErrorRef} id="food-order-error" className="food-form-error" role="alert" tabIndex={-1}>{message}</div>}
-                <button className="food-button food-button--wide" type="submit" disabled={pending || !count}>
+                {message && (
+                  <div
+                    ref={formErrorRef}
+                    id="food-order-error"
+                    className="food-form-error"
+                    role="alert"
+                    tabIndex={-1}
+                  >
+                    {message}
+                  </div>
+                )}
+                <button
+                  className="food-button food-button--wide"
+                  type="submit"
+                  disabled={pending || !count}
+                >
                   {pending ? 'Guardando…' : credential ? 'Guardar cambios' : 'Enviar pedido'}
                 </button>
               </form>
-              {deviceWarning && <div className="food-form-error" role="status">{deviceWarning}</div>}
-              <p className="food-help">Podrás editarlo desde este dispositivo mientras el pedido siga abierto.</p>
+              {deviceWarning && (
+                <div className="food-form-error" role="status">
+                  {deviceWarning}
+                </div>
+              )}
+              <p className="food-help">
+                Podrás editarlo desde este dispositivo mientras el pedido siga abierto.
+              </p>
             </aside>
           </div>
         )}

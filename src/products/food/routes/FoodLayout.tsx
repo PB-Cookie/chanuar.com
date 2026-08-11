@@ -5,7 +5,11 @@ export function Component() {
   const navigation = useNavigation();
   return (
     <>
-      {navigation.state !== 'idle' && <div className="route-loading" role="status" aria-live="polite">Cargando…</div>}
+      {navigation.state !== 'idle' && (
+        <div className="route-loading" role="status" aria-live="polite">
+          Cargando…
+        </div>
+      )}
       <Outlet />
     </>
   );
@@ -18,7 +22,9 @@ export function ErrorBoundary() {
     <main className="food-state food-state--centered" role="alert">
       <h1>No hemos podido cargar Mesa abierta</h1>
       <p>{error?.message ?? 'Ha ocurrido un error inesperado.'}</p>
-      <button className="food-button" type="button" onClick={() => revalidator.revalidate()}>Volver a intentar</button>
+      <button className="food-button" type="button" onClick={() => revalidator.revalidate()}>
+        Volver a intentar
+      </button>
     </main>
   );
 }

@@ -2,17 +2,61 @@ import { supabaseEnvironment } from '../../../shared/config/supabase';
 import type { Flair, Loot, Match, Offer, Ownership, Profile, Wallet } from '../model/types';
 
 type PriceEntry = Offer;
-type PriceRow = { skin_id?: number | null; skinId?: number | null; rp?: number | null; sale_rp?: number | null; saleRp?: number | null; discount?: number; sale_ends_at?: string | null; saleEndsAt?: string | null; owned?: boolean };
-type MatchRow = { game_id?: string | number; gameId?: string | number; played_at?: string; playedAt?: string; queue_id?: number; queueId?: number; duration_s?: number; durationS?: number; champion_id?: number; championId?: number; win?: boolean; kills?: number; deaths?: number; assists?: number };
-type ProfileRow = { game_name?: string; gameName?: string; tag_line?: string; tagLine?: string; level?: number; profile_icon_id?: number; profileIconId?: number; flair?: Flair | null };
+type PriceRow = {
+  skin_id?: number | null;
+  skinId?: number | null;
+  rp?: number | null;
+  sale_rp?: number | null;
+  saleRp?: number | null;
+  discount?: number;
+  sale_ends_at?: string | null;
+  saleEndsAt?: string | null;
+  owned?: boolean;
+};
+type MatchRow = {
+  game_id?: string | number;
+  gameId?: string | number;
+  played_at?: string;
+  playedAt?: string;
+  queue_id?: number;
+  queueId?: number;
+  duration_s?: number;
+  durationS?: number;
+  champion_id?: number;
+  championId?: number;
+  win?: boolean;
+  kills?: number;
+  deaths?: number;
+  assists?: number;
+};
+type ProfileRow = {
+  game_name?: string;
+  gameName?: string;
+  tag_line?: string;
+  tagLine?: string;
+  level?: number;
+  profile_icon_id?: number;
+  profileIconId?: number;
+  flair?: Flair | null;
+};
 type WalletRow = { RP?: number; lol_blue_essence?: number; blueEssence?: number };
 type OwnedSkinRow = { skin_id: number };
 type OwnedChromaRow = { chroma_id: number; skin_id: number };
 type MasteryRow = { champion_id: number; points: number; level?: number };
-type SyncRow = { ran_at?: string; stats?: { skinsOwned?: number } | null; loot?: Loot | null; wallet?: WalletRow | null };
+type SyncRow = {
+  ran_at?: string;
+  stats?: { skinsOwned?: number } | null;
+  loot?: Loot | null;
+  wallet?: WalletRow | null;
+};
 type CosmeticRow = { item_type: string; item_id: number };
 type EventRow = { item_type: string; item_id: number; acquired_at: string };
-type ExportSkin = { id: number; owned?: boolean; isBase?: boolean; chromas?: Array<{ id: number; owned?: boolean }> };
+type ExportSkin = {
+  id: number;
+  owned?: boolean;
+  isBase?: boolean;
+  chromas?: Array<{ id: number; owned?: boolean }>;
+};
 type ExportData = {
   skins?: ExportSkin[];
   prices?: PriceRow[];
@@ -27,7 +71,11 @@ type ExportData = {
 };
 
 class SupabaseRestError extends Error {
-  constructor(public status: number, public code: string | null, path: string) {
+  constructor(
+    public status: number,
+    public code: string | null,
+    path: string,
+  ) {
     super(`Supabase → HTTP ${status} en ${path}`);
     this.name = 'SupabaseRestError';
   }
@@ -63,7 +111,7 @@ async function q<T extends object>(pathAndQuery: string, range?: string): Promis
   }
   const res = await fetch(`${URL.replace(/\/+$/, '')}/rest/v1/${pathAndQuery}`, { headers });
   if (!res.ok) {
-    const body = await res.json().catch(() => null) as { code?: string } | null;
+    const body = (await res.json().catch(() => null)) as { code?: string } | null;
     throw new SupabaseRestError(res.status, body?.code ?? null, pathAndQuery);
   }
   return res.json() as Promise<T[]>;
@@ -88,7 +136,10 @@ async function optional<T>(promise: Promise<T>): Promise<OptionalResult<T>> {
     if (error instanceof SupabaseRestError && ['42P01', 'PGRST205'].includes(error.code ?? '')) {
       return { data: null, warning: null };
     }
-    return { data: null, warning: error instanceof Error ? error.message : 'Error desconocido de Supabase' };
+    return {
+      data: null,
+      warning: error instanceof Error ? error.message : 'Error desconocido de Supabase',
+    };
   }
 }
 
@@ -116,17 +167,23 @@ const normalizeMatch = (m: MatchRow): Match => ({
   assists: Number(m.assists ?? 0),
 });
 
-const normalizeProfile = (profile: ProfileRow | null): Profile | null => profile ? {
-  gameName: String(profile.game_name ?? profile.gameName ?? ''),
-  tagLine: String(profile.tag_line ?? profile.tagLine ?? ''),
-  level: Number(profile.level ?? 0),
-  profileIconId: Number(profile.profile_icon_id ?? profile.profileIconId ?? 0),
-} : null;
+const normalizeProfile = (profile: ProfileRow | null): Profile | null =>
+  profile
+    ? {
+        gameName: String(profile.game_name ?? profile.gameName ?? ''),
+        tagLine: String(profile.tag_line ?? profile.tagLine ?? ''),
+        level: Number(profile.level ?? 0),
+        profileIconId: Number(profile.profile_icon_id ?? profile.profileIconId ?? 0),
+      }
+    : null;
 
-const normalizeWallet = (wallet: WalletRow | null): Wallet | null => wallet ? {
-  RP: Number(wallet.RP ?? 0),
-  blueEssence: Number(wallet.lol_blue_essence ?? wallet.blueEssence ?? 0),
-} : null;
+const normalizeWallet = (wallet: WalletRow | null): Wallet | null =>
+  wallet
+    ? {
+        RP: Number(wallet.RP ?? 0),
+        blueEssence: Number(wallet.lol_blue_essence ?? wallet.blueEssence ?? 0),
+      }
+    : null;
 
 /** A partir de precios normalizados: valor de la colección y ofertas activas. */
 function priceDerived(entries: PriceEntry[]) {
@@ -142,7 +199,7 @@ function priceDerived(entries: PriceEntry[]) {
   const offers = entries
     .filter((e) => e.saleEndsAt != null && new Date(e.saleEndsAt).getTime() > now)
     // No poseídas primero, luego mayor descuento.
-    .sort((a, b) => (Number(a.owned) - Number(b.owned)) || (b.discount - a.discount));
+    .sort((a, b) => Number(a.owned) - Number(b.owned) || b.discount - a.discount);
   return { collectionValueRp, pricedOwnedCount, offers };
 }
 
@@ -155,7 +212,9 @@ const topMatches = (list: Match[]): Match[] =>
 
 /** Filas de owned_cosmetics → { wards, emotes, icons } como Sets de ids. */
 const cosmeticsFromRows = (rows: CosmeticRow[] | null) => {
-  const wards = new Set<number>(), emotes = new Set<number>(), icons = new Set<number>();
+  const wards = new Set<number>(),
+    emotes = new Set<number>(),
+    icons = new Set<number>();
   for (const r of rows ?? []) {
     if (r.item_type === 'ward') wards.add(r.item_id);
     else if (r.item_type === 'emote') emotes.add(r.item_id);
@@ -165,10 +224,24 @@ const cosmeticsFromRows = (rows: CosmeticRow[] | null) => {
 };
 
 /** Reads the required collection plus optional, migration-dependent sections. */
-export async function fetchOwnership(): Promise<{ ownership: Ownership | null; warning: string | null }> {
+export async function fetchOwnership(): Promise<{
+  ownership: Ownership | null;
+  warning: string | null;
+}> {
   if (!dbConfigured) return { ownership: null, warning: null };
 
-  const [profiles, skins, chromas, mastery, lastRun, prices, matchesRaw, cosmeticsRows, eventsRaw, syncRows] = await Promise.all([
+  const [
+    profiles,
+    skins,
+    chromas,
+    mastery,
+    lastRun,
+    prices,
+    matchesRaw,
+    cosmeticsRows,
+    eventsRaw,
+    syncRows,
+  ] = await Promise.all([
     q<ProfileRow>('profiles?select=*&order=updated_at.desc&limit=1'),
     qAll<OwnedSkinRow>('owned_skins?select=skin_id'),
     qAll<OwnedChromaRow>('owned_chromas?select=chroma_id,skin_id'),
@@ -177,7 +250,11 @@ export async function fetchOwnership(): Promise<{ ownership: Ownership | null; w
     optional(qAll<PriceRow>('skin_prices?select=*')),
     optional(q<MatchRow>('matches?select=*&order=played_at.desc&limit=12')),
     optional(qAll<CosmeticRow>('owned_cosmetics?select=item_type,item_id')),
-    optional(q<EventRow>('ownership_events?select=item_type,item_id,acquired_at&is_initial=eq.false&order=acquired_at.desc&limit=60')),
+    optional(
+      q<EventRow>(
+        'ownership_events?select=item_type,item_id,acquired_at&is_initial=eq.false&order=acquired_at.desc&limit=60',
+      ),
+    ),
     optional(qAll<SyncRow>('sync_runs?select=stats&order=ran_at.asc')),
   ]);
 
@@ -207,42 +284,52 @@ export async function fetchOwnership(): Promise<{ ownership: Ownership | null; w
     .map((result) => result.warning)
     .filter((warning): warning is string => Boolean(warning));
 
-  return { ownership: {
-    source: 'supabase',
-    profile,
-    ownedSkinIds: new Set(skins.map((r) => r.skin_id)),
-    ownedChromaIds: new Set(chromas.map((r) => r.chroma_id)),
-    chromasOwned: chromas.length,
-    chromasBySkin,
-    masteryByChampion: new Map<number, { points: number; level?: number }>(mastery.map((m) => [m.champion_id, { points: m.points, level: m.level }])),
-    lastSyncAt: lastRun[0]?.ran_at ?? null,
-    loot: lastRun[0]?.loot ?? null,
-    // ── Datos v0.3 ──
-    wallet: normalizeWallet(lastRun[0]?.wallet ?? null),
-    flair: profiles[0]?.flair ?? null,
-    collectionValueRp,
-    pricedOwnedCount,
-    offers,
-    matches,
-    cosmetics: cosmeticsFromRows(cosmeticsRows.data),
-    events,
-    syncHistory,
-  }, warning: warnings.length ? `No se pudieron leer algunos datos opcionales (${warnings.join('; ')}).` : null };
+  return {
+    ownership: {
+      source: 'supabase',
+      profile,
+      ownedSkinIds: new Set(skins.map((r) => r.skin_id)),
+      ownedChromaIds: new Set(chromas.map((r) => r.chroma_id)),
+      chromasOwned: chromas.length,
+      chromasBySkin,
+      masteryByChampion: new Map<number, { points: number; level?: number }>(
+        mastery.map((m) => [m.champion_id, { points: m.points, level: m.level }]),
+      ),
+      lastSyncAt: lastRun[0]?.ran_at ?? null,
+      loot: lastRun[0]?.loot ?? null,
+      // ── Datos v0.3 ──
+      wallet: normalizeWallet(lastRun[0]?.wallet ?? null),
+      flair: profiles[0]?.flair ?? null,
+      collectionValueRp,
+      pricedOwnedCount,
+      offers,
+      matches,
+      cosmetics: cosmeticsFromRows(cosmeticsRows.data),
+      events,
+      syncHistory,
+    },
+    warning: warnings.length
+      ? `No se pudieron leer algunos datos opcionales (${warnings.join('; ')}).`
+      : null,
+  };
 }
 
 /** Convierte el JSON del collector (v0.1/v0.2/v0.3) a la misma forma "ownership". */
 export function ownershipFromExport(json: unknown): Ownership {
-  if (!json || typeof json !== 'object' || Array.isArray(json)) throw new Error('El export del collector no es un objeto JSON válido.');
+  if (!json || typeof json !== 'object' || Array.isArray(json))
+    throw new Error('El export del collector no es un objeto JSON válido.');
   const raw = json as Record<string, unknown>;
   for (const key of ['skins', 'prices', 'matches', 'mastery']) {
-    if (raw[key] != null && !Array.isArray(raw[key])) throw new Error(`La sección ${key} del export no es una lista válida.`);
+    if (raw[key] != null && !Array.isArray(raw[key]))
+      throw new Error(`La sección ${key} del export no es una lista válida.`);
   }
   const data = raw as ExportData;
   const ownedSkins = (data.skins ?? []).filter((skin) => skin.owned && !skin.isBase);
   const chromasBySkin = new Map<number, number>();
   const ownedChromaIds = new Set<number>();
   for (const s of data.skins ?? []) {
-    if (s.chromas != null && !Array.isArray(s.chromas)) throw new Error('La sección chromas del export no es una lista válida.');
+    if (s.chromas != null && !Array.isArray(s.chromas))
+      throw new Error('La sección chromas del export no es una lista válida.');
     const owned = (s.chromas ?? []).filter((chroma) => chroma.owned);
     if (owned.length > 0) {
       chromasBySkin.set(s.id, owned.length);
@@ -276,7 +363,12 @@ export function ownershipFromExport(json: unknown): Ownership {
     ownedChromaIds,
     chromasOwned: ownedChromaIds.size,
     chromasBySkin,
-    masteryByChampion: new Map<number, { points: number; level?: number }>((data.mastery ?? []).map((entry) => [entry.championId, { points: entry.points, level: entry.level }])),
+    masteryByChampion: new Map<number, { points: number; level?: number }>(
+      (data.mastery ?? []).map((entry) => [
+        entry.championId,
+        { points: entry.points, level: entry.level },
+      ]),
+    ),
     lastSyncAt: data.meta?.generatedAt ?? null,
     loot: data.loot ?? null,
     // ── Datos v0.3 (exports antiguos carecen de estas secciones → defaults) ──

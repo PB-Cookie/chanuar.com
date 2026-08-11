@@ -15,8 +15,18 @@ it('loads catalog and ownership together while keeping ownership failure recover
   const catalog = { totals: { skins: 0 } };
   let releaseCatalog = () => {};
   let rejectOwnership = () => {};
-  mocks.fetchCatalog.mockImplementation(() => new Promise((resolve) => { releaseCatalog = () => resolve(catalog); }));
-  mocks.fetchOwnership.mockImplementation(() => new Promise((_resolve, reject) => { rejectOwnership = () => reject(new Error('offline')); }));
+  mocks.fetchCatalog.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        releaseCatalog = () => resolve(catalog);
+      }),
+  );
+  mocks.fetchOwnership.mockImplementation(
+    () =>
+      new Promise((_resolve, reject) => {
+        rejectOwnership = () => reject(new Error('offline'));
+      }),
+  );
 
   const pending = loader();
   expect(mocks.fetchCatalog).toHaveBeenCalledOnce();

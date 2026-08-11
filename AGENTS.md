@@ -2,17 +2,17 @@
 
 ## Project Structure & Module Organization
 
-This is a Vite/React application. `src/` contains the Skinfolio landing page, shared components in `src/components/`, and ordering features in `src/food/`. `src/AppRouter.jsx` handles routes and page metadata. Static assets belong in `public/`; HTML entry points for `/food`, `/food/options`, and `/food/admin` are under `food/`. Supabase changes live in `supabase/migrations/`, with database checks in `supabase/tests/`. Do not commit generated `dist/` output or dependencies.
+This is a Vite/React application. `src/` contains the Skinfolio landing page, shared components in `src/components/`, and ordering features in `src/food/`. `src/AppRouter.jsx` handles routes and metadata. Static assets belong in `public/`; food HTML entry points are under `food/`. Supabase changes live in `supabase/migrations/`, with database checks in `supabase/tests/`. The sibling `../food-scrapper/` repository is a separate Python 3.12/`uv` CLI that imports restaurant catalogs into the same Supabase `food` schema; its targets live in `restaurants.yaml`. Do not commit generated output or dependencies.
 
 ## Build, Test, and Development Commands
 
-- `npm ci` installs the exact dependency versions from `package-lock.json` (Node 20.19 or newer).
+- `npm ci` installs locked dependencies (Node 20.19 or newer).
 - `npm run dev` starts the Vite development server.
 - `npm test` runs the Vitest suite once in jsdom.
 - `npm run test:watch` reruns affected tests while developing.
 - `npm run build` creates the production bundle and validates configured entry points.
-- `npm run preview` serves the production bundle locally for a final smoke test.
 - `supabase test db` runs SQL security checks against a disposable local Supabase stack.
+- From `../food-scrapper`, `uv run food-scrapper sync --restaurant <slug> --dry-run` validates a catalog without publishing it.
 
 ## Coding Style & Naming Conventions
 

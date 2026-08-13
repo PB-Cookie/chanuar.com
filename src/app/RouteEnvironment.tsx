@@ -8,7 +8,7 @@ const META = {
       'Portfolio de Carlos Alberto Chanuar Martínez, desarrollador full stack. Proyectos web y formas de contacto.',
     theme: '#08090b',
     siteName: 'chanuar.com',
-    image: '/favicon.svg',
+    image: '/portfolio-og.png',
     icon: '/favicon.svg',
   },
   skinfolio: {
@@ -111,20 +111,13 @@ export function RouteEnvironment() {
       <meta property="og:image" content={image} />
       <meta
         property="og:image:width"
-        content={
-          name === 'skinfolio' ? '1280' : name === 'home' || name === 'notFound' ? '64' : '1536'
-        }
+        content={name === 'skinfolio' ? '1280' : name === 'notFound' ? '64' : '1536'}
       />
       <meta
         property="og:image:height"
-        content={
-          name === 'skinfolio' ? '720' : name === 'home' || name === 'notFound' ? '64' : '1024'
-        }
+        content={name === 'skinfolio' ? '720' : name === 'notFound' ? '64' : '1024'}
       />
-      <meta
-        name="twitter:card"
-        content={name === 'home' || name === 'notFound' ? 'summary' : 'summary_large_image'}
-      />
+      <meta name="twitter:card" content={name === 'notFound' ? 'summary' : 'summary_large_image'} />
       <meta name="twitter:title" content={meta.title} />
       <meta name="twitter:description" content={meta.description} />
       <meta name="twitter:image" content={image} />

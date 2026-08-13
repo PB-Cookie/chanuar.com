@@ -14,6 +14,7 @@ describe('route entry metadata', () => {
     expect(html).toContain('<title>Carlos Chanuar — Desarrollador full stack</title>');
     expect(html).toContain('<body class="portfolio-page">');
     expect(html).toContain('<link rel="canonical" href="https://chanuar.com/" />');
+    expect(html).toContain('property="og:image" content="https://chanuar.com/portfolio-og.png"');
     expect(html).not.toContain('<title>Skinfolio');
 
     const jsonLd = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];

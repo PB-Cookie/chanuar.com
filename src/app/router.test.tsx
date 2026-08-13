@@ -34,7 +34,7 @@ describe('application router', () => {
   });
 
   it.each([
-    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', 'portfolio-page', '#080b12', '/'],
+    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', 'portfolio-page', '#08090b', '/'],
     [
       'skinfolio',
       '/skinfolio',
@@ -51,7 +51,7 @@ describe('application router', () => {
       '/missing',
       'Página no encontrada — chanuar.com',
       'portfolio-page',
-      '#080b12',
+      '#08090b',
       null,
     ],
   ] as const)(

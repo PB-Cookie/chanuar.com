@@ -6,7 +6,7 @@ const META = {
     title: 'Carlos Chanuar — Desarrollador full stack',
     description:
       'Portfolio de Carlos Alberto Chanuar Martínez, desarrollador full stack. Proyectos web y formas de contacto.',
-    theme: '#080b12',
+    theme: '#08090b',
     siteName: 'chanuar.com',
     image: '/favicon.svg',
     icon: '/favicon.svg',
@@ -49,7 +49,7 @@ const META = {
   notFound: {
     title: 'Página no encontrada — chanuar.com',
     description: 'La página que buscas no existe.',
-    theme: '#080b12',
+    theme: '#08090b',
     siteName: 'chanuar.com',
     image: '/favicon.svg',
     icon: '/favicon.svg',

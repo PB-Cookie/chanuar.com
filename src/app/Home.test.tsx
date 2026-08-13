@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { Home } from './Home';
@@ -24,11 +24,19 @@ describe('portfolio surfaces', () => {
       'href',
       'https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/',
     );
-    expect(screen.getByRole('navigation', { name: 'Perfiles y contacto' })).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Proyectos' })).toHaveAttribute('href', '/#proyectos');
-    expect(screen.getByRole('link', { name: 'Contacto' })).toHaveAttribute('href', '/#contacto');
+    expect(screen.getByRole('link', { name: '01 Proyectos' })).toHaveAttribute(
+      'href',
+      '/#proyectos',
+    );
+    expect(screen.getByRole('link', { name: '02 Stack' })).toHaveAttribute('href', '/#tecnologias');
+    expect(screen.getByRole('link', { name: '03 Contacto' })).toHaveAttribute('href', '/#contacto');
     expect(screen.getByRole('link', { name: /Skinfolio/ })).toHaveAttribute('href', '/skinfolio');
     expect(screen.getByRole('link', { name: /MenuBox/ })).toHaveAttribute('href', '/food');
+    const technologies = screen.getByRole('list', { name: 'Tecnologías que utilizo' });
+    expect(within(technologies).getAllByRole('listitem')).toHaveLength(17);
+    expect(technologies.querySelectorAll('img')).toHaveLength(17);
+    expect(screen.queryByText('Herramientas con las que construyo')).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Pausar/ })).toBeVisible();
   });
 
   it('uses the portfolio shell for unknown routes', () => {

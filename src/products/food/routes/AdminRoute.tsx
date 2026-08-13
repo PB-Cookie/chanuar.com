@@ -3,7 +3,7 @@ import { Link, useLoaderData, useRevalidator } from 'react-router';
 import { foodAdminApi, foodAuth, foodConfigured, FoodApiError } from '../api/foodApi';
 import FoodHeader from '../components/FoodHeader';
 import { OpeningHours, OpeningHoursForm } from '../components/OpeningHours';
-import { aggregateItems, cycleAmounts, parseServiceFee } from '../model/admin';
+import { aggregateItems, parseServiceFee } from '../model/admin';
 import { formatEuros, formatSpanishDate } from '../model/order';
 import type { AdminCycle, AdminRouteData, OpeningDay, Restaurant } from '../model/types';
 
@@ -25,10 +25,6 @@ export async function loader(): Promise<AdminRouteData> {
       return { session, authorized: false, catalog: [], current: null, history: [] };
     throw error;
   }
-}
-
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : 'Ha ocurrido un error inesperado.';
 }
 
 function AdminSignIn({
@@ -104,7 +100,9 @@ function AdminSignIn({
 }
 
 function CycleTotals({ cycle, serviceFeeCents }: { cycle: AdminCycle; serviceFeeCents?: number }) {
-  const { subtotal, fee, total } = cycleAmounts(cycle, serviceFeeCents);
+  const subtotal = cycle.subtotalCents;
+  const fee = serviceFeeCents ?? cycle.serviceFeeCents;
+  const total = subtotal + fee;
   return (
     <div className="food-cycle-totals" role="group" aria-label="Totales del pedido">
       <div>
@@ -366,7 +364,9 @@ export function Component() {
       success?.();
       revalidate();
     } catch (mutationError) {
-      setError(errorMessage(mutationError));
+      setError(
+        mutationError instanceof Error ? mutationError.message : 'Ha ocurrido un error inesperado.',
+      );
     } finally {
       setPending(false);
     }

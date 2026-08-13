@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { fetchCosmeticsCatalog } from '../api/catalog';
+import { normalizeText } from '../model/collection';
 import type { Ownership } from '../model/types';
 
 type AssetUrl = (path: string | null | undefined) => string;
-const norm = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 /* ------------------------------------------------------------------ */
 /* Otros: cosméticos poseídos (wards, emotes, iconos), carga diferida  */
@@ -51,7 +51,7 @@ export function CosmeticsSection({
   }
   if (!catalog) return <div className="loading">Abriendo el arsenal…</div>;
 
-  const q = norm((query ?? '').trim());
+  const q = normalizeText((query ?? '').trim());
   return (
     <section className="cosmetics">
       {COSMETIC_GROUPS.map(([type, label]) => {
@@ -60,7 +60,7 @@ export function CosmeticsSection({
         const items = [...ownedIds]
           .map((id) => map.get(id))
           .filter((it): it is NonNullable<typeof it> =>
-            Boolean(it && (!q || norm(it.name).includes(q))),
+            Boolean(it && (!q || normalizeText(it.name).includes(q))),
           );
         return (
           <div className="cos-group" key={type}>

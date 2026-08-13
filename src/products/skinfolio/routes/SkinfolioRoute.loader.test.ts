@@ -4,9 +4,7 @@ const mocks = vi.hoisted(() => ({ fetchCatalog: vi.fn(), fetchOwnership: vi.fn()
 
 vi.mock('../api/catalog', () => ({ fetchCatalog: mocks.fetchCatalog, assetUrl: vi.fn() }));
 vi.mock('../api/ownership', () => ({
-  dbConfigured: true,
   fetchOwnership: mocks.fetchOwnership,
-  ownershipFromExport: vi.fn(),
 }));
 
 import { loader } from './SkinfolioRoute';

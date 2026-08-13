@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo, useReducer, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { FormEvent, MouseEvent } from 'react';
 import { useLoaderData } from 'react-router';
 import {
@@ -172,63 +172,42 @@ function ItemDetailModal({
   onQuantity: (itemId: string, quantity: number) => void;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLElement>(null);
-  const close = useEffectEvent(onClose);
   const quantity = entry?.quantity ?? 0;
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const dialog = dialogRef.current!;
+    dialog.showModal();
     closeButtonRef.current?.focus();
-
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === 'Escape') {
-        close();
-        return;
-      }
-      if (event.key !== 'Tab') return;
-
-      const focusable = [
-        ...(panelRef.current?.querySelectorAll<HTMLElement>(
-          'button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
-        ) ?? []),
-      ];
-      if (!focusable.length) return;
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last!.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first!.focus();
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
+    return () => dialog.close();
   }, []);
 
+  function close() {
+    dialogRef.current?.close();
+    onClose();
+  }
+
   return (
-    <div className="food-item-modal" onMouseDown={onClose}>
-      <section
-        ref={panelRef}
-        className="food-item-modal__panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`food-item-title-${item.id}`}
-        aria-describedby={`food-item-description-${item.id}`}
-        onMouseDown={(event) => event.stopPropagation()}
-      >
+    <dialog
+      ref={dialogRef}
+      className="food-item-modal"
+      aria-labelledby={`food-item-title-${item.id}`}
+      aria-describedby={`food-item-description-${item.id}`}
+      onCancel={(event) => {
+        event.preventDefault();
+        close();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) close();
+      }}
+    >
+      <section className="food-item-modal__panel">
         <button
           ref={closeButtonRef}
           className="food-item-modal__close"
           type="button"
-          onClick={onClose}
+          onClick={close}
           aria-label="Cerrar detalles"
         >
           <span aria-hidden="true">×</span>
@@ -269,7 +248,7 @@ function ItemDetailModal({
           </div>
         </div>
       </section>
-    </div>
+    </dialog>
   );
 }
 

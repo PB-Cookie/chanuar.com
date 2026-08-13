@@ -39,7 +39,7 @@ describe('Skinfolio Supabase reads', () => {
     releases.forEach((release) => release());
 
     await expect(pending).resolves.toMatchObject({
-      ownership: { source: 'supabase' },
+      ownership: expect.any(Object),
       warning: null,
     });
   });
@@ -55,7 +55,7 @@ describe('Skinfolio Supabase reads', () => {
     );
 
     await expect(fetchOwnership()).resolves.toMatchObject({
-      ownership: { source: 'supabase' },
+      ownership: expect.any(Object),
       warning: expect.stringContaining('HTTP 500'),
     });
   });

@@ -26,16 +26,12 @@ const titleCase = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toL
 
 export function Header({
   profile,
-  source,
   lastSyncAt,
   flair,
-  onImport,
 }: {
   profile: Profile | null;
-  source: string;
   lastSyncAt: string | null;
   flair: Flair | null;
-  onImport: () => void;
 }) {
   return (
     <header className="header">
@@ -74,12 +70,6 @@ export function Header({
         </div>
       </div>
       <div className="header__spacer" />
-      <span className={`header__source ${source === 'supabase' ? 'header__source--live' : ''}`}>
-        {source === 'supabase' ? 'Supabase' : source === 'archivo' ? 'Archivo local' : 'Sin datos'}
-      </span>
-      <button className="btn" type="button" onClick={onImport}>
-        Importar JSON
-      </button>
     </header>
   );
 }

@@ -51,7 +51,6 @@ export type OwnershipEvent = { itemType: string; itemId: number; acquiredAt: str
 export type SyncPoint = { skinsOwned: number };
 
 export type Ownership = {
-  source: string;
   profile: Profile | null;
   ownedSkinIds: Set<number>;
   ownedChromaIds: Set<number>;

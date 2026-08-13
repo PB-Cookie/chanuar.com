@@ -1,4 +1,4 @@
-import type { AdminCycle, AdminOrder } from './types';
+import type { AdminOrder } from './types';
 
 export function parseServiceFee(value: unknown) {
   const normalized = String(value ?? '')
@@ -32,12 +32,4 @@ export function aggregateItems(orders: AdminOrder[]) {
   return [...items.values()].sort(
     (a, b) => b.quantity - a.quantity || a.name.localeCompare(b.name, 'es'),
   );
-}
-
-export function cycleAmounts(cycle: AdminCycle, serviceFeeCents = cycle.serviceFeeCents) {
-  return {
-    subtotal: cycle.subtotalCents,
-    fee: serviceFeeCents,
-    total: cycle.subtotalCents + serviceFeeCents,
-  };
 }

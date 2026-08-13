@@ -56,7 +56,6 @@ const catalog: Catalog = {
   totals: { skins: 3 },
 };
 const ownership: Ownership = {
-  source: 'test',
   profile: null,
   ownedSkinIds: new Set([1]),
   ownedChromaIds: new Set([11]),

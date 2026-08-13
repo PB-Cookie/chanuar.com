@@ -80,6 +80,22 @@ describe('successful order recovery', () => {
   });
 
   beforeEach(() => {
+    if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
+      Object.defineProperty(HTMLDialogElement.prototype, 'showModal', {
+        configurable: true,
+        value(this: HTMLDialogElement) {
+          this.setAttribute('open', '');
+        },
+      });
+    }
+    if (typeof HTMLDialogElement.prototype.close !== 'function') {
+      Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+        configurable: true,
+        value(this: HTMLDialogElement) {
+          this.removeAttribute('open');
+        },
+      });
+    }
     localStorage.clear();
     vi.clearAllMocks();
     window.scrollTo = vi.fn();
@@ -110,8 +126,12 @@ describe('successful order recovery', () => {
       'Una tortilla recién hecha',
     );
     expect(screen.getByRole('button', { name: 'Cerrar detalles' })).toHaveFocus();
-    await user.keyboard('{Escape}');
+    fireEvent(
+      screen.getByRole('dialog', { name: 'Tortilla' }),
+      new Event('cancel', { bubbles: true, cancelable: true }),
+    );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(details).toHaveFocus());
     await user.click(screen.getByRole('button', { name: /Añadir una unidad de Tortilla/ }));
     expect(screen.getByPlaceholderText(/Sin cebolla/)).toHaveAttribute('maxlength', '240');
     await user.type(screen.getByPlaceholderText(/Cómo te reconocerá/), 'Ana');

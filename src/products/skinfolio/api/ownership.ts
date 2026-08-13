@@ -4,26 +4,18 @@ import type { Flair, Loot, Match, Offer, Ownership, Profile, Wallet } from '../m
 type PriceEntry = Offer;
 type PriceRow = {
   skin_id?: number | null;
-  skinId?: number | null;
   rp?: number | null;
   sale_rp?: number | null;
-  saleRp?: number | null;
   discount?: number;
   sale_ends_at?: string | null;
-  saleEndsAt?: string | null;
   owned?: boolean;
 };
 type MatchRow = {
   game_id?: string | number;
-  gameId?: string | number;
   played_at?: string;
-  playedAt?: string;
   queue_id?: number;
-  queueId?: number;
   duration_s?: number;
-  durationS?: number;
   champion_id?: number;
-  championId?: number;
   win?: boolean;
   kills?: number;
   deaths?: number;
@@ -31,15 +23,12 @@ type MatchRow = {
 };
 type ProfileRow = {
   game_name?: string;
-  gameName?: string;
   tag_line?: string;
-  tagLine?: string;
   level?: number;
   profile_icon_id?: number;
-  profileIconId?: number;
   flair?: Flair | null;
 };
-type WalletRow = { RP?: number; lol_blue_essence?: number; blueEssence?: number };
+type WalletRow = { RP?: number; lol_blue_essence?: number };
 type OwnedSkinRow = { skin_id: number };
 type OwnedChromaRow = { chroma_id: number; skin_id: number };
 type MasteryRow = { champion_id: number; points: number; level?: number };
@@ -51,25 +40,6 @@ type SyncRow = {
 };
 type CosmeticRow = { item_type: string; item_id: number };
 type EventRow = { item_type: string; item_id: number; acquired_at: string };
-type ExportSkin = {
-  id: number;
-  owned?: boolean;
-  isBase?: boolean;
-  chromas?: Array<{ id: number; owned?: boolean }>;
-};
-type ExportData = {
-  skins?: ExportSkin[];
-  prices?: PriceRow[];
-  matches?: MatchRow[];
-  cosmetics?: { wards?: number[]; emotes?: number[]; icons?: number[] };
-  summoner?: { gameName: string; tagLine: string; level: number; profileIconId: number };
-  mastery?: Array<{ championId: number; points: number; level?: number }>;
-  meta?: { generatedAt?: string };
-  loot?: Loot | null;
-  wallet?: WalletRow | null;
-  flair?: Flair | null;
-};
-
 class SupabaseRestError extends Error {
   constructor(
     public status: number,
@@ -81,12 +51,7 @@ class SupabaseRestError extends Error {
   }
 }
 
-// Lectura de la colección. Dos fuentes posibles:
-//  1. Supabase (anon key, solo lectura garantizada por RLS) — la normal.
-//  2. Un JSON exportado por el collector, importado a mano — útil antes de
-//     configurar Supabase o para probar en local.
-// Ambas devuelven la misma forma de datos ("ownership").
-//
+// Lectura de la colección desde Supabase (anon key, solo lectura garantizada por RLS).
 // Desde el collector v0.3 el ownership incluye además:
 //  - wallet ({RP, lol_blue_essence}) y flair (honor/retos) del jugador.
 //  - Valoración de la colección en RP (collectionValueRp / pricedOwnedCount).
@@ -100,8 +65,6 @@ class SupabaseRestError extends Error {
 
 const URL = supabaseEnvironment.url;
 const KEY = supabaseEnvironment.publishableKey;
-
-export const dbConfigured = supabaseEnvironment.configured;
 
 async function q<T extends object>(pathAndQuery: string, range?: string): Promise<T[]> {
   const headers: Record<string, string> = { apikey: KEY, Authorization: `Bearer ${KEY}` };
@@ -143,24 +106,23 @@ async function optional<T>(promise: Promise<T>): Promise<OptionalResult<T>> {
   }
 }
 
-// ── Normalizadores: unifican las filas de Supabase (snake_case) y las del
-//    JSON exportado (camelCase) en la misma forma de salida (camelCase). ──────
+// ── Normalizadores: convierten filas de Supabase (snake_case) en el modelo de UI. ──────
 
 const normalizePrice = (r: PriceRow): PriceEntry => ({
-  skinId: r.skin_id ?? r.skinId ?? null,
+  skinId: r.skin_id ?? null,
   rp: r.rp ?? null,
-  saleRp: r.sale_rp ?? r.saleRp ?? null,
+  saleRp: r.sale_rp ?? null,
   discount: r.discount ?? 0,
-  saleEndsAt: r.sale_ends_at ?? r.saleEndsAt ?? null,
+  saleEndsAt: r.sale_ends_at ?? null,
   owned: Boolean(r.owned),
 });
 
 const normalizeMatch = (m: MatchRow): Match => ({
-  gameId: m.game_id ?? m.gameId ?? '',
-  playedAt: m.played_at ?? m.playedAt ?? '',
-  queueId: Number(m.queue_id ?? m.queueId ?? 0),
-  durationS: Number(m.duration_s ?? m.durationS ?? 0),
-  championId: Number(m.champion_id ?? m.championId ?? 0),
+  gameId: m.game_id ?? '',
+  playedAt: m.played_at ?? '',
+  queueId: Number(m.queue_id ?? 0),
+  durationS: Number(m.duration_s ?? 0),
+  championId: Number(m.champion_id ?? 0),
   win: Boolean(m.win),
   kills: Number(m.kills ?? 0),
   deaths: Number(m.deaths ?? 0),
@@ -170,10 +132,10 @@ const normalizeMatch = (m: MatchRow): Match => ({
 const normalizeProfile = (profile: ProfileRow | null): Profile | null =>
   profile
     ? {
-        gameName: String(profile.game_name ?? profile.gameName ?? ''),
-        tagLine: String(profile.tag_line ?? profile.tagLine ?? ''),
+        gameName: String(profile.game_name ?? ''),
+        tagLine: String(profile.tag_line ?? ''),
         level: Number(profile.level ?? 0),
-        profileIconId: Number(profile.profile_icon_id ?? profile.profileIconId ?? 0),
+        profileIconId: Number(profile.profile_icon_id ?? 0),
       }
     : null;
 
@@ -181,7 +143,7 @@ const normalizeWallet = (wallet: WalletRow | null): Wallet | null =>
   wallet
     ? {
         RP: Number(wallet.RP ?? 0),
-        blueEssence: Number(wallet.lol_blue_essence ?? wallet.blueEssence ?? 0),
+        blueEssence: Number(wallet.lol_blue_essence ?? 0),
       }
     : null;
 
@@ -228,7 +190,7 @@ export async function fetchOwnership(): Promise<{
   ownership: Ownership | null;
   warning: string | null;
 }> {
-  if (!dbConfigured) return { ownership: null, warning: null };
+  if (!supabaseEnvironment.configured) return { ownership: null, warning: null };
 
   const [
     profiles,
@@ -286,7 +248,6 @@ export async function fetchOwnership(): Promise<{
 
   return {
     ownership: {
-      source: 'supabase',
       profile,
       ownedSkinIds: new Set(skins.map((r) => r.skin_id)),
       ownedChromaIds: new Set(chromas.map((r) => r.chroma_id)),
@@ -311,75 +272,5 @@ export async function fetchOwnership(): Promise<{
     warning: warnings.length
       ? `No se pudieron leer algunos datos opcionales (${warnings.join('; ')}).`
       : null,
-  };
-}
-
-/** Convierte el JSON del collector (v0.1/v0.2/v0.3) a la misma forma "ownership". */
-export function ownershipFromExport(json: unknown): Ownership {
-  if (!json || typeof json !== 'object' || Array.isArray(json))
-    throw new Error('El export del collector no es un objeto JSON válido.');
-  const raw = json as Record<string, unknown>;
-  for (const key of ['skins', 'prices', 'matches', 'mastery']) {
-    if (raw[key] != null && !Array.isArray(raw[key]))
-      throw new Error(`La sección ${key} del export no es una lista válida.`);
-  }
-  const data = raw as ExportData;
-  const ownedSkins = (data.skins ?? []).filter((skin) => skin.owned && !skin.isBase);
-  const chromasBySkin = new Map<number, number>();
-  const ownedChromaIds = new Set<number>();
-  for (const s of data.skins ?? []) {
-    if (s.chromas != null && !Array.isArray(s.chromas))
-      throw new Error('La sección chromas del export no es una lista válida.');
-    const owned = (s.chromas ?? []).filter((chroma) => chroma.owned);
-    if (owned.length > 0) {
-      chromasBySkin.set(s.id, owned.length);
-      for (const c of owned) ownedChromaIds.add(c.id);
-    }
-  }
-
-  const priceEntries = (data.prices ?? []).map(normalizePrice);
-  const { collectionValueRp, pricedOwnedCount, offers } = priceDerived(priceEntries);
-
-  const matches = topMatches((data.matches ?? []).map(normalizeMatch));
-
-  const cos = data.cosmetics ?? {};
-  const cosmetics = {
-    wards: new Set<number>(cos.wards ?? []),
-    emotes: new Set<number>(cos.emotes ?? []),
-    icons: new Set<number>(cos.icons ?? []),
-  };
-
-  return {
-    source: 'archivo',
-    profile: data.summoner
-      ? {
-          gameName: data.summoner.gameName,
-          tagLine: data.summoner.tagLine,
-          level: data.summoner.level,
-          profileIconId: data.summoner.profileIconId,
-        }
-      : null,
-    ownedSkinIds: new Set<number>(ownedSkins.map((skin) => skin.id)),
-    ownedChromaIds,
-    chromasOwned: ownedChromaIds.size,
-    chromasBySkin,
-    masteryByChampion: new Map<number, { points: number; level?: number }>(
-      (data.mastery ?? []).map((entry) => [
-        entry.championId,
-        { points: entry.points, level: entry.level },
-      ]),
-    ),
-    lastSyncAt: data.meta?.generatedAt ?? null,
-    loot: data.loot ?? null,
-    // ── Datos v0.3 (exports antiguos carecen de estas secciones → defaults) ──
-    wallet: normalizeWallet(data.wallet ?? null),
-    flair: data.flair ?? null,
-    collectionValueRp,
-    pricedOwnedCount,
-    offers,
-    matches,
-    cosmetics,
-    events: [], // los exports no llevan historial de eventos
-    syncHistory: [], // ni historial de sincronizaciones
   };
 }

@@ -11,9 +11,7 @@ import type {
 
 export const foodConfigured = supabaseEnvironment.configured;
 const foodClient = foodConfigured
-  ? createClient(supabaseEnvironment.url, supabaseEnvironment.publishableKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-    })
+  ? createClient(supabaseEnvironment.url, supabaseEnvironment.publishableKey)
   : null;
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -40,15 +38,12 @@ export class FoodApiError extends Error {
 type RawMenuItem = {
   id: string;
   restaurant_id?: string;
-  restaurantId?: string;
   category?: string | null;
   name: string;
   description?: string | null;
   price_cents?: number;
-  priceCents?: number;
   currency?: string | null;
   image_url?: string | null;
-  imageUrl?: string | null;
   available?: boolean;
 };
 type RawRestaurant = {
@@ -56,50 +51,35 @@ type RawRestaurant = {
   name: string;
   description?: string | null;
   image_url?: string | null;
-  imageUrl?: string | null;
   source_url?: string | null;
-  sourceUrl?: string | null;
   available_items?: number;
-  availableItems?: number;
   opening_hours?: OpeningDay[];
-  openingHours?: OpeningDay[];
 };
 type RawOrderItem = {
   id: string;
   menu_item_id?: string;
-  menuItemId?: string;
   item_name?: string;
-  name?: string;
   unit_price_cents?: number;
-  unitPriceCents?: number;
   quantity: number;
   note?: string | null;
   line_total_cents?: number;
-  lineTotalCents?: number;
 };
 type RawOrder = {
   id: string;
   cycle_id?: string;
-  cycleId?: string;
   cycle_status?: string;
-  cycleStatus?: string;
   display_name?: string;
-  displayName?: string;
   note?: string | null;
   created_at?: string;
-  createdAt?: string;
   updated_at?: string;
-  updatedAt?: string;
   total_cents?: number;
-  totalCents?: number;
   restaurant?: RawRestaurant | null;
   items?: RawOrderItem[];
 };
 type RawActiveMenu = {
-  cycle: { id: string; status: string; opened_at?: string; openedAt?: string };
+  cycle: { id: string; status: string; opened_at?: string };
   restaurant: RawRestaurant | null;
   menu_items?: RawMenuItem[];
-  menuItems?: RawMenuItem[];
 };
 type RawAdminItem = {
   id: string;
@@ -166,13 +146,13 @@ async function rpc<T>(name: string, params: Record<string, unknown> = {}): Promi
 function normalizeItem(item: RawMenuItem) {
   return {
     id: String(item.id),
-    restaurantId: String(item.restaurant_id ?? item.restaurantId),
+    restaurantId: String(item.restaurant_id),
     category: item.category || 'Otros',
     name: String(item.name),
     description: item.description ?? '',
-    priceCents: Number(item.price_cents ?? item.priceCents),
+    priceCents: Number(item.price_cents),
     currency: item.currency ?? 'EUR',
-    imageUrl: item.image_url ?? item.imageUrl ?? null,
+    imageUrl: item.image_url ?? null,
     available: item.available ?? true,
   };
 }
@@ -183,10 +163,10 @@ function normalizeRestaurant(restaurant: RawRestaurant | null): Restaurant | nul
     id: String(restaurant.id),
     name: String(restaurant.name),
     description: restaurant.description ?? '',
-    imageUrl: restaurant.image_url ?? restaurant.imageUrl ?? null,
-    sourceUrl: restaurant.source_url ?? restaurant.sourceUrl ?? null,
-    availableItems: Number(restaurant.available_items ?? restaurant.availableItems ?? 0),
-    openingHours: (restaurant.opening_hours ?? restaurant.openingHours ?? []) as OpeningDay[],
+    imageUrl: restaurant.image_url ?? null,
+    sourceUrl: restaurant.source_url ?? null,
+    availableItems: Number(restaurant.available_items ?? 0),
+    openingHours: (restaurant.opening_hours ?? []) as OpeningDay[],
   };
 }
 
@@ -194,22 +174,22 @@ function normalizeOrder(order: RawOrder | null): FoodOrder | null {
   if (!order) return null;
   return {
     id: String(order.id),
-    cycleId: String(order.cycle_id ?? order.cycleId),
-    cycleStatus: String(order.cycle_status ?? order.cycleStatus),
-    displayName: String(order.display_name ?? order.displayName),
+    cycleId: String(order.cycle_id),
+    cycleStatus: String(order.cycle_status),
+    displayName: String(order.display_name),
     note: order.note ?? '',
-    createdAt: String(order.created_at ?? order.createdAt),
-    updatedAt: String(order.updated_at ?? order.updatedAt),
-    totalCents: Number(order.total_cents ?? order.totalCents ?? 0),
+    createdAt: String(order.created_at),
+    updatedAt: String(order.updated_at),
+    totalCents: Number(order.total_cents ?? 0),
     restaurant: normalizeRestaurant(order.restaurant ?? null),
     items: (order.items ?? []).map((item) => ({
       id: String(item.id),
-      menuItemId: String(item.menu_item_id ?? item.menuItemId),
-      name: String(item.item_name ?? item.name),
-      unitPriceCents: Number(item.unit_price_cents ?? item.unitPriceCents),
+      menuItemId: String(item.menu_item_id),
+      name: String(item.item_name),
+      unitPriceCents: Number(item.unit_price_cents),
       quantity: Number(item.quantity),
       note: item.note ?? '',
-      lineTotalCents: Number(item.line_total_cents ?? item.lineTotalCents),
+      lineTotalCents: Number(item.line_total_cents),
     })),
   };
 }
@@ -232,10 +212,10 @@ export async function getActiveMenu(): Promise<ActiveMenu | null> {
     cycle: {
       id: String(data.cycle.id),
       status: String(data.cycle.status),
-      openedAt: String(data.cycle.opened_at ?? data.cycle.openedAt),
+      openedAt: String(data.cycle.opened_at),
     },
     restaurant,
-    menuItems: (data.menu_items ?? data.menuItems ?? []).map(normalizeItem),
+    menuItems: (data.menu_items ?? []).map(normalizeItem),
   };
 }
 
@@ -361,7 +341,10 @@ export const foodAuth = {
 
 export const foodAdminApi = {
   access: () => rpc<boolean>('food_admin_access'),
-  catalog: () => getRestaurantOptionsFromAdmin(),
+  catalog: async () =>
+    ((await rpc<RawRestaurant[]>('food_admin_catalog')) ?? [])
+      .map(normalizeRestaurant)
+      .filter((item): item is Restaurant => item !== null),
   current: async () => normalizeAdminCycle(await rpc<RawAdminCycle | null>('food_admin_current')),
   history: async () =>
     ((await rpc<RawAdminCycle[]>('food_admin_history')) ?? [])
@@ -383,9 +366,3 @@ export const foodAdminApi = {
   closeCycle: (cycleId: string, serviceFeeCents: number) =>
     rpc('food_admin_close_cycle', { p_cycle_id: cycleId, p_service_fee_cents: serviceFeeCents }),
 };
-
-async function getRestaurantOptionsFromAdmin() {
-  return ((await rpc<RawRestaurant[]>('food_admin_catalog')) ?? [])
-    .map(normalizeRestaurant)
-    .filter((item): item is Restaurant => item !== null);
-}

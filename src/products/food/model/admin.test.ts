@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateItems, cycleAmounts, parseServiceFee } from './admin';
+import { aggregateItems, parseServiceFee } from './admin';
 
 describe('administrator item grouping', () => {
   it('aggregates quantities, totals, and attributed notes', () => {
@@ -53,33 +53,5 @@ describe('administrator item grouping', () => {
     expect(parseServiceFee('12.9')).toBe(1290);
     expect(parseServiceFee('1,234')).toBeNull();
     expect(parseServiceFee('-1')).toBeNull();
-  });
-
-  it('keeps service fees separate from order subtotals', () => {
-    expect(
-      cycleAmounts({
-        id: 'cycle-1',
-        status: 'open',
-        openedAt: '',
-        closedAt: null,
-        restaurant: {
-          id: 'restaurant-1',
-          name: 'PSM',
-          description: '',
-          imageUrl: null,
-          sourceUrl: null,
-          availableItems: 0,
-          openingHours: [],
-        },
-        subtotalCents: 1200,
-        serviceFeeCents: 250,
-        totalCents: 1450,
-        orders: [],
-      }),
-    ).toEqual({
-      subtotal: 1200,
-      fee: 250,
-      total: 1450,
-    });
   });
 });

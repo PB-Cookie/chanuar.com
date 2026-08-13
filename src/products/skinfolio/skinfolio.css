@@ -167,26 +167,6 @@ body.skinfolio-page {
   .header__spacer {
     flex: 1;
   }
-  .header__source {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    color: var(--muted);
-    border: 1px solid var(--line);
-    padding: 4px 10px;
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-  .header__source--live::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--arcane);
-    box-shadow: 0 0 6px var(--arcane);
-  }
-
   /* --------------------------------------------------------------------------
    La Cámara: indicador principal de la colección (elemento firma)
    Un medidor forjado en oro + estantería de gemas por rareza.
@@ -652,8 +632,7 @@ body.skinfolio-page {
   .notice strong {
     color: var(--parchment);
   }
-  .notice button,
-  .btn {
+  .notice button {
     margin-left: 10px;
     border: 1px solid transparent;
     border-radius: 3px;
@@ -672,13 +651,11 @@ body.skinfolio-page {
       color 150ms ease,
       transform 100ms ease;
   }
-  .notice button:hover,
-  .btn:hover {
+  .notice button:hover {
     color: #f4e4bc;
     box-shadow: 0 0 14px rgba(200, 170, 110, 0.3);
   }
-  .notice button:active,
-  .btn:active {
+  .notice button:active {
     transform: translateY(1px);
   }
 
@@ -888,38 +865,23 @@ body.skinfolio-page {
     color: var(--parchment);
   }
 
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-    background: rgba(1, 10, 19, 0.86);
-    backdrop-filter: blur(5px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    animation: modal-fade 180ms ease;
-  }
-  @keyframes modal-fade {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
   .modal {
     position: relative;
-    width: min(880px, 100%);
+    width: min(880px, calc(100% - 48px));
     max-height: 92vh;
     display: flex;
     flex-direction: column;
+    margin: auto;
+    padding: 0;
     background: linear-gradient(180deg, var(--panel) 0%, #08101f 100%);
     border: 1px solid var(--gold-deep);
     border-radius: var(--radius);
     overflow: hidden;
     animation: modal-rise 200ms ease;
+  }
+  .modal::backdrop {
+    background: rgba(1, 10, 19, 0.86);
+    backdrop-filter: blur(5px);
   }
   @keyframes modal-rise {
     from {
@@ -1113,8 +1075,8 @@ body.skinfolio-page {
   }
 
   @media (max-width: 560px) {
-    .modal-backdrop {
-      padding: 10px;
+    .modal {
+      width: calc(100% - 20px);
     }
     .modal__img-wrap {
       height: 38vh;

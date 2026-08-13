@@ -1,8 +1,7 @@
-import { useDeferredValue, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { useLoaderData, useRevalidator, useRouteError } from 'react-router';
 import { fetchCatalog, assetUrl } from '../api/catalog';
-import { fetchOwnership, ownershipFromExport, dbConfigured } from '../api/ownership';
+import { fetchOwnership } from '../api/ownership';
 import {
   Header,
   StatsVault,
@@ -35,7 +34,7 @@ type SkinfolioRouteData = { catalog: Catalog; ownership: Ownership | null; warni
 export async function loader(): Promise<SkinfolioRouteData> {
   const [catalogResult, ownershipResult] = await Promise.allSettled([
     fetchCatalog(),
-    dbConfigured ? fetchOwnership() : Promise.resolve({ ownership: null, warning: null }),
+    fetchOwnership(),
   ]);
   if (catalogResult.status === 'rejected') throw catalogResult.reason;
   if (ownershipResult.status === 'rejected') {
@@ -46,14 +45,13 @@ export async function loader(): Promise<SkinfolioRouteData> {
     return {
       catalog: catalogResult.value,
       ownership: null,
-      warning: `No se pudo leer tu colección de Supabase (${message}). Puedes importar el JSON del collector.`,
+      warning: `No se pudo leer tu colección de Supabase (${message}).`,
     };
   }
   return { catalog: catalogResult.value, ...ownershipResult.value };
 }
 
 const EMPTY_OWNERSHIP: Ownership = {
-  source: 'ninguna',
   profile: null,
   ownedSkinIds: new Set(),
   ownedChromaIds: new Set(),
@@ -77,8 +75,9 @@ const EMPTY_OWNERSHIP: Ownership = {
 
 function App({ initialData }: { initialData: SkinfolioRouteData }) {
   const { catalog } = initialData;
-  const [ownership, setOwnership] = useState<Ownership>(initialData.ownership ?? EMPTY_OWNERSHIP);
+  const ownership = initialData.ownership ?? EMPTY_OWNERSHIP;
   const [warn, setWarn] = useState<string | null>(initialData.warning);
+  const hasOwnership = initialData.ownership !== null;
 
   const [mode, setMode] = useState<CollectionMode>('skins');
   const [query, setQuery] = useState('');
@@ -90,23 +89,8 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
   const [rarities, setRarities] = useState<Set<string>>(new Set());
   const [flags, setFlags] = useState({ legacy: false, withChromas: false });
   const [modal, setModal] = useState<{ skin: Skin; chromaId: number | null } | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
-
   const openSkin = (skin: Skin, chromaId: number | null = null) => setModal({ skin, chromaId });
   const closeModal = () => setModal(null);
-
-  function importFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    file
-      .text()
-      .then((text) => {
-        setOwnership(ownershipFromExport(JSON.parse(text)));
-        setWarn(null);
-      })
-      .catch(() => setWarn('El archivo no parece un export del collector.'));
-    e.target.value = '';
-  }
 
   const toggleRarity = (key: string) =>
     setRarities((prev) => {
@@ -152,13 +136,10 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
         Saltar al contenido
       </a>
       <main id="main-content" tabIndex={-1}>
-        <input ref={fileInput} type="file" accept="application/json" hidden onChange={importFile} />
         <Header
           profile={ownership.profile}
-          source={ownership.source}
           lastSyncAt={ownership.lastSyncAt}
           flair={ownership.flair}
-          onImport={() => fileInput.current?.click()}
         />
 
         {warn && (
@@ -168,11 +149,10 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
           </div>
         )}
 
-        {ownership.source === 'ninguna' && (
+        {!hasOwnership && (
           <div className="notice">
             <strong>Todavía no hay datos de tu colección.</strong> Configura las variables de
-            Supabase (<code>web/.env</code>) o importa el JSON generado por el collector.
-            <button onClick={() => fileInput.current?.click()}>Importar JSON</button>
+            Supabase (<code>web/.env</code>) para cargarla.
           </div>
         )}
 
@@ -206,8 +186,8 @@ function App({ initialData }: { initialData: SkinfolioRouteData }) {
 
         {isCollection && sections.length === 0 && (
           <div className="empty">
-            {ownership.source === 'ninguna' && view !== 'all'
-              ? 'Aún no hay colección cargada: importa el JSON del collector para ver lo que tienes.'
+            {!hasOwnership && view !== 'all'
+              ? 'Aún no hay colección cargada: configura Supabase para ver lo que tienes.'
               : 'Nada coincide con esos filtros. Prueba con otro nombre o quita alguno.'}
           </div>
         )}

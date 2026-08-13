@@ -86,7 +86,9 @@ export function Home() {
         <section id="proyectos" className="portfolio-projects" aria-labelledby="projects-title">
           <div className="portfolio-section-heading">
             <p className="portfolio-label">01 / Proyectos seleccionados</p>
-            <h2 id="projects-title">Productos en uso</h2>
+            <h2 id="projects-title" className="portfolio-visually-hidden">
+              Proyectos
+            </h2>
             <span>02 proyectos</span>
           </div>
           <div className="portfolio-project-list">

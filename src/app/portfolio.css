@@ -333,10 +333,32 @@ body.portfolio-page * {
     min-width: 0;
   }
 
-  .portfolio-project__story p:last-child {
+  .portfolio-project__copy {
     margin: 12px 0 0;
     color: var(--portfolio-muted);
     line-height: 1.5;
+  }
+
+  .portfolio-project__pipeline {
+    grid-column: 1 / -1;
+    padding-top: 22px;
+    border-top: 1px solid var(--portfolio-line);
+  }
+
+  .portfolio-project__flow {
+    margin: 16px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.68rem;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .portfolio-project__flow span {
+    color: var(--portfolio-accent);
   }
 
   .portfolio-tags {

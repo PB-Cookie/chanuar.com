@@ -108,23 +108,39 @@ export function Home() {
                   01
                 </span>
                 <div className="portfolio-project__title">
-                  <p>Colección personal · League of Legends</p>
+                  <p>Colección personal · App + collector</p>
                   <h3 id="skinfolio-title">Skinfolio</h3>
                 </div>
                 <span className="portfolio-project__status">En uso</span>
                 <div id="skinfolio-story" className="portfolio-project__story">
                   <div>
                     <p className="portfolio-label">El reto</p>
-                    <p>Entender una colección creciente sin perderse entre skins y chromas.</p>
+                    <p className="portfolio-project__copy">
+                      Entender una colección creciente sin perderse entre skins y chromas.
+                    </p>
                   </div>
                   <div>
                     <p className="portfolio-label">La respuesta</p>
-                    <p>Un catálogo personal con propiedad, ofertas y progreso en un solo lugar.</p>
+                    <p className="portfolio-project__copy">
+                      Un catálogo personal con propiedad, ofertas y progreso en un solo lugar.
+                    </p>
+                  </div>
+                  <div className="portfolio-project__pipeline">
+                    <p className="portfolio-label">El collector</p>
+                    <p className="portfolio-project__copy">
+                      Un proceso local en Node.js lee la API del cliente de League, normaliza más de
+                      2.500 skins y sincroniza propiedad, chromas, maestría y nuevas adquisiciones.
+                    </p>
+                    <p className="portfolio-project__flow">
+                      Cliente de League <span aria-hidden="true">→</span> Node.js{' '}
+                      <span aria-hidden="true">→</span> Supabase
+                    </p>
                   </div>
                 </div>
                 <ul className="portfolio-tags" aria-label="Tecnologías">
                   <li>React</li>
                   <li>TypeScript</li>
+                  <li>Node.js</li>
                   <li>Supabase</li>
                 </ul>
                 <span className="portfolio-project__arrow" aria-hidden="true">
@@ -143,23 +159,40 @@ export function Home() {
                   02
                 </span>
                 <div className="portfolio-project__title">
-                  <p>Pedidos de equipo · Restauración</p>
+                  <p>Pedidos de equipo · App + scraper</p>
                   <h3 id="food-title">MenuBox</h3>
                 </div>
                 <span className="portfolio-project__status">En uso</span>
                 <div id="food-story" className="portfolio-project__story">
                   <div>
                     <p className="portfolio-label">El reto</p>
-                    <p>Coordinar el pedido semanal de varias personas sin perder elecciones.</p>
+                    <p className="portfolio-project__copy">
+                      Coordinar el pedido semanal de varias personas sin perder elecciones.
+                    </p>
                   </div>
                   <div>
                     <p className="portfolio-label">La respuesta</p>
-                    <p>Un flujo compartido para elegir restaurante, revisar y reunir el pedido.</p>
+                    <p className="portfolio-project__copy">
+                      Un flujo compartido para elegir restaurante, revisar y reunir el pedido.
+                    </p>
+                  </div>
+                  <div className="portfolio-project__pipeline">
+                    <p className="portfolio-label">El scraper</p>
+                    <p className="portfolio-project__copy">
+                      Un CLI en Python y Playwright extrae menús y horarios públicos de 14
+                      restaurantes, valida cada catálogo y lo publica de forma atómica.
+                    </p>
+                    <p className="portfolio-project__flow">
+                      Menús públicos <span aria-hidden="true">→</span> Python + Playwright{' '}
+                      <span aria-hidden="true">→</span> Supabase
+                    </p>
                   </div>
                 </div>
                 <ul className="portfolio-tags" aria-label="Tecnologías">
                   <li>React</li>
                   <li>TypeScript</li>
+                  <li>Python</li>
+                  <li>Playwright</li>
                   <li>Supabase</li>
                 </ul>
                 <span className="portfolio-project__arrow" aria-hidden="true">

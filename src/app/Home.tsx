@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 import { Link, NavLink } from 'react-router';
+import { ContactForm } from './ContactForm';
 import './portfolio.css';
 
 const TECHNOLOGIES = [
@@ -40,14 +41,18 @@ export function PortfolioShell({ children }: PropsWithChildren) {
         </nav>
       </header>
       {children}
-      <footer id="contacto" className="portfolio-footer">
-        <div>
+      <footer id="contacto" className="portfolio-footer" aria-labelledby="contact-title">
+        <div className="portfolio-contact__intro">
           <p className="portfolio-label">03 / Contacto</p>
-          <p>¿Construimos algo?</p>
+          <h2 id="contact-title">Contáctame</h2>
+          <p className="portfolio-contact__copy">
+            Envíame un mensaje a través del formulario o escríbeme por email.
+          </p>
+          <a className="portfolio-contact__fallback" href="mailto:carlos@chanuar.com">
+            carlos@chanuar.com <span aria-hidden="true">↗</span>
+          </a>
         </div>
-        <a className="portfolio-footer__email" href="mailto:carlos@chanuar.com">
-          carlos@chanuar.com <span aria-hidden="true">↗</span>
-        </a>
+        <ContactForm />
         <div className="portfolio-footer__meta">
           <span>© {new Date().getFullYear()} Carlos Chanuar</span>
           <a href="https://github.com/chanuar" rel="me">

@@ -487,35 +487,151 @@ body.portfolio-page * {
   .portfolio-footer {
     padding: clamp(70px, 9vw, 120px) 0 28px;
     display: grid;
-    grid-template-columns: 4fr 8fr;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
     gap: 64px 18px;
     border-top: 1px solid var(--portfolio-text);
     scroll-margin-top: 76px;
   }
 
-  .portfolio-footer > div:first-child > p:last-child {
+  .portfolio-contact__intro h2 {
     margin: 16px 0 0;
     font-size: clamp(1.5rem, 3vw, 2.5rem);
+    line-height: 1;
     letter-spacing: -0.04em;
   }
 
-  .portfolio-footer__email {
-    display: flex;
-    min-height: 48px;
-    justify-content: space-between;
-    align-items: baseline;
-    padding-bottom: 14px;
-    border-bottom: 2px solid currentcolor;
-    color: var(--portfolio-accent);
-    font-size: clamp(1.6rem, 4.5vw, 4.5rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.06em;
-    text-decoration: none;
+  .portfolio-contact__copy {
+    max-width: 34ch;
+    margin: 24px 0 0;
+    color: var(--portfolio-muted);
+    line-height: 1.5;
   }
 
-  .portfolio-footer__email:hover {
+  .portfolio-contact__fallback {
+    min-height: 44px;
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--portfolio-accent);
+    text-underline-offset: 5px;
+  }
+
+  .portfolio-contact__fallback:hover {
     color: var(--portfolio-text);
+  }
+
+  .portfolio-contact-form fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 18px;
+    border: 0;
+  }
+
+  .portfolio-contact-form__field {
+    min-width: 0;
+  }
+
+  .portfolio-contact-form__field--message,
+  .portfolio-contact-form__actions {
+    grid-column: 1 / -1;
+  }
+
+  .portfolio-contact-form label {
+    display: block;
+    color: var(--portfolio-muted);
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+  }
+
+  .portfolio-contact-form input,
+  .portfolio-contact-form textarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 0;
+    border: 0;
+    border-bottom: 1px solid var(--portfolio-line);
+    border-radius: 0;
+    color: var(--portfolio-text);
+    background: transparent;
+    font: inherit;
+  }
+
+  .portfolio-contact-form textarea {
+    min-height: 132px;
+    resize: vertical;
+  }
+
+  .portfolio-contact-form input:hover,
+  .portfolio-contact-form textarea:hover {
+    border-color: var(--portfolio-muted);
+  }
+
+  .portfolio-contact-form input:focus-visible,
+  .portfolio-contact-form textarea:focus-visible {
+    outline: none;
+    border-color: var(--portfolio-accent);
+    box-shadow: 0 1px 0 var(--portfolio-accent);
+  }
+
+  .portfolio-contact-form__actions {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .portfolio-contact-form__feedback {
+    color: var(--portfolio-muted);
+    line-height: 1.4;
+  }
+
+  .portfolio-contact-form__feedback p {
+    margin: 0;
+  }
+
+  .portfolio-contact-form__feedback [role='status'] {
+    color: var(--portfolio-accent);
+  }
+
+  .portfolio-contact-form__feedback [role='alert'] {
+    color: #ff9292;
+  }
+
+  .portfolio-contact-form button {
+    min-width: 180px;
+    min-height: 48px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    border: 1px solid var(--portfolio-accent);
+    border-radius: 0;
+    background: var(--portfolio-accent);
+    color: var(--portfolio-bg);
+    cursor: pointer;
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .portfolio-contact-form button:hover:not(:disabled) {
+    background: transparent;
+    color: var(--portfolio-accent);
+  }
+
+  .portfolio-contact-form button:disabled {
+    border-color: var(--portfolio-line);
+    background: var(--portfolio-surface);
+    color: var(--portfolio-muted);
+    cursor: not-allowed;
   }
 
   .portfolio-footer__meta {
@@ -700,9 +816,22 @@ body.portfolio-page * {
       gap: 36px;
     }
 
-    .portfolio-footer__email {
-      font-size: clamp(1.25rem, 6vw, 2rem);
-      overflow-wrap: anywhere;
+    .portfolio-contact-form fieldset {
+      grid-template-columns: 1fr;
+    }
+
+    .portfolio-contact-form__field--message,
+    .portfolio-contact-form__actions {
+      grid-column: 1;
+    }
+
+    .portfolio-contact-form__actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .portfolio-contact-form button {
+      width: 100%;
     }
 
     .portfolio-footer__meta {

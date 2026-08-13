@@ -21,11 +21,11 @@
 
 ## ✨ Proyectos
 
-| Proyecto            | Descripción                                                           | Enlace                                           |
-| ------------------- | --------------------------------------------------------------------- | ------------------------------------------------ |
-| 🏠 **Portfolio**    | Presentación, proyectos y formas de contacto.                         | [Abrir portfolio](https://chanuar.com)           |
-| 🎮 **Skinfolio**    | Colección de skins, chromas, ofertas y progreso de League of Legends. | [Abrir Skinfolio](https://chanuar.com/skinfolio) |
-| 🍔 **Mesa abierta** | Pedidos semanales de equipo, restaurantes, carta y administración.    | [Abrir Mesa abierta](https://chanuar.com/food)   |
+| Proyecto         | Descripción                                                           | Enlace                                           |
+| ---------------- | --------------------------------------------------------------------- | ------------------------------------------------ |
+| 🏠 **Portfolio** | Presentación, proyectos y formas de contacto.                         | [Abrir portfolio](https://chanuar.com)           |
+| 🎮 **Skinfolio** | Colección de skins, chromas, ofertas y progreso de League of Legends. | [Abrir Skinfolio](https://chanuar.com/skinfolio) |
+| 🍔 **MenuBox**   | Pedidos semanales de equipo, restaurantes, carta y administración.    | [Abrir MenuBox](https://chanuar.com/food)        |
 
 ## 🧱 Tecnologías
 

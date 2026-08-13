@@ -43,8 +43,8 @@ export function Component() {
           <p className="food-kicker">Todas las opciones</p>
           <h1>¿Dónde pedimos esta semana?</h1>
           <p>
-            Explora los restaurantes que ya forman parte de Mesa abierta y consulta su carta
-            original en Uber Eats.
+            Explora los restaurantes que ya forman parte de MenuBox y consulta su carta original en
+            Uber Eats.
           </p>
         </header>
 

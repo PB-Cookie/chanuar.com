@@ -7,16 +7,16 @@ export default function FoodHeader({ compact = false }: { compact?: boolean }) {
         Saltar al contenido principal
       </a>
       <header className={`food-header${compact ? ' food-header--compact' : ''}`}>
-        <NavLink className="food-brand" to="/food" end aria-label="Mesa abierta, inicio">
+        <NavLink className="food-brand" to="/food" end aria-label="MenuBox, inicio">
           <span className="food-brand__mark" aria-hidden="true">
             M
           </span>
           <span>
-            <strong>Mesa abierta</strong>
+            <strong>MenuBox</strong>
             <small>El pedido de la semana</small>
           </span>
         </NavLink>
-        <nav className="food-header__nav" aria-label="Navegación de Mesa abierta">
+        <nav className="food-header__nav" aria-label="Navegación de MenuBox">
           <NavLink to="/food/options">Restaurantes</NavLink>
           <NavLink to="/food/admin">Administración</NavLink>
         </nav>

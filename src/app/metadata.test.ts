@@ -49,21 +49,21 @@ describe('route entry metadata', () => {
 
   it('ships employee metadata in the initial HTML', () => {
     const html = readEntry('food/index.html');
-    expect(html).toContain('<title>Mesa abierta — El pedido de la semana</title>');
+    expect(html).toContain('<title>MenuBox — El pedido de la semana</title>');
     expect(html).toContain('property="og:image" content="https://chanuar.com/food-og.png"');
     expect(html).not.toContain('Skinfolio');
   });
 
   it('ships private admin metadata in the initial HTML', () => {
     const html = readEntry('food/admin/index.html');
-    expect(html).toContain('<title>Administración — Mesa abierta</title>');
+    expect(html).toContain('<title>Administración — MenuBox</title>');
     expect(html).toContain('name="robots" content="noindex, nofollow"');
     expect(html).not.toContain('Skinfolio');
   });
 
   it('ships restaurant-directory metadata in the initial HTML', () => {
     const html = readEntry('food/options/index.html');
-    expect(html).toContain('<title>Restaurantes — Mesa abierta</title>');
+    expect(html).toContain('<title>Restaurantes — MenuBox</title>');
     expect(html).toContain('property="og:image" content="https://chanuar.com/food-og.png"');
     expect(html).not.toContain('Skinfolio');
   });

@@ -105,7 +105,7 @@ export function Home() {
                 </span>
                 <p>Pedidos de equipo</p>
                 <div className="portfolio-card__body">
-                  <h3 id="food-title">Mesa abierta</h3>
+                  <h3 id="food-title">MenuBox</h3>
                   <span id="food-description">
                     Una forma sencilla de reunir el pedido semanal en un solo lugar.
                   </span>

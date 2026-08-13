@@ -28,7 +28,7 @@ describe('portfolio surfaces', () => {
     expect(screen.getByRole('link', { name: 'Proyectos' })).toHaveAttribute('href', '/#proyectos');
     expect(screen.getByRole('link', { name: 'Contacto' })).toHaveAttribute('href', '/#contacto');
     expect(screen.getByRole('link', { name: /Skinfolio/ })).toHaveAttribute('href', '/skinfolio');
-    expect(screen.getByRole('link', { name: /Mesa abierta/ })).toHaveAttribute('href', '/food');
+    expect(screen.getByRole('link', { name: /MenuBox/ })).toHaveAttribute('href', '/food');
   });
 
   it('uses the portfolio shell for unknown routes', () => {

@@ -30,8 +30,14 @@ describe('portfolio surfaces', () => {
     );
     expect(screen.getByRole('link', { name: '02 Stack' })).toHaveAttribute('href', '/#tecnologias');
     expect(screen.getByRole('link', { name: '03 Contacto' })).toHaveAttribute('href', '/#contacto');
-    expect(screen.getByRole('link', { name: /Skinfolio/ })).toHaveAttribute('href', '/skinfolio');
-    expect(screen.getByRole('link', { name: /MenuBox/ })).toHaveAttribute('href', '/food');
+    expect(screen.getByRole('link', { name: /Skinfolio/ })).toHaveAttribute(
+      'href',
+      'https://skinfolio.chanuar.com',
+    );
+    expect(screen.getByRole('link', { name: /MenuBox/ })).toHaveAttribute(
+      'href',
+      'https://menubox.chanuar.com',
+    );
     expect(screen.getByText(/normaliza más de 2\.500 skins/)).toBeVisible();
     expect(screen.getByText(/horarios públicos de 14 restaurantes/)).toBeVisible();
     const technologies = screen.getByRole('list', { name: 'Tecnologías que utilizo' });

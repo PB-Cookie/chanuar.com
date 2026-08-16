@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { Link, NavLink } from 'react-router';
+import { NavLink } from 'react-router';
 import { ContactForm } from './ContactForm';
 import './portfolio.css';
 
@@ -98,9 +98,9 @@ export function Home() {
           </div>
           <div className="portfolio-project-list">
             <article className="portfolio-project">
-              <Link
+              <a
                 className="portfolio-project__link"
-                to="/skinfolio"
+                href="https://skinfolio.chanuar.com"
                 aria-labelledby="skinfolio-title"
                 aria-describedby="skinfolio-story"
               >
@@ -146,12 +146,12 @@ export function Home() {
                 <span className="portfolio-project__arrow" aria-hidden="true">
                   ↗
                 </span>
-              </Link>
+              </a>
             </article>
             <article className="portfolio-project">
-              <Link
+              <a
                 className="portfolio-project__link"
-                to="/food"
+                href="https://menubox.chanuar.com"
                 aria-labelledby="food-title"
                 aria-describedby="food-story"
               >
@@ -198,7 +198,7 @@ export function Home() {
                 <span className="portfolio-project__arrow" aria-hidden="true">
                   ↗
                 </span>
-              </Link>
+              </a>
             </article>
           </div>
         </section>

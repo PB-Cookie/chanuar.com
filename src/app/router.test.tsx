@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, Link, matchRoutes, RouterProvider } from 'react-router';
 import { routes } from './router';
 import { RouteEnvironment, type Page } from './RouteEnvironment';
-import { ErrorBoundary as FoodErrorBoundary } from '../products/food/routes/FoodLayout';
 
 afterEach(() => {
   cleanup();
@@ -12,40 +11,20 @@ afterEach(() => {
 });
 
 describe('application router', () => {
-  it.each(['/', '/skinfolio', '/food', '/food/options', '/food/admin'])(
-    'matches the public URL %s',
-    (path) => {
-      const matches = matchRoutes(routes, path);
-      expect(matches).toBeTruthy();
-      expect(matches?.some((match) => match.route.path === '*')).toBe(false);
-    },
-  );
-
-  it('nests food pages beneath the shared food route', () => {
-    expect(matchRoutes(routes, '/food/options')?.map((match) => match.route.path)).toEqual([
-      undefined,
-      'food',
-      'options',
-    ]);
+  it('matches the portfolio URL', () => {
+    const matches = matchRoutes(routes, '/');
+    expect(matches).toBeTruthy();
+    expect(matches?.some((match) => match.route.path === '*')).toBe(false);
   });
 
   it('uses the catch-all route for direct unknown loads', () => {
-    expect(matchRoutes(routes, '/missing')?.at(-1)?.route.path).toBe('*');
+    for (const path of ['/missing', '/skinfolio', '/food', '/food/options', '/food/admin']) {
+      expect(matchRoutes(routes, path)?.at(-1)?.route.path).toBe('*');
+    }
   });
 
   it.each([
     ['home', '/', 'Carlos Chanuar — Desarrollador full stack', 'portfolio-page', '#08090b', '/'],
-    [
-      'skinfolio',
-      '/skinfolio',
-      'Skinfolio — Colección de skins',
-      'skinfolio-page',
-      '#010a13',
-      '/skinfolio',
-    ],
-    ['food', '/food', 'MenuBox — El pedido de la semana', 'food-page', '#f7f1e7', '/food'],
-    ['options', '/food/options', 'Restaurantes — MenuBox', 'food-page', '#f7f1e7', '/food/options'],
-    ['admin', '/food/admin', 'Administración — MenuBox', 'food-page', '#f7f1e7', null],
     [
       'notFound',
       '/missing',
@@ -70,41 +49,20 @@ describe('application router', () => {
       await waitFor(() => expect(document.title).toBe(title));
       expect(document.body).toHaveClass(bodyClass);
       expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', theme);
-      expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(
-        page === 'skinfolio' ? 2 : 0,
-      );
+      expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonicalPath) {
         expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);
       } else {
         expect(canonical).not.toBeInTheDocument();
       }
-      if (page === 'admin' || page === 'notFound')
+      if (page === 'notFound')
         expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
           'content',
           'noindex, nofollow',
         );
     },
   );
-
-  it('announces loader failures and retries them', async () => {
-    let attempts = 0;
-    const router = createMemoryRouter([
-      {
-        path: '/',
-        loader: () => {
-          attempts += 1;
-          throw new Error('fallo de red');
-        },
-        element: <div />,
-        ErrorBoundary: FoodErrorBoundary,
-      },
-    ]);
-    render(<RouterProvider router={router} />);
-    expect(await screen.findByRole('alert')).toHaveTextContent('fallo de red');
-    await userEvent.click(screen.getByRole('button', { name: 'Volver a intentar' }));
-    await waitFor(() => expect(attempts).toBeGreaterThan(1));
-  });
 
   it('moves focus to the main content after client-side navigation', async () => {
     const router = createMemoryRouter([

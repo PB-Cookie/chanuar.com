@@ -11,41 +11,6 @@ const META = {
     image: '/portfolio-og.png',
     icon: '/favicon.svg',
   },
-  skinfolio: {
-    title: 'Skinfolio — Colección de skins',
-    description: 'Mi colección de skins de League of Legends: skins, chromas, ofertas y progreso.',
-    theme: '#010a13',
-    siteName: 'Skinfolio',
-    image:
-      'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/assets/characters/ahri/skins/skin27/images/ahri_splash_centered_27.jpg',
-    icon: '/favicon.svg',
-  },
-  food: {
-    title: 'MenuBox — El pedido de la semana',
-    description:
-      'Elige restaurante, comparte la carta y reúne el pedido semanal del equipo en un solo lugar.',
-    theme: '#f7f1e7',
-    siteName: 'MenuBox',
-    image: '/food-og.png',
-    icon: '/food-og.png',
-  },
-  options: {
-    title: 'Restaurantes — MenuBox',
-    description:
-      'Consulta los restaurantes disponibles, descubre su propuesta y abre su carta en Uber Eats.',
-    theme: '#f7f1e7',
-    siteName: 'MenuBox',
-    image: '/food-og.png',
-    icon: '/food-og.png',
-  },
-  admin: {
-    title: 'Administración — MenuBox',
-    description: 'Administración segura del pedido semanal del equipo.',
-    theme: '#f7f1e7',
-    siteName: 'MenuBox',
-    image: '/food-og.png',
-    icon: '/food-og.png',
-  },
   notFound: {
     title: 'Página no encontrada — chanuar.com',
     description: 'La página que buscas no existe.',
@@ -60,9 +25,6 @@ export type Page = keyof typeof META;
 
 const CANONICAL_PATH: Partial<Record<Page, string>> = {
   home: '/',
-  skinfolio: '/skinfolio',
-  food: '/food',
-  options: '/food/options',
 };
 
 export function RouteEnvironment() {
@@ -80,12 +42,7 @@ export function RouteEnvironment() {
 
   useEffect(() => {
     document.documentElement.lang = 'es';
-    document.body.className =
-      name === 'skinfolio'
-        ? 'skinfolio-page'
-        : name === 'home' || name === 'notFound'
-          ? 'portfolio-page'
-          : 'food-page';
+    document.body.className = 'portfolio-page';
   }, [name]);
 
   useEffect(() => {
@@ -109,45 +66,19 @@ export function RouteEnvironment() {
       <meta property="og:site_name" content={meta.siteName} />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:image" content={image} />
-      <meta
-        property="og:image:width"
-        content={name === 'skinfolio' ? '1280' : name === 'notFound' ? '64' : '1536'}
-      />
-      <meta
-        property="og:image:height"
-        content={name === 'skinfolio' ? '720' : name === 'notFound' ? '64' : '1024'}
-      />
+      <meta property="og:image:width" content={name === 'notFound' ? '64' : '1536'} />
+      <meta property="og:image:height" content={name === 'notFound' ? '64' : '1024'} />
       <meta name="twitter:card" content={name === 'notFound' ? 'summary' : 'summary_large_image'} />
       <meta name="twitter:title" content={meta.title} />
       <meta name="twitter:description" content={meta.description} />
       <meta name="twitter:image" content={image} />
-      {(name === 'admin' || name === 'notFound') && (
-        <meta name="robots" content="noindex, nofollow" />
-      )}
+      {name === 'notFound' && <meta name="robots" content="noindex, nofollow" />}
       {canonicalPath && <link rel="canonical" href={pageUrl} />}
       <link
         rel="icon"
         type={meta.icon.endsWith('.svg') ? 'image/svg+xml' : 'image/png'}
         href={meta.icon}
       />
-      {name === 'skinfolio' && (
-        <link
-          rel="preload"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-          href="/fonts/beaufort-bold.woff2"
-        />
-      )}
-      {name === 'skinfolio' && (
-        <link
-          rel="preload"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-          href="/fonts/spiegel-regular.woff2"
-        />
-      )}
       <Outlet />
     </>
   );

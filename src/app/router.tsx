@@ -13,32 +13,6 @@ export const routes: RouteObject[] = [
         Component: Home,
       },
       {
-        path: 'skinfolio',
-        handle: { page: 'skinfolio' },
-        lazy: () => import('../products/skinfolio/routes/SkinfolioRoute'),
-      },
-      {
-        path: 'food',
-        handle: { page: 'food' },
-        lazy: () => import('../products/food/routes/FoodLayout'),
-        children: [
-          {
-            index: true,
-            lazy: () => import('../products/food/routes/OrderRoute'),
-          },
-          {
-            path: 'options',
-            handle: { page: 'options' },
-            lazy: () => import('../products/food/routes/OptionsRoute'),
-          },
-          {
-            path: 'admin',
-            handle: { page: 'admin' },
-            lazy: () => import('../products/food/routes/AdminRoute'),
-          },
-        ],
-      },
-      {
         path: '*',
         handle: { page: 'notFound' },
         Component: NotFound,

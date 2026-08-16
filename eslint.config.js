@@ -15,44 +15,6 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/products/skinfolio/**/*.{ts,tsx}'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            '../food/**',
-            '../../food/**',
-            '../../../food/**',
-            '**/products/food/**',
-            '../../app/**',
-            '../../../app/**',
-            '**/app/**',
-          ],
-        },
-      ],
-    },
-  },
-  {
-    files: ['src/products/food/**/*.{ts,tsx}'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            '../skinfolio/**',
-            '../../skinfolio/**',
-            '../../../skinfolio/**',
-            '**/products/skinfolio/**',
-            '../../app/**',
-            '../../../app/**',
-            '**/app/**',
-          ],
-        },
-      ],
-    },
-  },
-  {
     files: ['vite.config.js'],
     languageOptions: { globals: { process: 'readonly' } },
   },

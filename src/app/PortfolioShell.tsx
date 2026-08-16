@@ -1,9 +1,8 @@
-import type { PropsWithChildren } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, Outlet } from 'react-router';
 import { ContactForm } from './ContactForm';
 import './portfolio.css';
 
-export function PortfolioShell({ children }: PropsWithChildren) {
+export function PortfolioShell() {
   return (
     <div className="portfolio-shell">
       <a className="portfolio-skip" href="#main-content">
@@ -20,7 +19,7 @@ export function PortfolioShell({ children }: PropsWithChildren) {
           <a href="/#contacto">03 Contacto</a>
         </nav>
       </header>
-      {children}
+      <Outlet />
       <footer id="contacto" className="portfolio-footer" aria-labelledby="contact-title">
         <div className="portfolio-contact__intro">
           <p className="portfolio-label">03 / Contacto</p>

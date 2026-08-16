@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, Link, matchRoutes, RouterProvider } from 'react-router';
 import { routes } from './router';
 import { RouteEnvironment, type Page } from './RouteEnvironment';
+import { RouteError } from './RouteError';
+
+afterEach(() => vi.restoreAllMocks());
 
 describe('application router', () => {
   it('matches the portfolio URL', () => {
@@ -16,6 +19,21 @@ describe('application router', () => {
     for (const path of ['/missing', '/skinfolio', '/food', '/food/options', '/food/admin']) {
       expect(matchRoutes(routes, path)?.at(-1)?.route.path).toBe('*');
     }
+  });
+
+  it('shows a safe fallback when a route fails to render', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    function BrokenRoute(): never {
+      throw new Error('private error details');
+    }
+    const router = createMemoryRouter([
+      { path: '/', Component: BrokenRoute, ErrorBoundary: RouteError },
+    ]);
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole('heading', { name: 'Algo salió mal.' })).toBeVisible();
+    expect(screen.queryByText('private error details')).not.toBeInTheDocument();
   });
 
   it.each([

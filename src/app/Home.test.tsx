@@ -1,17 +1,16 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { Home } from './Home';
-import { NotFound } from './NotFound';
+import { routes } from './router';
 
-function renderPage(Component: typeof Home) {
-  const router = createMemoryRouter([{ path: '*', Component }]);
+function renderPage(path: string) {
+  const router = createMemoryRouter(routes, { initialEntries: [path] });
   render(<RouterProvider router={router} />);
 }
 
 describe('portfolio surfaces', () => {
   it('presents the owner, contact links, and both projects', () => {
-    renderPage(Home);
+    renderPage('/');
 
     expect(screen.getByRole('heading', { name: 'Carlos Alberto Chanuar Martínez' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
@@ -45,7 +44,7 @@ describe('portfolio surfaces', () => {
   });
 
   it('uses the portfolio shell for unknown routes', () => {
-    renderPage(NotFound);
+    renderPage('/missing');
 
     expect(screen.getByRole('heading', { name: 'Esta página no existe.' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Volver al portfolio' })).toHaveAttribute('href', '/');

@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { PortfolioShell } from './Home';
+import { PortfolioShell } from './PortfolioShell';
 
 export function NotFound() {
   return (

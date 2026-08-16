@@ -1,56 +1,54 @@
-# chanuar.com
+# chanuar.com 👋
 
-The personal portfolio of Carlos Alberto Chanuar Martínez, a full-stack
-developer focused on accessible interfaces, reliable application architecture,
-and practical products. The website interface is currently available in
-Spanish.
+This is my portfolio — the place where I share what I build, how I approach software, and the kind of problems I enjoy solving.
 
-## Features
+I'm a full-stack developer who enjoys building different and interesting things, exploring new technologies n ideas and learning along the way. The website is currently available in Spanish (working on it!).
 
-- Introduces my background, current focus, and technical experience.
-- Presents product case studies with their goals, architecture, and technology.
-- Provides an accessible, responsive interface with keyboard navigation,
-  reduced-motion support, and a dedicated 404 page.
-- Includes a contact form powered by EmailJS with a direct-email fallback.
-- Publishes canonical metadata, social previews, a sitemap, and structured data
-  for the portfolio identity.
+## ✨ What's inside
 
-## Projects
+- A bit about me, what I'm working on, and my technical background.
+- Some of the products I've built, including their goals, architecture, and tech stack.
+- A contact form powered by EmailJS, with direct email as a fallback.
+- Canonical metadata, social previews, a sitemap, and structured data.
 
-| Project   | Description                                                              | Repository                                                |
-| --------- | ------------------------------------------------------------------------ | --------------------------------------------------------- |
-| Skinfolio | A League of Legends cosmetic collection and progression dashboard.       | [chanuar/skinfolio](https://github.com/chanuar/skinfolio) |
-| MenuBox   | A weekly team-ordering application with public and administrative flows. | [chanuar/MenuBox](https://github.com/chanuar/MenuBox)     |
+## 🚀 Projects
 
-Skinfolio and MenuBox are developed and versioned independently. This
-repository remains the canonical source for the portfolio.
+| Project       | What is it?                                                              | Repository                                                |
+| ------------- | ------------------------------------------------------------------------ | --------------------------------------------------------- |
+| **Skinfolio** | A League of Legends cosmetic collection and progression dashboard.       | [chanuar/skinfolio](https://github.com/chanuar/skinfolio) |
+| **MenuBox**   | A weekly team-ordering application with public and administrative flows. | [chanuar/MenuBox](https://github.com/chanuar/MenuBox)     |
 
-## Repository status
+Skinfolio and MenuBox now live in their own repositories and are developed and versioned independently.
 
-The repository still contains temporary legacy copies of Skinfolio and MenuBox
-under `src/products/` while their old portfolio routes remain available during
-the production migration. New product work belongs in the standalone
-repositories linked above. The legacy copies will be removed after the new
-domains and permanent redirects complete their acceptance checks.
+This repository is just for **chanuar.com**.
 
-## Tech stack
+## 🚧 Repository status
+
+I'm still working on it, translating everything and adding more content. Also want to try using gsap/three.js for some animations and transitions.
+
+## 🛠️ Tech stack
 
 - React 19
 - React Router 7
 - TypeScript
 - Vite
 - EmailJS
-- Vitest and Testing Library
-- ESLint, Prettier, Husky, and lint-staged
+- Vitest
+- Testing Library
+- ESLint
+- Prettier
+- Husky
+- lint-staged
 
-## Getting started
+## 💻 Running it locally
 
 ### Requirements
 
-- Node.js 20.19 or newer. Node 22 is the repository default.
+- Node.js 20.19 or newer
+- Node 22 is the repository default
 - npm
 
-### Setup
+Clone the repository and install the dependencies:
 
 ```bash
 git clone https://github.com/chanuar/chanuar.com.git
@@ -58,8 +56,7 @@ cd chanuar.com
 npm ci
 ```
 
-Copy `.env.example` to `.env` and provide the browser-safe EmailJS values to
-enable the contact form:
+Copy `.env.example` to `.env` and add the browser-safe EmailJS values if you want the contact form to work:
 
 ```dotenv
 VITE_EMAILJS_SERVICE_ID=service_...
@@ -67,67 +64,57 @@ VITE_EMAILJS_TEMPLATE_ID=template_...
 VITE_EMAILJS_PUBLIC_KEY=...
 ```
 
-The temporary legacy product routes additionally read these Supabase values:
+The temporary legacy product routes also use these Supabase values:
 
 ```dotenv
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-Never add service-role credentials, database passwords, access tokens, or
-administrator identifiers to `.env`.
+Keep secrets out of `.env`.
 
-Start the development server:
+That means no service-role credentials, database passwords, access tokens, or administrator identifiers.
+
+Then start the development server:
 
 ```bash
 npm run dev
 ```
 
-## Available scripts
+## 🧪 Scripts
 
-| Command                | Description                               |
-| ---------------------- | ----------------------------------------- |
-| `npm run dev`          | Start the Vite development server.        |
-| `npm run build`        | Type-check and create a production build. |
-| `npm run preview`      | Preview the production build locally.     |
-| `npm run lint`         | Run ESLint with zero warnings allowed.    |
-| `npm run format`       | Format supported files with Prettier.     |
-| `npm run format:check` | Check formatting without changing files.  |
-| `npm run typecheck`    | Run strict TypeScript checks.             |
-| `npm test`             | Run the Vitest suite once.                |
-| `npm run test:watch`   | Run Vitest in watch mode.                 |
+| Command                | What it does                                          |
+| ---------------------- | ----------------------------------------------------- |
+| `npm run dev`          | Start the Vite development server.                    |
+| `npm run build`        | Type-check the project and create a production build. |
+| `npm run preview`      | Preview the production build locally.                 |
+| `npm run lint`         | Run ESLint with zero warnings allowed.                |
+| `npm run format`       | Format supported files with Prettier.                 |
+| `npm run format:check` | Check formatting without changing files.              |
+| `npm run typecheck`    | Run strict TypeScript checks.                         |
+| `npm test`             | Run the Vitest suite once.                            |
+| `npm run test:watch`   | Run Vitest in watch mode.                             |
 
-## Project structure
+Git hooks also run lint-staged checks before commits and the type-check and test suite before pushes.
+
+## 📁 Structure
 
 ```text
 src/
-├── app/                  # Portfolio, application shell, routing, metadata, and 404 UI
-├── products/             # Temporary legacy product copies pending final migration cleanup
-├── shared/               # Concrete configuration shared by the legacy product routes
+├── app/                  # Portfolio shell, routing, metadata, pages, and 404 UI
 └── test/                 # Shared test setup
-public/                   # Portfolio assets, robots.txt, sitemap.xml, and route rewrites
+
+public/                   # Assets, robots.txt, sitemap.xml, and route rewrites
 ```
 
-The portfolio shell and styles live in `src/app/`. Product code must not import
-from the portfolio application or from another product.
+The portfolio itself lives in `src/app/`.
 
-## Contributing
+Product code is intentionally kept separate: it shouldn't import from the portfolio application or from another product.
 
-Before opening a pull request, run:
+## 📬 Say hi
 
-```bash
-npm run lint
-npm run format:check
-npm run typecheck
-npm test
-npm run build
-```
+If you want to talk about a project, software, League of Legends, or just say hello:
 
-Git hooks run lint-staged checks before commits and the type-check and test
-suite before pushes.
-
-## Contact
-
-- Email: [carlos@chanuar.com](mailto:carlos@chanuar.com)
-- GitHub: [@chanuar](https://github.com/chanuar)
-- LinkedIn: [Carlos Chanuar Martínez](https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/)
+- [carlos@chanuar.com](mailto:carlos@chanuar.com)
+- [GitHub — @chanuar](https://github.com/chanuar)
+- [LinkedIn — Carlos Chanuar Martínez](https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/)

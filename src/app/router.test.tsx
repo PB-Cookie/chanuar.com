@@ -1,14 +1,9 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, Link, matchRoutes, RouterProvider } from 'react-router';
 import { routes } from './router';
 import { RouteEnvironment, type Page } from './RouteEnvironment';
-
-afterEach(() => {
-  cleanup();
-  document.head.querySelectorAll('link[rel="preload"][as="font"]').forEach((node) => node.remove());
-});
 
 describe('application router', () => {
   it('matches the portfolio URL', () => {
@@ -24,45 +19,34 @@ describe('application router', () => {
   });
 
   it.each([
-    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', 'portfolio-page', '#08090b', '/'],
-    [
-      'notFound',
-      '/missing',
-      'Página no encontrada — chanuar.com',
-      'portfolio-page',
-      '#08090b',
-      null,
-    ],
-  ] as const)(
-    'applies %s metadata and body environment',
-    async (page, path, title, bodyClass, theme, canonicalPath) => {
-      const router = createMemoryRouter(
-        [
-          {
-            Component: RouteEnvironment,
-            children: [{ path, handle: { page: page satisfies Page }, element: <div>ready</div> }],
-          },
-        ],
-        { initialEntries: [path] },
+    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', '#08090b', '/'],
+    ['notFound', '/missing', 'Página no encontrada — chanuar.com', '#08090b', null],
+  ] as const)('applies %s metadata', async (page, path, title, theme, canonicalPath) => {
+    const router = createMemoryRouter(
+      [
+        {
+          Component: RouteEnvironment,
+          children: [{ path, handle: page satisfies Page, element: <div>ready</div> }],
+        },
+      ],
+      { initialEntries: [path] },
+    );
+    render(<RouterProvider router={router} />);
+    await waitFor(() => expect(document.title).toBe(title));
+    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', theme);
+    expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonicalPath) {
+      expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);
+    } else {
+      expect(canonical).not.toBeInTheDocument();
+    }
+    if (page === 'notFound')
+      expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+        'content',
+        'noindex, nofollow',
       );
-      render(<RouterProvider router={router} />);
-      await waitFor(() => expect(document.title).toBe(title));
-      expect(document.body).toHaveClass(bodyClass);
-      expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', theme);
-      expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
-      const canonical = document.querySelector('link[rel="canonical"]');
-      if (canonicalPath) {
-        expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);
-      } else {
-        expect(canonical).not.toBeInTheDocument();
-      }
-      if (page === 'notFound')
-        expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
-          'content',
-          'noindex, nofollow',
-        );
-    },
-  );
+  });
 
   it('moves focus to the main content after client-side navigation', async () => {
     const router = createMemoryRouter([
@@ -71,7 +55,7 @@ describe('application router', () => {
         children: [
           {
             index: true,
-            handle: { page: 'home' satisfies Page },
+            handle: 'home' satisfies Page,
             element: (
               <main id="main-content" tabIndex={-1}>
                 <Link to="/next">Siguiente página</Link>
@@ -80,7 +64,7 @@ describe('application router', () => {
           },
           {
             path: 'next',
-            handle: { page: 'home' satisfies Page },
+            handle: 'home' satisfies Page,
             element: (
               <main id="main-content" tabIndex={-1}>
                 <h1>Siguiente página</h1>

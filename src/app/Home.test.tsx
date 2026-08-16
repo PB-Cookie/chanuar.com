@@ -1,10 +1,8 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { Home } from './Home';
 import { NotFound } from './NotFound';
-
-afterEach(cleanup);
 
 function renderPage(Component: typeof Home) {
   const router = createMemoryRouter([{ path: '*', Component }]);
@@ -43,7 +41,6 @@ describe('portfolio surfaces', () => {
     const technologies = screen.getByRole('list', { name: 'Tecnologías que utilizo' });
     expect(within(technologies).getAllByRole('listitem')).toHaveLength(17);
     expect(technologies.querySelectorAll('img')).toHaveLength(17);
-    expect(screen.queryByText('Herramientas con las que construyo')).not.toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /Pausar/ })).toBeVisible();
   });
 

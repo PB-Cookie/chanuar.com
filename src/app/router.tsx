@@ -1,7 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { Home } from './Home';
 import { NotFound } from './NotFound';
-import { RouteEnvironment } from './RouteEnvironment';
+import { RouteEnvironment, type Page } from './RouteEnvironment';
 
 export const routes: RouteObject[] = [
   {
@@ -9,12 +9,12 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        handle: { page: 'home' },
+        handle: 'home' satisfies Page,
         Component: Home,
       },
       {
         path: '*',
-        handle: { page: 'notFound' },
+        handle: 'notFound' satisfies Page,
         Component: NotFound,
       },
     ],

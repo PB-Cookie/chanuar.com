@@ -37,8 +37,8 @@ describe('application router', () => {
   });
 
   it.each([
-    ['home', '/', 'Carlos Chanuar — Desarrollador full stack', '#08090b', '/'],
-    ['notFound', '/missing', 'Página no encontrada — chanuar.com', '#08090b', null],
+    ['home', '/', 'Carlos Chanuar', '#08090b', '/'],
+    ['notFound', '/missing', 'Página no encontrada - chanuar.com', '#08090b', null],
   ] as const)('applies %s metadata', async (page, path, title, theme, canonicalPath) => {
     const router = createMemoryRouter(
       [

@@ -3,7 +3,7 @@ import { Outlet, useLocation, useMatches } from 'react-router';
 
 const META = {
   home: {
-    title: 'Carlos Chanuar — Desarrollador full stack',
+    title: 'Carlos Chanuar',
     description:
       'Portfolio de Carlos Alberto Chanuar Martínez, desarrollador full stack. Proyectos web y formas de contacto.',
     image: '/portfolio-og.png',

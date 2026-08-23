@@ -56,7 +56,7 @@ describe('portfolio surfaces', () => {
     const user = userEvent.setup();
     renderPage('/');
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Idioma' }), 'en');
+    await user.click(screen.getByRole('radio', { name: 'EN' }));
 
     expect(screen.getByText('Full-stack developer')).toBeVisible();
     expect(screen.getByRole('link', { name: '01 Projects' })).toBeVisible();

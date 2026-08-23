@@ -22,15 +22,31 @@ export function PortfolioShell() {
             <a href="/#tecnologias">{t('shell.stack')}</a>
             <a href="/#contacto">{t('shell.contact')}</a>
           </nav>
-          <select
-            className="portfolio-language"
-            aria-label={t('language')}
-            value={i18n.resolvedLanguage ?? 'es'}
-            onChange={(event) => void i18n.changeLanguage(event.currentTarget.value)}
-          >
-            <option value="es">ES</option>
-            <option value="en">EN</option>
-          </select>
+          <fieldset className="portfolio-language">
+            <legend className="portfolio-visually-hidden">{t('language')}</legend>
+            <label>
+              <input
+                className="portfolio-visually-hidden"
+                type="radio"
+                name="language"
+                value="es"
+                checked={i18n.resolvedLanguage === 'es'}
+                onChange={() => void i18n.changeLanguage('es')}
+              />
+              <span>ES</span>
+            </label>
+            <label>
+              <input
+                className="portfolio-visually-hidden"
+                type="radio"
+                name="language"
+                value="en"
+                checked={i18n.resolvedLanguage === 'en'}
+                onChange={() => void i18n.changeLanguage('en')}
+              />
+              <span>EN</span>
+            </label>
+          </fieldset>
         </div>
       </header>
       <Outlet />

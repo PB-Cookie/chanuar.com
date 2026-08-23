@@ -110,15 +110,54 @@ body.portfolio-page * {
   }
 
   .portfolio-language {
-    min-height: 44px;
+    position: relative;
+    width: 90px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     border: 1px solid var(--portfolio-line);
-    color: var(--portfolio-text);
-    background: var(--portfolio-bg);
+    background: var(--portfolio-surface);
+    isolation: isolate;
     font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .portfolio-language::before {
+    position: absolute;
+    inset: 3px auto 3px 3px;
+    z-index: -1;
+    width: calc(50% - 3px);
+    background: var(--portfolio-accent);
+    content: '';
+    transition: transform 180ms ease;
+  }
+
+  .portfolio-language:has(input[value='en']:checked)::before {
+    transform: translateX(100%);
+  }
+
+  .portfolio-language:has(input:focus-visible) {
+    outline: 3px solid var(--portfolio-accent);
+    outline-offset: 4px;
   }
 
   .portfolio-language:hover {
     border-color: var(--portfolio-accent);
+  }
+
+  .portfolio-language label {
+    display: grid;
+    place-items: center;
+    color: var(--portfolio-muted);
+    cursor: pointer;
+  }
+
+  .portfolio-language input:checked + span {
+    color: var(--portfolio-bg);
   }
 
   .portfolio-header nav a,
@@ -910,6 +949,7 @@ body.portfolio-page * {
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .portfolio-language::before,
     .portfolio-button,
     .portfolio-project__link,
     .portfolio-project__arrow {

@@ -30,7 +30,7 @@ describe('route entry metadata', () => {
 
   it('ships a noindex portfolio-styled direct 404', () => {
     const html = readEntry('404.html');
-    expect(html).toContain('<title>Página no encontrada — chanuar.com</title>');
+    expect(html).toContain('<title>Página no encontrada - chanuar.com</title>');
     expect(html).toContain('name="robots" content="noindex, nofollow"');
     expect(html).toContain('<body class="portfolio-page">');
   });

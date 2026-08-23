@@ -1,0 +1,74 @@
+{
+  "language": "Language",
+  "shell": {
+    "skip": "Skip to content",
+    "home": "chanuar.com, home",
+    "navigation": "Main navigation",
+    "projects": "01 Projects",
+    "stack": "02 Stack",
+    "contact": "03 Contact",
+    "contactLabel": "03 / Contact",
+    "contactTitle": "Contact me",
+    "contactCopy": "Send me a message through the form or email me."
+  },
+  "home": {
+    "profileLabel": "00 / Profile",
+    "role": "Full-stack developer",
+    "areas": "Interfaces · Data · Product",
+    "summary": "I design and build complete web applications, from interface to backend.",
+    "explore": "Explore work",
+    "projectsLabel": "01 / Selected projects",
+    "projectsTitle": "Projects",
+    "projectCount": "02 projects",
+    "inUse": "In use",
+    "challenge": "The challenge",
+    "response": "The response",
+    "skinfolio": {
+      "subtitle": "Personal collection · App + collector",
+      "challenge": "Understand a growing collection without getting lost among skins and chromas.",
+      "response": "A personal catalogue combining ownership, offers, and progress in one place.",
+      "pipelineLabel": "The collector",
+      "pipeline": "A local Node.js process reads the League Client API, normalizes over 2,500 skins, and syncs ownership, chromas, mastery, and new acquisitions.",
+      "flowSource": "League Client"
+    },
+    "menubox": {
+      "subtitle": "Team orders · App + scraper",
+      "challenge": "Coordinate a weekly group order without losing anyone's choices.",
+      "response": "A shared flow to choose a restaurant, review selections, and collect the order.",
+      "pipelineLabel": "The scraper",
+      "pipeline": "A Python and Playwright CLI extracts public menus and opening hours from 14 restaurants, validates each catalogue, and publishes it atomically.",
+      "flowSource": "Public menus"
+    },
+    "technologiesLabel": "02 / Stack",
+    "technologiesTitle": "Technologies",
+    "pause": "Pause",
+    "resume": "Resume",
+    "technologiesList": "Technologies I use"
+  },
+  "contactForm": {
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "unavailable": "The form is currently unavailable. You can email me instead.",
+    "success": "Message sent. I'll get back to you soon.",
+    "error": "The message could not be sent. Try again or use email.",
+    "sending": "Sending…",
+    "submit": "Send message"
+  },
+  "notFound": {
+    "title": "This page does not exist.",
+    "description": "The address may have changed or the page may never have existed.",
+    "action": "Back to portfolio"
+  },
+  "routeError": {
+    "metaTitle": "Something went wrong - chanuar.com",
+    "title": "Something went wrong.",
+    "description": "This page could not be loaded.",
+    "action": "Back to portfolio"
+  },
+  "metadata": {
+    "homeDescription": "Portfolio of Carlos Alberto Chanuar Martínez, full-stack developer.",
+    "notFoundTitle": "Page not found - chanuar.com",
+    "notFoundDescription": "The page you are looking for does not exist."
+  }
+}

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 const TECHNOLOGIES = [
   ['PostgreSQL', 'postgresql/postgresql-original.svg'],
   ['Next.js', 'nextjs/nextjs-original.svg'],
@@ -19,32 +21,34 @@ const TECHNOLOGIES = [
 ];
 
 export function Home() {
+  const { t } = useTranslation();
+
   return (
     <main id="main-content" className="portfolio-main" tabIndex={-1}>
       <section className="portfolio-hero" aria-labelledby="portfolio-title">
         <div className="portfolio-hero__meta">
-          <p className="portfolio-label">00 / Perfil</p>
-          <p>Desarrollador full stack</p>
-          <p>Interfaces · Datos · Producto</p>
+          <p className="portfolio-label">{t('home.profileLabel')}</p>
+          <p>{t('home.role')}</p>
+          <p>{t('home.areas')}</p>
         </div>
         <h1 id="portfolio-title">
           <span>Carlos Alberto</span> <span>Chanuar Martínez</span>
         </h1>
         <div className="portfolio-hero__summary">
-          <p>Diseño y desarrollo aplicaciones web completas, de la interfaz al backend.</p>
+          <p>{t('home.summary')}</p>
           <a className="portfolio-button" href="#proyectos">
-            Explorar trabajo <span aria-hidden="true">↓</span>
+            {t('home.explore')} <span aria-hidden="true">↓</span>
           </a>
         </div>
       </section>
 
       <section id="proyectos" className="portfolio-projects" aria-labelledby="projects-title">
         <div className="portfolio-section-heading">
-          <p className="portfolio-label">01 / Proyectos seleccionados</p>
+          <p className="portfolio-label">{t('home.projectsLabel')}</p>
           <h2 id="projects-title" className="portfolio-visually-hidden">
-            Proyectos
+            {t('home.projectsTitle')}
           </h2>
-          <span>02 proyectos</span>
+          <span>{t('home.projectCount')}</span>
         </div>
         <div className="portfolio-project-list">
           <article className="portfolio-project">
@@ -58,36 +62,29 @@ export function Home() {
                 01
               </span>
               <div className="portfolio-project__title">
-                <p>Colección personal · App + collector</p>
+                <p>{t('home.skinfolio.subtitle')}</p>
                 <h3 id="skinfolio-title">Skinfolio</h3>
               </div>
-              <span className="portfolio-project__status">En uso</span>
+              <span className="portfolio-project__status">{t('home.inUse')}</span>
               <div id="skinfolio-story" className="portfolio-project__story">
                 <div>
-                  <p className="portfolio-label">El reto</p>
-                  <p className="portfolio-project__copy">
-                    Entender una colección creciente sin perderse entre skins y chromas.
-                  </p>
+                  <p className="portfolio-label">{t('home.challenge')}</p>
+                  <p className="portfolio-project__copy">{t('home.skinfolio.challenge')}</p>
                 </div>
                 <div>
-                  <p className="portfolio-label">La respuesta</p>
-                  <p className="portfolio-project__copy">
-                    Un catálogo personal con propiedad, ofertas y progreso en un solo lugar.
-                  </p>
+                  <p className="portfolio-label">{t('home.response')}</p>
+                  <p className="portfolio-project__copy">{t('home.skinfolio.response')}</p>
                 </div>
                 <div className="portfolio-project__pipeline">
-                  <p className="portfolio-label">El collector</p>
-                  <p className="portfolio-project__copy">
-                    Un proceso local en Node.js lee la API del cliente de League, normaliza más de
-                    2.500 skins y sincroniza propiedad, chromas, maestría y nuevas adquisiciones.
-                  </p>
+                  <p className="portfolio-label">{t('home.skinfolio.pipelineLabel')}</p>
+                  <p className="portfolio-project__copy">{t('home.skinfolio.pipeline')}</p>
                   <p className="portfolio-project__flow">
-                    Cliente de League <span aria-hidden="true">→</span> Node.js{' '}
+                    {t('home.skinfolio.flowSource')} <span aria-hidden="true">→</span> Node.js{' '}
                     <span aria-hidden="true">→</span> Supabase
                   </p>
                 </div>
               </div>
-              <ul className="portfolio-tags" aria-label="Tecnologías">
+              <ul className="portfolio-tags" aria-label={t('home.technologiesTitle')}>
                 <li>React</li>
                 <li>TypeScript</li>
                 <li>Node.js</li>
@@ -109,36 +106,29 @@ export function Home() {
                 02
               </span>
               <div className="portfolio-project__title">
-                <p>Pedidos de equipo · App + scraper</p>
+                <p>{t('home.menubox.subtitle')}</p>
                 <h3 id="food-title">MenuBox</h3>
               </div>
-              <span className="portfolio-project__status">En uso</span>
+              <span className="portfolio-project__status">{t('home.inUse')}</span>
               <div id="food-story" className="portfolio-project__story">
                 <div>
-                  <p className="portfolio-label">El reto</p>
-                  <p className="portfolio-project__copy">
-                    Coordinar el pedido semanal de varias personas sin perder elecciones.
-                  </p>
+                  <p className="portfolio-label">{t('home.challenge')}</p>
+                  <p className="portfolio-project__copy">{t('home.menubox.challenge')}</p>
                 </div>
                 <div>
-                  <p className="portfolio-label">La respuesta</p>
-                  <p className="portfolio-project__copy">
-                    Un flujo compartido para elegir restaurante, revisar y reunir el pedido.
-                  </p>
+                  <p className="portfolio-label">{t('home.response')}</p>
+                  <p className="portfolio-project__copy">{t('home.menubox.response')}</p>
                 </div>
                 <div className="portfolio-project__pipeline">
-                  <p className="portfolio-label">El scraper</p>
-                  <p className="portfolio-project__copy">
-                    Un CLI en Python y Playwright extrae menús y horarios públicos de 14
-                    restaurantes, valida cada catálogo y lo publica de forma atómica.
-                  </p>
+                  <p className="portfolio-label">{t('home.menubox.pipelineLabel')}</p>
+                  <p className="portfolio-project__copy">{t('home.menubox.pipeline')}</p>
                   <p className="portfolio-project__flow">
-                    Menús públicos <span aria-hidden="true">→</span> Python + Playwright{' '}
-                    <span aria-hidden="true">→</span> Supabase
+                    {t('home.menubox.flowSource')} <span aria-hidden="true">→</span> Python +
+                    Playwright <span aria-hidden="true">→</span> Supabase
                   </p>
                 </div>
               </div>
-              <ul className="portfolio-tags" aria-label="Tecnologías">
+              <ul className="portfolio-tags" aria-label={t('home.technologiesTitle')}>
                 <li>React</li>
                 <li>TypeScript</li>
                 <li>Python</li>
@@ -159,14 +149,14 @@ export function Home() {
         aria-labelledby="technologies-title"
       >
         <div className="portfolio-technologies__heading">
-          <p className="portfolio-label">02 / Stack</p>
+          <p className="portfolio-label">{t('home.technologiesLabel')}</p>
           <h2 id="technologies-title" className="portfolio-visually-hidden">
-            Tecnologías
+            {t('home.technologiesTitle')}
           </h2>
           <label className="portfolio-technologies__toggle">
             <input type="checkbox" />
-            <span className="portfolio-technologies__pause">Pausar</span>
-            <span className="portfolio-technologies__resume">Reanudar</span>
+            <span className="portfolio-technologies__pause">{t('home.pause')}</span>
+            <span className="portfolio-technologies__resume">{t('home.resume')}</span>
             <span className="portfolio-technologies__pause-icon" aria-hidden="true">
               Ⅱ
             </span>
@@ -177,7 +167,7 @@ export function Home() {
         </div>
         <div className="portfolio-technologies__viewport">
           <div className="portfolio-technologies__track">
-            <ul aria-label="Tecnologías que utilizo">
+            <ul aria-label={t('home.technologiesList')}>
               {TECHNOLOGIES.map(([name, icon]) => (
                 <li key={name}>
                   <img

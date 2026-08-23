@@ -1,27 +1,26 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useMatches } from 'react-router';
 
-const META = {
-  home: {
-    title: 'Carlos Chanuar',
-    description:
-      'Portfolio de Carlos Alberto Chanuar Martínez, desarrollador full stack. Proyectos web y formas de contacto.',
-    image: '/portfolio-og.png',
-  },
-  notFound: {
-    title: 'Página no encontrada — chanuar.com',
-    description: 'La página que buscas no existe.',
-    image: '/favicon.svg',
-  },
-} as const;
-
-export type Page = keyof typeof META;
+export type Page = 'home' | 'notFound';
 
 export function RouteEnvironment() {
+  const { i18n, t } = useTranslation();
   const matches = useMatches();
   const location = useLocation();
   const name = (matches.at(-1)?.handle as Page | undefined) ?? 'notFound';
-  const meta = META[name];
+  const meta = {
+    home: {
+      title: 'Carlos Chanuar',
+      description: t('metadata.homeDescription'),
+      image: '/portfolio-og.png',
+    },
+    notFound: {
+      title: t('metadata.notFoundTitle'),
+      description: t('metadata.notFoundDescription'),
+      image: '/favicon.svg',
+    },
+  }[name];
   const image = new URL(meta.image, window.location.origin).href;
   const canonicalPath = name === 'home' ? '/' : undefined;
   const pageUrl = new URL(canonicalPath ?? location.pathname, window.location.origin).href;
@@ -44,7 +43,7 @@ export function RouteEnvironment() {
       <meta property="og:title" content={meta.title} />
       <meta property="og:description" content={meta.description} />
       <meta property="og:type" content="website" />
-      <meta property="og:locale" content="es_ES" />
+      <meta property="og:locale" content={i18n.resolvedLanguage === 'en' ? 'en_US' : 'es_ES'} />
       <meta property="og:site_name" content="chanuar.com" />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:image" content={image} />

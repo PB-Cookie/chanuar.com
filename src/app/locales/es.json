@@ -1,0 +1,74 @@
+{
+  "language": "Idioma",
+  "shell": {
+    "skip": "Saltar al contenido",
+    "home": "chanuar.com, inicio",
+    "navigation": "Navegación principal",
+    "projects": "01 Proyectos",
+    "stack": "02 Stack",
+    "contact": "03 Contacto",
+    "contactLabel": "03 / Contacto",
+    "contactTitle": "Contáctame",
+    "contactCopy": "Envíame un mensaje a través del formulario o escríbeme por email."
+  },
+  "home": {
+    "profileLabel": "00 / Perfil",
+    "role": "Desarrollador full stack",
+    "areas": "Interfaces · Datos · Producto",
+    "summary": "Diseño y desarrollo aplicaciones web completas, de la interfaz al backend.",
+    "explore": "Explorar trabajo",
+    "projectsLabel": "01 / Proyectos seleccionados",
+    "projectsTitle": "Proyectos",
+    "projectCount": "02 proyectos",
+    "inUse": "En uso",
+    "challenge": "El reto",
+    "response": "La respuesta",
+    "skinfolio": {
+      "subtitle": "Colección personal · App + collector",
+      "challenge": "Entender una colección creciente sin perderse entre skins y chromas.",
+      "response": "Un catálogo personal con propiedad, ofertas y progreso en un solo lugar.",
+      "pipelineLabel": "El collector",
+      "pipeline": "Un proceso local en Node.js lee la API del cliente de League, normaliza más de 2.500 skins y sincroniza propiedad, chromas, maestría y nuevas adquisiciones.",
+      "flowSource": "Cliente de League"
+    },
+    "menubox": {
+      "subtitle": "Pedidos de equipo · App + scraper",
+      "challenge": "Coordinar el pedido semanal de varias personas sin perder elecciones.",
+      "response": "Un flujo compartido para elegir restaurante, revisar y reunir el pedido.",
+      "pipelineLabel": "El scraper",
+      "pipeline": "Un CLI en Python y Playwright extrae menús y horarios públicos de 14 restaurantes, valida cada catálogo y lo publica de forma atómica.",
+      "flowSource": "Menús públicos"
+    },
+    "technologiesLabel": "02 / Stack",
+    "technologiesTitle": "Tecnologías",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "technologiesList": "Tecnologías que utilizo"
+  },
+  "contactForm": {
+    "name": "Nombre",
+    "email": "Email",
+    "message": "Mensaje",
+    "unavailable": "El formulario no está disponible ahora. Puedes escribirme por email.",
+    "success": "Mensaje enviado. Te responderé pronto.",
+    "error": "No se pudo enviar. Inténtalo de nuevo o usa el email.",
+    "sending": "Enviando…",
+    "submit": "Enviar mensaje"
+  },
+  "notFound": {
+    "title": "Esta página no existe.",
+    "description": "Puede que la dirección haya cambiado o que nunca haya estado aquí.",
+    "action": "Volver al portfolio"
+  },
+  "routeError": {
+    "metaTitle": "Algo salió mal - chanuar.com",
+    "title": "Algo salió mal.",
+    "description": "No se pudo cargar esta página.",
+    "action": "Volver al portfolio"
+  },
+  "metadata": {
+    "homeDescription": "Portfolio de Carlos Alberto Chanuar Martínez, desarrollador full stack. Proyectos web y formas de contacto.",
+    "notFoundTitle": "Página no encontrada - chanuar.com",
+    "notFoundDescription": "La página que buscas no existe."
+  }
+}

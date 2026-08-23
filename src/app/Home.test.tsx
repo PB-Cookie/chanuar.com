@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { routes } from './router';
@@ -49,5 +50,20 @@ describe('portfolio surfaces', () => {
     expect(screen.getByRole('heading', { name: 'Esta página no existe.' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Volver al portfolio' })).toHaveAttribute('href', '/');
     expect(document.querySelector('.portfolio-shell')).toBeInTheDocument();
+  });
+
+  it('switches the interface and metadata to English', async () => {
+    const user = userEvent.setup();
+    renderPage('/');
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Idioma' }), 'en');
+
+    expect(screen.getByText('Full-stack developer')).toBeVisible();
+    expect(screen.getByRole('link', { name: '01 Projects' })).toBeVisible();
+    expect(document.documentElement).toHaveAttribute('lang', 'en');
+    expect(document.querySelector('meta[property="og:locale"]')).toHaveAttribute(
+      'content',
+      'en_US',
+    );
   });
 });

@@ -103,6 +103,24 @@ body.portfolio-page * {
     gap: clamp(8px, 2vw, 30px);
   }
 
+  .portfolio-header__actions {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 2vw, 24px);
+  }
+
+  .portfolio-language {
+    min-height: 44px;
+    border: 1px solid var(--portfolio-line);
+    color: var(--portfolio-text);
+    background: var(--portfolio-bg);
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  }
+
+  .portfolio-language:hover {
+    border-color: var(--portfolio-accent);
+  }
+
   .portfolio-header nav a,
   .portfolio-footer__meta a {
     display: inline-flex;
@@ -766,6 +784,13 @@ body.portfolio-page * {
   @media (max-width: 640px) {
     .portfolio-header {
       min-height: 66px;
+      padding-block: 8px;
+      grid-template-columns: 1fr;
+    }
+
+    .portfolio-header__actions {
+      width: 100%;
+      justify-content: space-between;
     }
 
     .portfolio-brand > span:last-child {
@@ -779,8 +804,18 @@ body.portfolio-page * {
     }
 
     .portfolio-header nav a {
-      padding-inline: 6px;
-      font-size: 0.66rem;
+      padding-inline: 3px;
+      font-size: 0.62rem;
+    }
+
+    .portfolio-header__actions {
+      gap: 4px;
+    }
+
+    .portfolio-projects,
+    .portfolio-technologies,
+    .portfolio-footer {
+      scroll-margin-top: 112px;
     }
 
     .portfolio-hero {

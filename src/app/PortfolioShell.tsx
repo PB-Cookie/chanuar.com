@@ -49,7 +49,7 @@ export function PortfolioShell() {
           <a href="https://github.com/chanuar" rel="me">
             GitHub
           </a>
-          <a href="https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/" rel="me">
+          <a href="https://www.linkedin.com/in/carlos-chanuar/" rel="me">
             LinkedIn
           </a>
         </div>

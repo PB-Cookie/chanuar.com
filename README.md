@@ -117,4 +117,4 @@ If you want to talk about a project, software, League of Legends, or just say he
 
 - [carlos@chanuar.com](mailto:carlos@chanuar.com)
 - [GitHub — @chanuar](https://github.com/chanuar)
-- [LinkedIn — Carlos Chanuar Martínez](https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/)
+- [LinkedIn — Carlos Chanuar Martínez](https://www.linkedin.com/in/carlos-chanuar/)

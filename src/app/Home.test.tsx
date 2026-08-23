@@ -20,7 +20,7 @@ describe('portfolio surfaces', () => {
     );
     expect(screen.getByRole('link', { name: 'LinkedIn' })).toHaveAttribute(
       'href',
-      'https://www.linkedin.com/in/carlos-chanuar-mart%C3%ADnez-591653251/',
+      'https://www.linkedin.com/in/carlos-chanuar/',
     );
     expect(screen.getByRole('link', { name: '01 Proyectos' })).toHaveAttribute(
       'href',

@@ -19,6 +19,11 @@ export const routes: RouteObject[] = [
             Component: Home,
           },
           {
+            path: 'en',
+            handle: 'home' satisfies Page,
+            Component: Home,
+          },
+          {
             path: '*',
             handle: 'notFound' satisfies Page,
             Component: NotFound,

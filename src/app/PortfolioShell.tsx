@@ -3,14 +3,15 @@ import gsap from 'gsap';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useLocation } from 'react-router';
 import { ContactForm } from './ContactForm';
 import './portfolio.css';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, ScrollSmoother);
 
 export function PortfolioShell() {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
+  const homePath = useLocation().pathname === '/en' ? '/en' : '/';
 
   useGSAP(() => {
     ScrollSmoother.create({
@@ -27,41 +28,24 @@ export function PortfolioShell() {
         <div id="smooth-content">
           <div className="portfolio-shell">
             <header className="portfolio-header">
-              <NavLink className="portfolio-brand" to="/" end aria-label={t('shell.home')}>
+              <NavLink className="portfolio-brand" to={homePath} end aria-label={t('shell.home')}>
                 <span aria-hidden="true">C.</span>
                 <span>@chanuar</span>
               </NavLink>
               <div className="portfolio-header__actions">
                 <nav aria-label={t('shell.navigation')}>
-                  <a href="/#proyectos">{t('shell.projects')}</a>
-                  <a href="/#tecnologias">{t('shell.stack')}</a>
-                  <a href="/#contacto">{t('shell.contact')}</a>
+                  <a href={`${homePath}#proyectos`}>{t('shell.projects')}</a>
+                  <a href={`${homePath}#tecnologias`}>{t('shell.stack')}</a>
+                  <a href={`${homePath}#contacto`}>{t('shell.contact')}</a>
                 </nav>
-                <fieldset className="portfolio-language">
-                  <legend className="portfolio-visually-hidden">{t('language')}</legend>
-                  <label>
-                    <input
-                      className="portfolio-visually-hidden"
-                      type="radio"
-                      name="language"
-                      value="es"
-                      checked={i18n.resolvedLanguage === 'es'}
-                      onChange={() => void i18n.changeLanguage('es')}
-                    />
-                    <span>ES</span>
-                  </label>
-                  <label>
-                    <input
-                      className="portfolio-visually-hidden"
-                      type="radio"
-                      name="language"
-                      value="en"
-                      checked={i18n.resolvedLanguage === 'en'}
-                      onChange={() => void i18n.changeLanguage('en')}
-                    />
-                    <span>EN</span>
-                  </label>
-                </fieldset>
+                <nav className="portfolio-language" aria-label={t('language')}>
+                  <NavLink to="/" end hrefLang="es" lang="es">
+                    ES
+                  </NavLink>
+                  <NavLink to="/en" end hrefLang="en" lang="en">
+                    EN
+                  </NavLink>
+                </nav>
               </div>
             </header>
             <Outlet />

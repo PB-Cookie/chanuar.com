@@ -52,18 +52,29 @@ describe('portfolio surfaces', () => {
     expect(document.querySelector('.portfolio-shell')).toBeInTheDocument();
   });
 
-  it('switches the interface and metadata to English', async () => {
+  it('navigates to the English portfolio URL', async () => {
     const user = userEvent.setup();
     renderPage('/');
 
-    await user.click(screen.getByRole('radio', { name: 'EN' }));
+    await user.click(screen.getByRole('link', { name: 'EN' }));
 
-    expect(screen.getByText('Full-stack developer')).toBeVisible();
+    expect(await screen.findByText('Full-stack developer')).toBeVisible();
     expect(screen.getByRole('link', { name: '01 Projects' })).toBeVisible();
+    expect(screen.getByRole('link', { name: '01 Projects' })).toHaveAttribute(
+      'href',
+      '/en#proyectos',
+    );
+    expect(screen.getByRole('link', { name: 'ES' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'EN' })).toHaveAttribute('href', '/en');
+    expect(screen.getByRole('link', { name: 'EN' })).toHaveAttribute('aria-current', 'page');
     expect(document.documentElement).toHaveAttribute('lang', 'en');
     expect(document.querySelector('meta[property="og:locale"]')).toHaveAttribute(
       'content',
       'en_US',
+    );
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'http://localhost:3000/en',
     );
   });
 });

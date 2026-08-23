@@ -9,6 +9,7 @@ export function RouteEnvironment() {
   const matches = useMatches();
   const location = useLocation();
   const name = (matches.at(-1)?.handle as Page | undefined) ?? 'notFound';
+  const language = name === 'home' && location.pathname === '/en' ? 'en' : 'es';
   const meta = {
     home: {
       title: 'Carlos Chanuar | Software Developer',
@@ -22,18 +23,20 @@ export function RouteEnvironment() {
     },
   }[name];
   const image = new URL(meta.image, window.location.origin).href;
-  const canonicalPath = name === 'home' ? '/' : undefined;
+  const canonicalPath = name === 'home' ? (language === 'en' ? '/en' : '/') : undefined;
   const pageUrl = new URL(canonicalPath ?? location.pathname, window.location.origin).href;
   const previousPath = useRef(location.pathname);
 
   useEffect(() => {
+    if (i18n.resolvedLanguage !== language) void i18n.changeLanguage(language);
+
     const routeChanged = previousPath.current !== location.pathname;
     previousPath.current = location.pathname;
 
     if (routeChanged) {
       document.getElementById('main-content')?.focus();
     }
-  }, [location.pathname]);
+  }, [i18n, language, location.pathname]);
 
   return (
     <>
@@ -43,7 +46,7 @@ export function RouteEnvironment() {
       <meta property="og:title" content={meta.title} />
       <meta property="og:description" content={meta.description} />
       <meta property="og:type" content="website" />
-      <meta property="og:locale" content={i18n.resolvedLanguage === 'en' ? 'en_US' : 'es_ES'} />
+      <meta property="og:locale" content={language === 'en' ? 'en_US' : 'es_ES'} />
       <meta property="og:site_name" content="chanuar.com" />
       <meta property="og:url" content={pageUrl} />
       <meta property="og:image" content={image} />

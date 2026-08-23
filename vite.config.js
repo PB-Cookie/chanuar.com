@@ -7,6 +7,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: 'index.html',
+        english: 'en.html',
         notFound: '404.html',
       },
     },

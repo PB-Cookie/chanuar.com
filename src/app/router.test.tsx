@@ -9,8 +9,8 @@ import { RouteError } from './RouteError';
 afterEach(() => vi.restoreAllMocks());
 
 describe('application router', () => {
-  it('matches the portfolio URL', () => {
-    const matches = matchRoutes(routes, '/');
+  it.each(['/', '/en'])('matches the portfolio URL %s', (path) => {
+    const matches = matchRoutes(routes, path);
     expect(matches).toBeTruthy();
     expect(matches?.some((match) => match.route.path === '*')).toBe(false);
   });
@@ -37,34 +37,42 @@ describe('application router', () => {
   });
 
   it.each([
-    ['home', '/', 'Carlos Chanuar | Software Developer', '#08090b', '/'],
-    ['notFound', '/missing', 'Página no encontrada - chanuar.com', '#08090b', null],
-  ] as const)('applies %s metadata', async (page, path, title, theme, canonicalPath) => {
-    const router = createMemoryRouter(
-      [
-        {
-          Component: RouteEnvironment,
-          children: [{ path, handle: page satisfies Page, element: <div>ready</div> }],
-        },
-      ],
-      { initialEntries: [path] },
-    );
-    render(<RouterProvider router={router} />);
-    await waitFor(() => expect(document.title).toBe(title));
-    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', theme);
-    expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
-    const canonical = document.querySelector('link[rel="canonical"]');
-    if (canonicalPath) {
-      expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);
-    } else {
-      expect(canonical).not.toBeInTheDocument();
-    }
-    if (page === 'notFound')
-      expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
-        'content',
-        'noindex, nofollow',
+    ['home', '/', 'Carlos Chanuar | Software Developer', '#08090b', '/', 'es_ES'],
+    ['home', '/en', 'Carlos Chanuar | Software Developer', '#08090b', '/en', 'en_US'],
+    ['notFound', '/missing', 'Página no encontrada - chanuar.com', '#08090b', null, 'es_ES'],
+  ] as const)(
+    'applies %s metadata at %s',
+    async (page, path, title, theme, canonicalPath, locale) => {
+      const router = createMemoryRouter(
+        [
+          {
+            Component: RouteEnvironment,
+            children: [{ path, handle: page satisfies Page, element: <div>ready</div> }],
+          },
+        ],
+        { initialEntries: [path] },
       );
-  });
+      render(<RouterProvider router={router} />);
+      await waitFor(() => expect(document.title).toBe(title));
+      expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', theme);
+      expect(document.querySelector('meta[property="og:locale"]')).toHaveAttribute(
+        'content',
+        locale,
+      );
+      expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonicalPath) {
+        expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);
+      } else {
+        expect(canonical).not.toBeInTheDocument();
+      }
+      if (page === 'notFound')
+        expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+          'content',
+          'noindex, nofollow',
+        );
+    },
+  );
 
   it('moves focus to the main content after client-side navigation', async () => {
     const router = createMemoryRouter([

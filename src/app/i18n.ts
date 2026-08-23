@@ -10,7 +10,7 @@ function syncDocumentLanguage(language: string) {
 i18n.on('languageChanged', syncDocumentLanguage);
 
 void i18n.use(initReactI18next).init({
-  lng: 'es',
+  lng: typeof document === 'undefined' ? 'es' : document.documentElement.lang || 'es',
   fallbackLng: 'es',
   supportedLngs: ['es', 'en'],
   resources: {

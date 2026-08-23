@@ -11,7 +11,7 @@ export function RouteEnvironment() {
   const name = (matches.at(-1)?.handle as Page | undefined) ?? 'notFound';
   const meta = {
     home: {
-      title: 'Carlos Chanuar',
+      title: 'Carlos Chanuar | Software Developer',
       description: t('metadata.homeDescription'),
       image: '/portfolio-og.png',
     },

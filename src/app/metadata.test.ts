@@ -11,7 +11,7 @@ function readEntry(relativePath: string) {
 describe('route entry metadata', () => {
   it('ships portfolio metadata at the root', () => {
     const html = readEntry('index.html');
-    expect(html).toContain('<title>Carlos Chanuar</title>');
+    expect(html).toContain('<title>Carlos Chanuar | Software Developer</title>');
     expect(html).toContain('<body class="portfolio-page">');
     expect(html).toContain('<link rel="canonical" href="https://chanuar.com/" />');
     expect(html).toContain('property="og:image" content="https://chanuar.com/portfolio-og.png"');

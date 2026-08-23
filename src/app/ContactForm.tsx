@@ -1,5 +1,5 @@
 import emailjs from '@emailjs/browser';
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 type SubmissionStatus = 'idle' | 'sending' | 'success' | 'error';
@@ -12,7 +12,7 @@ export function ContactForm() {
   const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
   const isConfigured = Boolean(serviceId && templateId && publicKey);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!isConfigured) return;

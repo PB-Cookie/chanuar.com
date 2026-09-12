@@ -2,7 +2,7 @@
 
 This is my portfolio — the place where I share what I build, how I approach software, and the kind of problems I enjoy solving.
 
-I'm a full-stack developer who enjoys building different and interesting things, exploring new technologies n ideas and learning along the way. The website is currently available in Spanish (working on it!).
+I'm a full-stack developer who enjoys building different and interesting things, exploring new technologies n ideas and learning along the way. The website is available in Spanish and English.
 
 ## ✨ What's inside
 
@@ -24,7 +24,7 @@ This repository is just for **chanuar.com**.
 
 ## 🚧 Repository status
 
-I'm still working on it, translating everything and adding more content. Also want to try using gsap/three.js for some animations and transitions.
+I'm continuing to add content and explore animations with GSAP.
 
 ## 🛠️ Tech stack
 
@@ -32,6 +32,8 @@ I'm still working on it, translating everything and adding more content. Also wa
 - React Router 7
 - TypeScript
 - Vite
+- GSAP
+- i18next
 - EmailJS
 - Vitest
 - Testing Library
@@ -39,77 +41,6 @@ I'm still working on it, translating everything and adding more content. Also wa
 - Prettier
 - Husky
 - lint-staged
-
-## 💻 Running it locally
-
-### Requirements
-
-- Node.js 20.19 or newer
-- Node 22 is the repository default
-- npm
-
-Clone the repository and install the dependencies:
-
-```bash
-git clone https://github.com/chanuar/chanuar.com.git
-cd chanuar.com
-npm ci
-```
-
-Copy `.env.example` to `.env` and add the browser-safe EmailJS values if you want the contact form to work:
-
-```dotenv
-VITE_EMAILJS_SERVICE_ID=service_...
-VITE_EMAILJS_TEMPLATE_ID=template_...
-VITE_EMAILJS_PUBLIC_KEY=...
-```
-
-The temporary legacy product routes also use these Supabase values:
-
-```dotenv
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-```
-
-Keep secrets out of `.env`.
-
-That means no service-role credentials, database passwords, access tokens, or administrator identifiers.
-
-Then start the development server:
-
-```bash
-npm run dev
-```
-
-## 🧪 Scripts
-
-| Command                | What it does                                          |
-| ---------------------- | ----------------------------------------------------- |
-| `npm run dev`          | Start the Vite development server.                    |
-| `npm run build`        | Type-check the project and create a production build. |
-| `npm run preview`      | Preview the production build locally.                 |
-| `npm run lint`         | Run ESLint with zero warnings allowed.                |
-| `npm run format`       | Format supported files with Prettier.                 |
-| `npm run format:check` | Check formatting without changing files.              |
-| `npm run typecheck`    | Run strict TypeScript checks.                         |
-| `npm test`             | Run the Vitest suite once.                            |
-| `npm run test:watch`   | Run Vitest in watch mode.                             |
-
-Git hooks also run lint-staged checks before commits and the type-check and test suite before pushes.
-
-## 📁 Structure
-
-```text
-src/
-├── app/                  # Portfolio shell, routing, metadata, pages, and 404 UI
-└── test/                 # Shared test setup
-
-public/                   # Assets, robots.txt, sitemap.xml, and route rewrites
-```
-
-The portfolio itself lives in `src/app/`.
-
-Product code is intentionally kept separate: it shouldn't import from the portfolio application or from another product.
 
 ## 📬 Say hi
 

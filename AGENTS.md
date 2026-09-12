@@ -8,7 +8,7 @@ with Vite, React 19, React Router 7 Data Mode, and strict TypeScript.
 - `src/app/` owns startup, routing, metadata, body environments, the portfolio
   home, and the portfolio-styled 404 surface.
 - `public/` owns static assets, `robots.txt`, and `sitemap.xml`.
-- The only public application route is `/`. Unknown routes must render the
+- Public portfolio routes are `/` (Spanish) and `/en` (English). Unknown routes must render the
   portfolio-styled 404 and remain `noindex`.
 - Keep the portfolio identity in `src/app/Home.tsx`, root metadata, and the
   root `ProfilePage` JSON-LD in sync. Canonical URLs use
@@ -32,15 +32,20 @@ and [chanuar/MenuBox](https://github.com/chanuar/MenuBox).
 - Keep state local to its owning component. Do not add global stores, service
   classes, repositories, dependency injection, barrel files, or speculative
   shared UI.
-- Visible portfolio copy is Spanish. Internationalization is deferred until a
-  second locale is requested.
+- Visible portfolio copy is available in Spanish and English through i18next.
+  Keep `src/app/locales/es.json` and `src/app/locales/en.json` in sync.
+  The URL determines the language; keep the document language and metadata aligned.
 
 ## Public route contract
 
-Changes to `/` or the 404 surface require updating the React Router tree,
+Changes to `/`, `/en`, or the 404 surface require updating the React Router tree,
 static HTML entry point and metadata, Vite build inputs, Cloudflare Pages
 behavior, route metadata/body-environment configuration, and crawl metadata
 where applicable.
+
+Keep `index.html`, `en.html`, client metadata, hreflang links, and the sitemap
+consistent. Preserve the `/en/` to `/en` redirect and real 404 responses for
+unknown direct requests.
 
 ## TypeScript and formatting
 

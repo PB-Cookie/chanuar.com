@@ -74,7 +74,7 @@ describe('portfolio surfaces', () => {
     );
     expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
       'href',
-      'http://localhost:3000/en',
+      'https://chanuar.com/en',
     );
   });
 });

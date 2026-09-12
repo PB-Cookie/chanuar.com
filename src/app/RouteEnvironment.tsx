@@ -13,18 +13,18 @@ export function RouteEnvironment() {
   const meta = {
     home: {
       title: 'Carlos Chanuar | Software Developer',
-      description: t('metadata.homeDescription'),
+      description: t('metadata.homeDescription', { lng: language }),
       image: '/portfolio-og.png',
     },
     notFound: {
-      title: t('metadata.notFoundTitle'),
-      description: t('metadata.notFoundDescription'),
+      title: t('metadata.notFoundTitle', { lng: language }),
+      description: t('metadata.notFoundDescription', { lng: language }),
       image: '/favicon.svg',
     },
   }[name];
-  const image = new URL(meta.image, window.location.origin).href;
+  const image = new URL(meta.image, 'https://chanuar.com').href;
   const canonicalPath = name === 'home' ? (language === 'en' ? '/en' : '/') : undefined;
-  const pageUrl = new URL(canonicalPath ?? location.pathname, window.location.origin).href;
+  const pageUrl = new URL(canonicalPath ?? location.pathname, 'https://chanuar.com').href;
   const previousPath = useRef(location.pathname);
 
   useEffect(() => {

@@ -5,10 +5,50 @@ import { createMemoryRouter, Link, matchRoutes, RouterProvider } from 'react-rou
 import { routes } from './router';
 import { RouteEnvironment, type Page } from './RouteEnvironment';
 import { RouteError } from './RouteError';
+import spanishEntry from '../../index.html?raw';
+import englishEntry from '../../en.html?raw';
+import notFoundEntry from '../../404.html?raw';
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('application router', () => {
+  it.each([
+    ['/', 'home', spanishEntry],
+    ['/en', 'home', englishEntry],
+    ['/missing', 'notFound', notFoundEntry],
+  ] as const)('keeps HTML and client metadata consistent at %s', (path, page, html) => {
+    const entry = new DOMParser().parseFromString(html, 'text/html');
+    const router = createMemoryRouter(
+      [
+        {
+          Component: RouteEnvironment,
+          children: [{ path, handle: page satisfies Page, element: <div>ready</div> }],
+        },
+      ],
+      { initialEntries: [path] },
+    );
+    render(<RouterProvider router={router} />);
+
+    expect(document.title).toBe(entry.title);
+    for (const tag of entry.querySelectorAll('meta[name], meta[property], link[rel="canonical"]')) {
+      const attribute = tag.hasAttribute('name')
+        ? 'name'
+        : tag.hasAttribute('property')
+          ? 'property'
+          : 'rel';
+      if (tag.getAttribute('name') === 'viewport') continue;
+      const selector = `${tag.localName}[${attribute}="${tag.getAttribute(attribute)}"]`;
+      expect(document.querySelector(selector)).toHaveAttribute(
+        tag.localName === 'link' ? 'href' : 'content',
+        tag.getAttribute(tag.localName === 'link' ? 'href' : 'content'),
+      );
+    }
+    expect(document.querySelector('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      `https://chanuar.com/${page === 'home' ? 'portfolio-og.png' : 'favicon.svg'}`,
+    );
+  });
+
   it.each(['/', '/en'])('matches the portfolio URL %s', (path) => {
     const matches = matchRoutes(routes, path);
     expect(matches).toBeTruthy();
@@ -62,7 +102,7 @@ describe('application router', () => {
       expect(document.querySelectorAll('link[rel="preload"][as="font"]')).toHaveLength(0);
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonicalPath) {
-        expect(canonical).toHaveAttribute('href', `http://localhost:3000${canonicalPath}`);
+        expect(canonical).toHaveAttribute('href', `https://chanuar.com${canonicalPath}`);
       } else {
         expect(canonical).not.toBeInTheDocument();
       }

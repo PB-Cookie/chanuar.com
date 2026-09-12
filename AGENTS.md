@@ -56,7 +56,7 @@ where applicable.
 
 ## Commands and verification
 
-- `npm ci` installs locked dependencies; Node 20.19 or newer is required.
+- `npm ci` installs locked dependencies; use Node 24.21.0 LTS (`.node-version`).
 - `npm run dev` starts Vite.
 - `npm run lint` runs ESLint with zero warnings allowed.
 - `npm run format:check` verifies Prettier formatting.

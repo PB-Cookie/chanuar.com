@@ -7,10 +7,16 @@ type SubmissionStatus = 'idle' | 'sending' | 'success' | 'error';
 export function ContactForm() {
   const { t } = useTranslation();
   const [status, setStatus] = useState<SubmissionStatus>('idle');
-  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-  const isConfigured = Boolean(serviceId && templateId && publicKey);
+  const serviceId: unknown = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const templateId: unknown = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+  const publicKey: unknown = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+  const isConfigured =
+    typeof serviceId === 'string' &&
+    serviceId.length > 0 &&
+    typeof templateId === 'string' &&
+    templateId.length > 0 &&
+    typeof publicKey === 'string' &&
+    publicKey.length > 0;
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,7 +38,7 @@ export function ContactForm() {
   return (
     <form
       className="portfolio-contact-form"
-      onSubmit={handleSubmit}
+      onSubmit={(event) => void handleSubmit(event)}
       onChange={() => status !== 'sending' && setStatus('idle')}
       aria-busy={status === 'sending'}
     >

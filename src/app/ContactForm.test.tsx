@@ -27,6 +27,17 @@ async function completeForm() {
 }
 
 describe('ContactForm', () => {
+  it.each(['VITE_EMAILJS_SERVICE_ID', 'VITE_EMAILJS_TEMPLATE_ID', 'VITE_EMAILJS_PUBLIC_KEY'])(
+    'disables sending when %s is missing',
+    (key) => {
+      vi.stubEnv(key, '');
+      render(<ContactForm />);
+
+      expect(screen.getByRole('button', { name: 'Enviar mensaje' })).toBeDisabled();
+      expect(sendForm).not.toHaveBeenCalled();
+    },
+  );
+
   it('sends the EmailJS form and confirms success', async () => {
     sendForm.mockResolvedValue({ status: 200, text: 'OK' });
     render(<ContactForm />);
